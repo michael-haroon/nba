@@ -1,0 +1,5 @@
+team,model_prob,market_prob,edge,direction,kelly_pct,bet_amount,expected_value
+Arizona,0.3321,0.3784,-0.0463,BUY NO,6.1,61.14,4.55
+Connecticut,0.188,0.1002,0.0877,BUY YES,4.9,48.76,42.69
+Illinois,0.1205,0.1459,-0.0254,BUY NO,8.7,87.12,2.59
+Michigan,0.3594,0.3755,-0.0161,HOLD,0.0,0.0,0.0
