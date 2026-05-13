@@ -1,7 +1,8 @@
 """
+TODO
 tests/test_game_model.py
 ------------------------
-Unit tests for feature_pipeline.game_model (Phase 1A).
+Unit tests for feature_pipeline.game_model 
 
 Run with: pytest tests/test_game_model.py -v
 Or quick smoke test: pytest tests/test_game_model.py -v -m "not slow"
@@ -17,10 +18,6 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 DATA_DIR = "data"
-KAGGLE_DIR = os.path.join(DATA_DIR, "kaggle")
-
-# Skip integration tests if data not present
-has_data = os.path.exists(os.path.join(KAGGLE_DIR, "MRegularSeasonDetailedResults.csv"))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -32,14 +29,14 @@ def team_df():
     """Build team-season features once for all tests."""
     if not has_data:
         pytest.skip("Kaggle data not available")
-    from feature_pipeline.game_model import build_team_season_features
+    from nba.strategy.game_model import build_team_season_features
     return build_team_season_features(DATA_DIR, min_season=2003)
 
 
 @pytest.fixture(scope="module")
 def pairs_df(team_df):
     """Build game pairs once for all tests."""
-    from feature_pipeline.game_model import build_game_pairs
+    from nba.strategy.game_model import build_game_pairs
     tourney_path = os.path.join(KAGGLE_DIR, "MNCAATourneyCompactResults.csv")
     return build_game_pairs(team_df, tourney_path, min_season=2003, max_season=2025)
 
@@ -47,7 +44,7 @@ def pairs_df(team_df):
 @pytest.fixture(scope="module")
 def model_results(pairs_df):
     """Train model once for slow tests."""
-    from feature_pipeline.game_model import train_game_model
+    from nba.strategy.game_model import train_game_model
     return train_game_model(pairs_df)
 
 
@@ -61,7 +58,6 @@ def test_team_features_no_lookahead():
     if not has_data:
         pytest.skip("Kaggle data not available")
     import pandas as pd
-    rs = pd.read_csv(os.path.join(KAGGLE_DIR, "MRegularSeasonDetailedResults.csv"))
     # Kaggle keeps regular season separate from tournament — all rows should be DayNum <= 132
     assert rs["DayNum"].max() <= 132, (
         f"Regular season file has games with DayNum > 132: {rs['DayNum'].max()}"
@@ -144,7 +140,7 @@ def test_diff_features_present(pairs_df):
 
 def test_diff_features_antisymmetric(team_df):
     """diff(A,B) == -diff(B,A) for the same game."""
-    from feature_pipeline.game_model import build_game_pairs
+    from nba.strategy.game_model import build_game_pairs
     tourney_path = os.path.join(KAGGLE_DIR, "MNCAATourneyCompactResults.csv")
 
     pairs = build_game_pairs(team_df, tourney_path, min_season=2022, max_season=2022)
@@ -249,7 +245,7 @@ def test_oof_covers_all_seasons(model_results, pairs_df):
 @pytest.mark.slow
 def test_predict_sums_to_one(model_results, team_df):
     """Championship probabilities must sum to 1.0."""
-    from feature_pipeline.game_model import predict_final_four
+    from nba.strategy.game_model import predict_final_four
     from feature_pipeline.name_resolver import build_id_lookup, resolve_team_id
     from feature_pipeline.config import TEAM_NAME_MAP
 
@@ -281,7 +277,7 @@ def test_predict_sums_to_one(model_results, team_df):
 @pytest.mark.slow
 def test_simulation_deterministic_with_seed(model_results, team_df):
     """Same random seed → same predictions."""
-    from feature_pipeline.game_model import predict_final_four
+    from nba.strategy.game_model import predict_final_four
     from feature_pipeline.name_resolver import build_id_lookup, resolve_team_id
     from feature_pipeline.config import TEAM_NAME_MAP
 
@@ -320,7 +316,7 @@ def test_simulation_deterministic_with_seed(model_results, team_df):
 
 def test_parse_seed():
     """parse_seed correctly converts seed strings to integers."""
-    from feature_pipeline.game_model import parse_seed
+    from nba.strategy.game_model import parse_seed
     assert parse_seed("W01") == 1
     assert parse_seed("X16a") == 16
     assert parse_seed("Z11b") == 11
@@ -331,7 +327,7 @@ def test_parse_seed():
 
 def test_daynum_to_round():
     """daynum_to_round correctly maps DayNums to rounds."""
-    from feature_pipeline.game_model import daynum_to_round
+    from nba.strategy.game_model import daynum_to_round
     assert daynum_to_round(134) == 1  # R64
     assert daynum_to_round(136) == 1
     assert daynum_to_round(137) == 2  # R32
@@ -347,7 +343,7 @@ def test_daynum_to_round():
 
 def test_compute_path_features_r1_returns_nan():
     """Empty prior_games (R1 game) returns path_games_played=0 and all others NaN."""
-    from feature_pipeline.game_model import compute_path_features
+    from nba.strategy.game_model import compute_path_features
     result = compute_path_features(1163, 2026, prior_games=[], seeds_df=None)
     assert result["path_games_played"] == 0
     assert np.isnan(result["path_avg_margin"])
@@ -357,7 +353,7 @@ def test_compute_path_features_r1_returns_nan():
 
 def test_compute_path_features_games_played():
     """path_games_played equals number of prior games."""
-    from feature_pipeline.game_model import compute_path_features
+    from nba.strategy.game_model import compute_path_features
 
     games = [
         {"DayNum": 136, "won": 1, "margin": 10.0, "FGM": 25, "FGA": 50,
@@ -377,7 +373,7 @@ def test_compute_path_features_games_played():
 
 def test_compute_path_features_fg_pct():
     """path_fg_pct and path_opp_fg_pct computed from aggregate shots."""
-    from feature_pipeline.game_model import compute_path_features
+    from nba.strategy.game_model import compute_path_features
 
     games = [
         {"DayNum": 136, "won": 1, "margin": 8.0, "FGM": 20, "FGA": 40,
@@ -396,7 +392,7 @@ def test_pairs_with_path_r1_diffs_zero():
     """R1 games have diff_path_games_played == 0 (both teams have no prior path)."""
     if not has_data:
         pytest.skip("Kaggle data not available")
-    from feature_pipeline.game_model import build_game_pairs, build_team_season_features
+    from nba.strategy.game_model import build_game_pairs, build_team_season_features
 
     team_df_fixture = build_team_season_features(DATA_DIR, min_season=2022)
     tourney_compact = os.path.join(KAGGLE_DIR, "MNCAATourneyCompactResults.csv")
@@ -425,7 +421,7 @@ def test_pairs_with_path_no_lookahead():
     """Path features for game at DayNum D only use games with DayNum < D."""
     if not has_data:
         pytest.skip("Kaggle data not available")
-    from feature_pipeline.game_model import build_game_pairs, build_team_season_features
+    from nba.strategy.game_model import build_game_pairs, build_team_season_features
 
     team_df_fixture = build_team_season_features(DATA_DIR, min_season=2023)
     tourney_compact = os.path.join(KAGGLE_DIR, "MNCAATourneyCompactResults.csv")
@@ -452,7 +448,7 @@ def test_pairs_with_path_no_lookahead():
 @pytest.mark.slow
 def test_predict_with_path_sums_to_one(model_results, team_df):
     """Championship probabilities sum to 1.0 with path features enabled."""
-    from feature_pipeline.game_model import predict_final_four, load_actual_path_features
+    from nba.strategy.game_model import predict_final_four, load_actual_path_features
     from feature_pipeline.name_resolver import build_id_lookup, resolve_team_id
     from feature_pipeline.config import TEAM_NAME_MAP
 
