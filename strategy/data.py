@@ -61,7 +61,7 @@ def resolve_bracket_teams(bracket: dict, data_dir: str = DATA_DIR) -> dict:
 def load_path_features(team_ids: list, season: int,
                        data_dir: str = DATA_DIR) -> dict:
     """Load actual tournament path features for Final Four teams (through E8)."""
-    from feature_pipeline.game_model import load_actual_path_features
+    from nba.strategy.game_model import load_actual_path_features
     return load_actual_path_features(data_dir, season, team_ids)
 
 
