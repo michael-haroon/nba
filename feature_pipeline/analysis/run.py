@@ -1,9 +1,9 @@
 """
-run_v2.py
+run.py
 ---------
-Feature analysis pipeline for NCAA tournament prediction.
+Feature analysis pipeline for NBA game predictions.
 
-Orchestrates: team features → enrichment → game pairs → de Prado feature analysis
+Orchestrates: features → game pairs → de Prado feature analysis
 (PCA → ONC clustering → MDI/MDA/SFI)
 
 Predictive modeling and trading strategy live in /strategy (separate module).
@@ -18,12 +18,12 @@ import argparse
 import warnings
 from pathlib import Path
 
-from feature_pipeline.game_model import (
+from nba.strategy.game_model import (
     build_team_season_features,
     enrich_with_existing_features,
     build_game_pairs,
 )
-from feature_pipeline.feature_importance import run_all_importance, synthetic_validation
+from nba.feature_pipeline.analysis.feature_importance import run_all_importance, synthetic_validation
 
 
 def main(data_dir: str = "data", output_dir: str = "output_v2",
@@ -44,7 +44,7 @@ def main(data_dir: str = "data", output_dir: str = "output_v2",
         print("Step 2: Enriching with team sheets, awards, rankings...")
         try:
             from feature_pipeline.data_loader import load_all
-            from feature_pipeline.feature_engineering import build_features
+            from nba.feature_pipeline.engineering.feature_engineering import build_features
 
             existing_df = load_all(
                 data_dir,

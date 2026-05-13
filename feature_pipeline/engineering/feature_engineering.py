@@ -640,7 +640,7 @@ def audit_feature_redundancy(df: pd.DataFrame,
           'keep_list': list of recommended features (one per cluster),
         }
     """
-    from feature_pipeline.feature_importance import onc_cluster
+    from nba.feature_pipeline.analysis.feature_importance import onc_cluster
 
     if feature_cols is None:
         # Use all numeric columns that are not metadata/labels
