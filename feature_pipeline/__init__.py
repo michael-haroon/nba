@@ -1,1 +1,1 @@
-"""Feature pipeline for NCAA tournament prediction."""
+"""Feature pipeline for NBA prediction markets."""

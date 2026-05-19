@@ -1,0 +1,21 @@
+- [?] add NOK to the mapping and curated history
+
+- Add the following data:
+    - [X] AdvBoxScoresTradPre
+    - [X] AdvBoxScoresTradRegular
+    - [X] AdvBoxScoresTradPlayoffs
+    - [X] AdvBoxScoresAdvPre
+    - [X] AdvBoxScoresAdvRegular
+    - [X] AdvBoxScoresAdvPlayoffs
+    - [X] AdvBoxScoresFourFactorsPre
+    - [X] AdvBoxScoresFourFactorsRegular
+    - [X] AdvBoxScoresFourFactorsPlayoffs
+    - [X] AdvBoxScoresMiscPre
+    - [X] AdvBoxScoresMiscRegular
+    - [X] AdvBoxScoresMiscPlayoffs
+    - [X] AdvBoxScoresScoringPre
+    - [X] AdvBoxScoresScoringRegular
+    - [X] AdvBoxScoresScoringPlayoffs
+    - [ ] GeneralAdv (for possessions)
+    - [X] Hustle endpoint
+    - [X] BoxScoreSummary endpoint
