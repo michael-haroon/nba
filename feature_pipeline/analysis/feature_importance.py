@@ -21,6 +21,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from itertools import combinations
+from joblib import Parallel, delayed
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
 from sklearn.metrics import log_loss, roc_auc_score
@@ -32,6 +33,7 @@ from scipy.spatial.distance import squareform
 from scipy.stats import wilcoxon as scipy_wilcoxon, weightedtau
 from sklearn.decomposition import PCA
 from feature_pipeline.config import RF_PARAMS
+from feature_pipeline.compute import get_n_jobs, get_parallel_split
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -71,7 +73,7 @@ class PurgedYearKFold:
 #  Build a base RF classifier (de Prado's recommended setup)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def build_rf(n_estimators: int = 1000) -> BaggingClassifier:
+def build_rf(n_estimators: int = 1000, n_jobs: int = -1) -> BaggingClassifier:
     """
     de Prado's recommended setup (AFML Ch.8):
     - Decision trees with max_features=1 (one random feature per split)
@@ -90,7 +92,7 @@ def build_rf(n_estimators: int = 1000) -> BaggingClassifier:
         max_features=1.0,
         max_samples=1.0,
         oob_score=False,         # don't use OOB — use purged CV instead
-        n_jobs=-1,
+        n_jobs=n_jobs,
         random_state=42,
     )
 
@@ -133,6 +135,55 @@ def feat_imp_mdi(fit: BaggingClassifier,
 #  MDA  (de Prado AFML Ch.8 §8.3.2)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _mda_one_fold(clf_params, X_tr_vals, X_te_vals, y_tr_vals, y_te_vals,
+                  col_names, w_tr_vals, scoring, seed):
+    """
+    Run one MDA fold: fit model, score base + all permutations.
+
+    Uses backend="multiprocessing" (fork on Linux) at the outer level so
+    BaggingClassifier's inner n_jobs threads actually run — loky blocks nested
+    subprocess spawning, but forked processes can use threads freely.
+    """
+    import os
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import BaggingClassifier
+
+    rng = np.random.default_rng(seed)
+    base = DecisionTreeClassifier(
+        criterion="entropy", max_features=1,
+        class_weight="balanced", min_weight_fraction_leaf=0.02,
+    )
+    clf = BaggingClassifier(
+        estimator=base, n_estimators=clf_params["n_estimators"],
+        max_features=1.0, max_samples=1.0, oob_score=False,
+        n_jobs=clf_params["n_jobs"], random_state=clf_params["random_state"],
+    )
+    X_tr = pd.DataFrame(X_tr_vals, columns=col_names)
+    X_te = pd.DataFrame(X_te_vals, columns=col_names)
+    y_tr = pd.Series(y_tr_vals)
+    y_te = pd.Series(y_te_vals)
+
+    fit = clf.fit(X_tr, y_tr, sample_weight=w_tr_vals)
+    prob = fit.predict_proba(X_te)
+
+    if scoring == "log_loss":
+        base_score = -log_loss(y_te, prob, labels=fit.classes_)
+    else:
+        base_score = roc_auc_score(y_te, prob[:, 1])
+
+    perm_fold = {}
+    for col in col_names:
+        X_perm = X_te.copy()
+        X_perm[col] = rng.permutation(X_perm[col].values)
+        prob_perm = fit.predict_proba(X_perm)
+        if scoring == "log_loss":
+            perm_fold[col] = -log_loss(y_te, prob_perm, labels=fit.classes_)
+        else:
+            perm_fold[col] = roc_auc_score(y_te, prob_perm[:, 1])
+
+    return base_score, perm_fold
+
+
 def feat_imp_mda(clf,
                  X: pd.DataFrame,
                  y: pd.Series,
@@ -144,6 +195,10 @@ def feat_imp_mda(clf,
     Shuffles one feature at a time and measures accuracy drop.
     scoring: 'log_loss' (recommended) or 'roc_auc'
 
+    Parallelism: outer loop over folds via backend="multiprocessing" (fork on
+    Linux). Each forked worker gets n_inner threads for BaggingClassifier.
+    Fork avoids loky's nested-spawn restriction so inner n_jobs actually works.
+
     Returns:
         summary: DataFrame(index=feature, columns=[mean, std])
         raw:     DataFrame(index=fold, columns=features) — per-fold importance
@@ -151,52 +206,87 @@ def feat_imp_mda(clf,
                  t-tests vs. null H0: mean == 0 (shuffling has no effect).
     """
     cv = PurgedYearKFold(years)
-    base_scores = []
-    perm_scores = {col: [] for col in X.columns}
+    n_folds = cv.get_n_splits()
+    n_outer, n_inner = get_parallel_split(n_folds)
 
-    for train_idx, test_idx in cv.split(X, y, groups=years.values):
-        X_tr, X_te = X.iloc[train_idx], X.iloc[test_idx]
-        y_tr, y_te = y.iloc[train_idx], y.iloc[test_idx]
-        w_tr = sample_weight.iloc[train_idx] if sample_weight is not None else None
+    clf_params = {
+        "n_estimators": clf.n_estimators,
+        "n_jobs": n_inner,   # threads inside each forked worker — works with fork
+        "random_state": 42,
+    }
 
-        fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
-        prob = fit.predict_proba(X_te)
+    folds = list(cv.split(X, y, groups=years.values))
+    # backend="multiprocessing" → fork on Linux; forked processes can thread freely
+    results = Parallel(n_jobs=n_outer, backend="multiprocessing")(
+        delayed(_mda_one_fold)(
+            clf_params,
+            X.iloc[tr].values, X.iloc[te].values,
+            y.iloc[tr].values, y.iloc[te].values,
+            list(X.columns),
+            sample_weight.iloc[tr].values if sample_weight is not None else None,
+            scoring,
+            seed=i,
+        )
+        for i, (tr, te) in enumerate(folds)
+    )
 
-        # Base score
-        if scoring == "log_loss":
-            base_scores.append(-log_loss(y_te, prob, labels=fit.classes_))
-        else:
-            base_scores.append(roc_auc_score(y_te, prob[:, 1]))
-
-        # Permuted scores
-        for col in X.columns:
-            X_te_perm = X_te.copy()
-            X_te_perm[col] = X_te_perm[col].sample(frac=1).values  # shuffle
-            prob_perm = fit.predict_proba(X_te_perm)
-            if scoring == "log_loss":
-                perm_scores[col].append(-log_loss(y_te, prob_perm, labels=fit.classes_))
-            else:
-                perm_scores[col].append(roc_auc_score(y_te, prob_perm[:, 1]))
-
+    base_scores = [r[0] for r in results]
     base_arr = np.array(base_scores)
+
     records = {}
     raw_records = {}
     for col in X.columns:
-        perm = np.array(perm_scores[col])
-        imp  = base_arr - perm          # positive = shuffling this hurt performance
+        perm = np.array([r[1][col] for r in results])
+        imp  = base_arr - perm
         records[col] = {"mean": imp.mean(),
                         "std":  imp.std() * len(imp) ** -0.5}
-        raw_records[col] = imp          # per-fold importance values
+        raw_records[col] = imp
 
     result = pd.DataFrame(records).T
     result.columns = ["mean", "std"]
-    raw = pd.DataFrame(raw_records)     # shape: n_folds × n_features
+    raw = pd.DataFrame(raw_records)
     return result.sort_values("mean", ascending=False), raw
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  SFI  (de Prado AFML Ch.8 §8.4.1)
 # ─────────────────────────────────────────────────────────────────────────────
+
+def _sfi_one_task(col_idx, X_col_vals, X_tr_idx, X_te_idx,
+                  y_vals, w_vals, n_estimators):
+    """
+    Single atomic SFI task: train on one (feature, fold) pair.
+    No inner n_jobs — this IS the leaf-level unit of work.
+    Flattenining to (feature × fold) tasks eliminates all nesting.
+    """
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import BaggingClassifier
+
+    base = DecisionTreeClassifier(
+        criterion="entropy", max_features=1,
+        class_weight="balanced", min_weight_fraction_leaf=0.02,
+    )
+    clf = BaggingClassifier(
+        estimator=base, n_estimators=n_estimators,
+        max_features=1.0, max_samples=1.0, oob_score=False,
+        n_jobs=1, random_state=42,
+    )
+
+    X_tr = X_col_vals[X_tr_idx]
+    X_te = X_col_vals[X_te_idx]
+    y_tr = y_vals[X_tr_idx]
+    y_te = y_vals[X_te_idx]
+    w_tr = w_vals[X_tr_idx] if w_vals is not None else None
+
+    if len(np.unique(y_tr)) < 2:
+        return None
+    try:
+        fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
+        prob = fit.predict_proba(X_te)
+        return -log_loss(y_te, prob, labels=fit.classes_)
+    except Exception:
+        return None
+
 
 def feat_imp_sfi(clf,
                  X: pd.DataFrame,
@@ -206,57 +296,63 @@ def feat_imp_sfi(clf,
     """
     Single Feature Importance: train the model on ONE feature at a time.
     Immune to substitution effects between correlated features.
-    Slower but unbiased measure of standalone predictive power.
+
+    Parallelism: flattened to (feature × fold) atomic tasks so there is zero
+    nesting. n_features × n_folds tasks run across all CPUs with n_jobs=-1 and
+    n_jobs=1 inside each task — avoids loky's nested-spawn restriction entirely.
 
     Returns:
         summary: DataFrame(index=feature, columns=[mean, std])
         raw:     DataFrame(index=fold, columns=features) — per-fold log-loss scores.
-                 Use for distribution plots and t-tests vs. null_log_loss
-                 (H0: this feature is no better than predicting the base rate).
     """
     cv = PurgedYearKFold(years)
-    records = {}
-    raw_records = {}
+    folds = list(cv.split(X, y, groups=years.values))
+    n_folds = len(folds)
 
-    # Compute null log-loss (predict base rate for every sample)
-    # Scores are stored as -log_loss (higher = better), so null must also be negated.
-    # H(y) = -p*log(p) - (1-p)*log(1-p); null score = -H(y)
     p_pos = y.mean()
     null_ll = np.log(p_pos) * p_pos + np.log(1 - p_pos) * (1 - p_pos)
 
-    for col in X.columns:
-        X_single = X[[col]].copy()
-        scores = []
-        for train_idx, test_idx in cv.split(X_single, y, groups=years.values):
-            X_tr = X_single.iloc[train_idx]
-            X_te = X_single.iloc[test_idx]
-            y_tr = y.iloc[train_idx]
-            y_te = y.iloc[test_idx]
-            w_tr = sample_weight.iloc[train_idx] if sample_weight is not None else None
+    X_vals = X.values
+    y_vals = y.values
+    w_vals = sample_weight.values if sample_weight is not None else None
+    n_estimators = clf.n_estimators
+    col_names = list(X.columns)
 
-            if y_tr.nunique() < 2:
-                continue  # can't train on one class
-            try:
-                fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
-                prob = fit.predict_proba(X_te)
-                scores.append(-log_loss(y_te, prob, labels=fit.classes_))
-            except Exception:
-                pass
+    # Build flat task list: one entry per (feature_idx, fold_idx)
+    tasks = [
+        (ci, fi, X_vals[:, ci:ci + 1], tr, te)
+        for ci in range(len(col_names))
+        for fi, (tr, te) in enumerate(folds)
+    ]
 
+    results = Parallel(n_jobs=-1, backend="loky")(
+        delayed(_sfi_one_task)(ci, X_col, tr, te, y_vals, w_vals, n_estimators)
+        for ci, fi, X_col, tr, te in tasks
+    )
+
+    # Reconstruct per-feature score lists
+    raw_records = {col: [None] * n_folds for col in col_names}
+    for (ci, fi, *_), score in zip(tasks, results):
+        if score is not None:
+            raw_records[col_names[ci]][fi] = score
+
+    records = {}
+    final_raw = {}
+    for col in col_names:
+        scores = [s for s in raw_records[col] if s is not None]
         if scores:
             records[col] = {"mean": np.mean(scores),
                             "std":  np.std(scores) * len(scores) ** -0.5,
                             "null_log_loss": null_ll}
-            raw_records[col] = scores   # per-fold scores list
+            final_raw[col] = scores
 
     result = pd.DataFrame(records).T
     result.columns = ["mean", "std", "null_log_loss"]
 
-    # Build raw DataFrame: rows=folds (pad shorter lists with NaN), cols=features
-    max_folds = max(len(v) for v in raw_records.values()) if raw_records else 0
+    max_folds = max(len(v) for v in final_raw.values()) if final_raw else 0
     raw = pd.DataFrame(
         {col: vals + [np.nan] * (max_folds - len(vals))
-         for col, vals in raw_records.items()}
+         for col, vals in final_raw.items()}
     )
     return result.sort_values("mean", ascending=False), raw
 
@@ -271,6 +367,16 @@ def _cluster_quality(X: np.ndarray, labels: np.ndarray) -> float:
     return sil.mean() / (sil.std() + 1e-10)
 
 
+def _onc_one_combo(X_vals, k, seed):
+    """Try one (k, seed) combination; return (quality, labels) or None."""
+    km = KMeans(n_clusters=k, n_init=1, random_state=seed)
+    labels = km.fit_predict(X_vals)
+    if len(np.unique(labels)) < 2:
+        return None
+    q = _cluster_quality(X_vals, labels)
+    return q, labels
+
+
 def onc_cluster(corr: pd.DataFrame,
                 max_clusters: int = None,
                 n_init: int = 20) -> dict:
@@ -278,27 +384,32 @@ def onc_cluster(corr: pd.DataFrame,
     Optimal Number of Clusters for a correlation matrix.
     Returns dict: {cluster_id: [feature_names]}.
     Uses silhouette t-stat as the quality criterion (de Prado MLAM §4.4).
+    Grid search over seeds × k is parallelized.
     """
     X = ((1 - corr.fillna(0)) / 2.0) ** 0.5   # correlation → distance
+    X_vals = X.values
     if max_clusters is None:
         max_clusters = X.shape[1] - 1
 
+    n_total = n_init * (max_clusters - 1)
+    n_jobs = min(get_n_jobs(), n_total)
+
+    combos = [(k, seed) for seed in range(n_init) for k in range(2, max_clusters + 1)]
+    results = Parallel(n_jobs=n_jobs, prefer="threads")(
+        delayed(_onc_one_combo)(X_vals, k, seed) for k, seed in combos
+    )
+
     best_quality = -np.inf
     best_labels  = None
-
-    for seed in range(n_init):
-        for k in range(2, max_clusters + 1):
-            km = KMeans(n_clusters=k, n_init=1, random_state=seed)
-            labels = km.fit_predict(X)
-            if len(np.unique(labels)) < 2:
-                continue
-            q = _cluster_quality(X.values, labels)
-            if q > best_quality:
-                best_quality = q
-                best_labels  = labels
+    for r in results:
+        if r is None:
+            continue
+        q, labels = r
+        if q > best_quality:
+            best_quality = q
+            best_labels  = labels
 
     if best_labels is None:
-        # Fallback: every feature is its own cluster
         return {i: [col] for i, col in enumerate(corr.columns)}
 
     clusters = {}
@@ -782,12 +893,14 @@ def run_all_importance(X: pd.DataFrame,
 
     # ── Step 3: Supervised attribution — CFI (MDI + MDA on clusters) ─────
     print("3/7  CFI — Clustered Feature Importance (MDI + MDA on clusters)...")
-    clf = build_rf(n_estimators=1000)
+    # These run in the main process so give them full CPU budget
+    n_jobs_full = get_n_jobs()
+    clf = build_rf(n_estimators=1000, n_jobs=n_jobs_full)
     clf.fit(X, y, sample_weight=sample_weight)
 
     cfi_mdi = feat_imp_cfi_mdi(clf, list(X.columns), clusters)
     cfi_mda = feat_imp_cfi_mda(
-        build_rf(n_estimators=300), X, y, years, clusters, sample_weight
+        build_rf(n_estimators=300, n_jobs=n_jobs_full), X, y, years, clusters, sample_weight
     )
 
     # ── Steps 4–6: PCA + importance on components + Kendall's tau ────────
@@ -806,8 +919,9 @@ def run_all_importance(X: pd.DataFrame,
     mdi_pvals = compute_pvalues(mdi_raw, null_mean=1.0 / X.shape[1])
 
     print("5/7  MDA (purged year-CV, on original features — will move to PCA components)...")
+    # MDA folds are parallelized internally; pass n_estimators so _mda_one_fold reconstructs correctly
     mda, mda_raw = feat_imp_mda(
-        build_rf(n_estimators=500), X, y, years, sample_weight
+        build_rf(n_estimators=500, n_jobs=1), X, y, years, sample_weight
     )
     mda_pvals = compute_pvalues(mda_raw, null_mean=0.0)
 
@@ -817,8 +931,9 @@ def run_all_importance(X: pd.DataFrame,
     null_ll = 0.0
     if run_sfi:
         print("5/7  SFI (standalone, purged year-CV — will move to PCA components)...")
+        # SFI features are parallelized externally; inner jobs set in _sfi_one_feature
         sfi, sfi_raw = feat_imp_sfi(
-            build_rf(n_estimators=300), X, y, years, sample_weight
+            build_rf(n_estimators=300, n_jobs=1), X, y, years, sample_weight
         )
         null_ll = sfi["null_log_loss"].iloc[0] if "null_log_loss" in sfi.columns else 0.0
         sfi_pvals = compute_pvalues(sfi_raw, null_mean=null_ll, alternative="greater")

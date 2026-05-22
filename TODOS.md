@@ -19,3 +19,6 @@
     - [ ] GeneralAdv (for possessions)
     - [X] Hustle endpoint
     - [X] BoxScoreSummary endpoint
+
+- We need to be able to download Massey ratings from his website on aws using selenium or chrome
+- We need more SAG and BPI data

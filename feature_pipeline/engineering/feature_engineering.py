@@ -351,6 +351,51 @@ def align_ratings_to_games(games: pd.DataFrame,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  7b.  Massey rating alignment (from precomputed parquet)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def align_massey_to_games(games: pd.DataFrame, massey: pd.DataFrame) -> pd.DataFrame:
+    """
+    Align precomputed Massey ratings to games. Massey parquet has one row per
+    (season, game_date, team_id) — ratings are computed from games BEFORE that date.
+    We merge on exact (season, game_date, team_id) since the parquet already
+    encodes the temporal safety.
+    """
+    df = games.copy()
+
+    if massey.empty:
+        return df
+
+    massey = massey.copy()
+    massey["game_date"] = pd.to_datetime(massey["game_date"]).astype("datetime64[us]")
+    massey["team_id"] = massey["team_id"].astype(int)
+
+    # Identify rating columns (not season, game_date, team_id, or ranks)
+    rating_cols = [c for c in massey.columns
+                   if c not in ("season", "game_date", "team_id") and not c.endswith("_rank")]
+
+    # Merge for home team
+    home_massey = massey.rename(columns={c: f"home_{c}" for c in rating_cols})
+    home_massey = home_massey.rename(columns={"team_id": "home_team_id"})
+    df = df.merge(
+        home_massey[["season", "game_date", "home_team_id"] + [f"home_{c}" for c in rating_cols]],
+        on=["season", "game_date", "home_team_id"],
+        how="left",
+    )
+
+    # Merge for away team
+    away_massey = massey.rename(columns={c: f"away_{c}" for c in rating_cols})
+    away_massey = away_massey.rename(columns={"team_id": "away_team_id"})
+    df = df.merge(
+        away_massey[["season", "game_date", "away_team_id"] + [f"away_{c}" for c in rating_cols]],
+        on=["season", "game_date", "away_team_id"],
+        how="left",
+    )
+
+    return df
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 #  8.  Rolling box score features
 # ─────────────────────────────────────────────────────────────────────────────
 

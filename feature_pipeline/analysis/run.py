@@ -28,6 +28,7 @@ from feature_pipeline.engineering.game_builder import (
 )
 from feature_pipeline.engineering.feature_engineering import (
     align_ratings_to_games,
+    align_massey_to_games,
     compute_rolling_features,
     compute_score_momentum,
     compute_context_features,
@@ -117,34 +118,14 @@ def main(output_dir: str = "output/features",
     games = compute_deprado_features(games)
 
     if not skip_massey:
-        print("  Fitting Massey ratings (pregame, no lookahead)...")
-        try:
-            from feature_pipeline.engineering.massey_ratings import (
-                build_pregame_massey_game_features,
-                prepare_massey_context,
-            )
-            massey_input = games[["game_date", "home_team_id", "away_team_id",
-                                  "home_pts", "away_pts", "season_type"]].copy()
-            massey_input = massey_input.rename(columns={
-                "home_pts": "home_score",
-                "away_pts": "away_score",
-            })
-            massey_input["season"] = games["season"]
-            massey_input["game_id"] = range(len(massey_input))
-
-            if "away_travel_distance" in games.columns:
-                massey_input["travel_distance"] = games["away_travel_distance"]
-            if "crowd_density" in games.columns:
-                massey_input["crowd_density"] = games["crowd_density"]
-
-            massey_input = prepare_massey_context(massey_input)
-            massey_features = build_pregame_massey_game_features(massey_input)
-            massey_cols = [c for c in massey_features.columns if "massey" in c.lower()]
-            for col in massey_cols:
-                games[col] = massey_features[col].values
-            print(f"    Added {len(massey_cols)} Massey feature columns")
-        except Exception as e:
-            warnings.warn(f"  Massey fitting failed: {e}")
+        print("  Aligning Massey ratings (from precomputed parquet)...")
+        massey_df = data.get("massey", pd.DataFrame())
+        if massey_df.empty:
+            print("    WARNING: MasseyRatings.parquet not found. Run: python -m data_curation.scripts.build_massey_ratings")
+        else:
+            games = align_massey_to_games(games, massey_df)
+            massey_cols = [c for c in games.columns if "massey" in c.lower() and c.startswith(("home_", "away_"))]
+            print(f"    Aligned {len(massey_cols)} Massey columns, coverage: {games[massey_cols[0]].notna().mean():.1%}" if massey_cols else "    No Massey columns found")
     else:
         print("  Skipped Massey (--skip-massey)")
 
@@ -152,10 +133,19 @@ def main(output_dir: str = "output/features",
     games = compute_diffs(games)
 
     if not skip_random:
-        print("  Generating random weighted combinations...")
-        games = generate_random_combinations(games)
+        print("  Generating random weighted combinations (pregame features only)...")
+        # Only use pregame diff features as inputs to random combinations
+        pregame_base_cols = [c for c in games.columns
+                            if c.startswith(("diff_roll", "diff_bpi", "diff_sag_rating",
+                                            "diff_elo_score", "diff_predictor", "diff_pure_elo",
+                                            "diff_golden_mean", "diff_recent", "diff_win_",
+                                            "diff_margin_last", "diff_cusum", "diff_days_rest",
+                                            "diff_is_back_to_back", "diff_active_players",
+                                            "diff_dnp_count"))
+                            and games[c].dtype.kind in "fi"]
+        games = generate_random_combinations(games, base_cols=pregame_base_cols)
         rc_cols = [c for c in games.columns if c.startswith("rc_")]
-        print(f"    Generated {len(rc_cols)} random combination features")
+        print(f"    Generated {len(rc_cols)} random combination features from {len(pregame_base_cols)} pregame base features")
     else:
         print("  Skipped random combinations (--skip-random)")
 
@@ -173,18 +163,35 @@ def main(output_dir: str = "output/features",
     synth = synthetic_validation()
     print(f"  Synthetic MDI validation: {'PASS' if synth['mdi_pass'] else 'FAIL'}")
 
-    # Build X, y
-    skip_cols = {
-        "game_date", "season", "season_type", "game_id",
-        "home_team_id", "away_team_id", "home_team_abbr", "away_team_abbr",
-        "home_team_name", "away_team_name", "home_wl", "away_wl",
-        "home_min_trad", "away_min_trad", "sample_weight",
+    # Build X, y — ONLY pregame features (no same-game leakage)
+    # Valid prefixes: rolling stats, ratings, momentum, context, series, random combos
+    PREGAME_PREFIXES = (
+        "diff_roll",        # rolling averages of prior games
+        "diff_bpi", "diff_bpioffense", "diff_bpidefense", "diff_bpirank",
+        "diff_playoffbpi", "diff_offtalent", "diff_deftalent",
+        "diff_sag_rating", "diff_elo_score", "diff_predictor",
+        "diff_pure_elo", "diff_golden_mean", "diff_recent",
+        "diff_default_massey", "diff_location_adjusted_massey",
+        "diff_crowd_adjusted_massey", "diff_crowd_weighted_massey",
+        "diff_experience_adjusted_massey", "diff_travel_adjusted_massey",
+        "diff_context_adjusted_massey",
+        "diff_win_streak", "diff_win_pct", "diff_win_entropy",
+        "diff_margin_last", "diff_cusum",
+        "diff_days_rest", "diff_is_back_to_back",
+        "diff_travel_distance", "diff_timezone_shift",
+        "diff_active_players", "diff_dnp_count",
+        "rc_",              # random combinations (built from diff_ features, handled separately)
+    )
+    PREGAME_EXACT = {
+        "away_travel_distance", "away_timezone_shift",
+        "crowd_density", "sellout_flag",
+        "crew_home_win_rate", "crew_avg_total", "crew_experience",
+        "series_game_number", "series_lead",
     }
-    skip_cols.update(c for c in games.columns if c.startswith("target_"))
-    skip_cols.update(c for c in games.columns if c.startswith("home_") or c.startswith("away_"))
 
     feat_cols = [c for c in games.columns
-                 if c not in skip_cols and games[c].dtype.kind in "fi"]
+                 if (c.startswith(PREGAME_PREFIXES) or c in PREGAME_EXACT)
+                 and games[c].dtype.kind in "fi"]
 
     X = games[feat_cols].copy()
     y = games[target].copy()

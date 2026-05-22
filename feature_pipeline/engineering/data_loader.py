@@ -150,6 +150,16 @@ def load_player_box_scores(data_dir: Path | None = None) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
+def load_massey_ratings(data_dir: Path | None = None) -> pd.DataFrame:
+    data_dir = data_dir or DATA_DIR
+    path = data_dir / "MasseyRatings.parquet"
+    if not path.exists():
+        return pd.DataFrame()
+    df = pd.read_parquet(path)
+    df["game_date"] = pd.to_datetime(df["game_date"])
+    return df
+
+
 def load_all(data_dir: Path | None = None, season_types=("Regular", "Playoffs")) -> dict:
     """Load all data sources into a dict for the pipeline."""
     data_dir = Path(data_dir) if data_dir else DATA_DIR
@@ -160,6 +170,7 @@ def load_all(data_dir: Path | None = None, season_types=("Regular", "Playoffs"))
         "arenas": load_arenas(data_dir),
         "bpi": load_ratings_bpi(data_dir),
         "sagarin": load_ratings_sagarin(data_dir),
+        "massey": load_massey_ratings(data_dir),
         "game_summaries": load_game_summaries(data_dir),
         "officials": load_officials(data_dir),
         "quarter_scores": load_quarter_scores(data_dir),

@@ -60,6 +60,14 @@ the life cycle is to test on out of sample data, paper trade, re-allocation base
 
 
 
+CRITICAL: DATA LEAKAGE PREVENTION
+___
+All features used for prediction MUST come from BEFORE the game date. Never use same-game or post-game data as features.
+- Temporal embargo: ratings/stats from day T can only predict games on day T+1 or later
+- Purging: cross-validation folds must be purged so that no training data overlaps temporally with test data (PurgedYearKFold handles this)
+- Same-game box scores (pts, fgm, offrtg, etc.) are OUTCOMES, not features. Only rolling averages of PRIOR games are valid features.
+- When in doubt, ask: "could I know this value BEFORE tipoff?" If no, it's leakage.
+
 Short comings of this approach
 ___
 This is a frequentist approach that might lack the power at the start of a season since rosters might have changed.
