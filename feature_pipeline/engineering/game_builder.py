@@ -7,8 +7,12 @@ attaches quarter scores, and computes all prediction targets including series ou
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def parse_home_away(match_up: pd.Series) -> pd.DataFrame:
@@ -106,6 +110,12 @@ def build_game_rows(box_scores: pd.DataFrame, game_ids: pd.DataFrame,
     )
     games = games.drop(columns=["_jk", "key_0"], errors="ignore")
 
+    unmapped = bs["team_id"].isna().sum()
+    if unmapped > 0:
+        logger.warning("[build_game_rows] %d team rows unmapped (no team_id) — abbr_to_id mismatch", unmapped)
+    logger.info("[build_game_rows] home rows=%d  away rows=%d  merged games=%d  cols=%d",
+                bs["is_home"].sum(), (~bs["is_home"]).sum(), len(games), games.shape[1])
+
     # Attach season from game_ids
     gi = game_ids.drop_duplicates("GAME_DATE")
     games = games.merge(
@@ -116,8 +126,12 @@ def build_game_rows(box_scores: pd.DataFrame, game_ids: pd.DataFrame,
     ).drop(columns=["GAME_DATE"], errors="ignore")
     games = games.rename(columns={"SEASON_FILTER": "season"})
 
+    # Canonical game_id: one per row, sourced from home side (same as away)
+    if "home_game_id" in games.columns:
+        games["game_id"] = games["home_game_id"]
+
     # Final numeric coercion on all stat columns
-    exclude = {"game_date", "season", "season_type", "home_team_abbr", "away_team_abbr",
+    exclude = {"game_id", "game_date", "season", "season_type", "home_team_abbr", "away_team_abbr",
                "home_team_name", "away_team_name", "home_team_id", "away_team_id",
                "home_wl", "away_wl", "home_min_trad", "away_min_trad"}
     for col in games.columns:
@@ -148,6 +162,15 @@ def attach_quarter_scores(games: pd.DataFrame, quarter_scores: pd.DataFrame,
     if "game_id" not in games.columns:
         return games
 
+    # Normalize game_id types to zero-padded 10-char string for both sides
+    games["game_id"] = pd.to_numeric(games["game_id"], errors="coerce").astype("Int64").astype(str).str.zfill(10)
+    qs_pivot["game_id"] = pd.to_numeric(qs_pivot["game_id"], errors="coerce").astype("Int64").astype(str).str.zfill(10)
+
+    # Normalize team_id types
+    qs_pivot["team_id"] = pd.to_numeric(qs_pivot["team_id"], errors="coerce").astype("Int64")
+    games["home_team_id"] = pd.to_numeric(games["home_team_id"], errors="coerce").astype("Int64")
+    games["away_team_id"] = pd.to_numeric(games["away_team_id"], errors="coerce").astype("Int64")
+
     # Merge home quarters
     home_qs = qs_pivot.rename(columns={c: f"home_{c.lower()}" for c in period_cols})
     home_qs = home_qs.rename(columns={"team_id": "home_team_id"})
@@ -165,6 +188,11 @@ def attach_quarter_scores(games: pd.DataFrame, quarter_scores: pd.DataFrame,
         on=["game_id", "away_team_id"],
         how="left",
     )
+
+    qs_cols = [c for c in games.columns if c.startswith(("home_q", "away_q"))]
+    null_rate = games[qs_cols].isna().mean().mean() if qs_cols else 1.0
+    logger.info("[attach_quarter_scores] quarter cols=%d  avg null rate=%.1f%%",
+                len(qs_cols), 100 * null_rate)
 
     return games
 
@@ -212,6 +240,14 @@ def build_targets(games: pd.DataFrame) -> pd.DataFrame:
     else:
         df["target_overtime"] = 0
 
+    winner_bal = df["target_winner"].mean() if "target_winner" in df.columns else float("nan")
+    spread_range = (df["target_spread"].min(), df["target_spread"].max()) if "target_spread" in df.columns else (float("nan"), float("nan"))
+    total_range = (df["target_total"].min(), df["target_total"].max()) if "target_total" in df.columns else (float("nan"), float("nan"))
+    ot_rate = df["target_overtime"].mean() if "target_overtime" in df.columns else float("nan")
+    logger.info("[build_targets] winner_balance=%.3f  spread=[%.1f, %.1f]  total=[%.1f, %.1f]  ot_rate=%.1f%%",
+                winner_bal, spread_range[0], spread_range[1],
+                total_range[0], total_range[1], 100 * ot_rate)
+
     return df
 
 
@@ -226,6 +262,7 @@ def build_series_targets(games: pd.DataFrame) -> pd.DataFrame:
 
     playoff_mask = df["season_type"] == "Playoffs"
     if not playoff_mask.any():
+        logger.info("[build_series_targets] no playoff games found — skipping")
         df["target_series_winner"] = np.nan
         df["target_series_total_games"] = np.nan
         df["target_series_spread"] = np.nan
@@ -298,6 +335,8 @@ def build_series_targets(games: pd.DataFrame) -> pd.DataFrame:
                 "series_lead": lead,
             }
 
+    logger.info("[build_series_targets] playoff games=%d  unique series=%d",
+                playoff_mask.sum(), playoffs["_series_key"].nunique())
     series_df = pd.DataFrame.from_dict(series_targets, orient="index")
 
     for col in series_df.columns:

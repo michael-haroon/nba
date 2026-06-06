@@ -1,0 +1,84 @@
+{
+  "target": "winner",
+  "task": "classification",
+  "combination_method": "flat_weights",
+  "n_candidates": 46,
+  "n_successful": 46,
+  "n_ensemble": 16,
+  "final_metric": 0.6054098526413708,
+  "best_single_metric": 0.6080354791963427,
+  "models": [
+    {
+      "uid": "bag_logreg__trees",
+      "weight": 0.3436215537033383,
+      "metric": 0.6080354791963427,
+      "family": "bagging",
+      "feature_group": "trees",
+      "n_features": 29
+    },
+    {
+      "uid": "mlp_wide__full",
+      "weight": 0.09182390612619619,
+      "metric": 0.6376865984116896,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 332
+    },
+    {
+      "uid": "knn_20__diversity",
+      "weight": 0.04058596192553917,
+      "metric": 0.6986179721947398,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 77
+    },
+    {
+      "uid": "mlp_small__full",
+      "weight": 0.10964566300150905,
+      "metric": 0.626118816966666,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 332
+    },
+    {
+      "uid": "mlp_medium__full",
+      "weight": 0.14706022758415138,
+      "metric": 0.6188800798536405,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 332
+    },
+    {
+      "uid": "mlp_large__full",
+      "weight": 0.0995969000263175,
+      "metric": 0.6158675098722054,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 332
+    },
+    {
+      "uid": "lgbm_aggressive__trees",
+      "weight": 0.012117688510506628,
+      "metric": 0.617113704262192,
+      "family": "lgbm",
+      "feature_group": "trees",
+      "n_features": 29
+    },
+    {
+      "uid": "lgbm_goss__trees",
+      "weight": 0.039598541343621674,
+      "metric": 0.6131892939699982,
+      "family": "lgbm",
+      "feature_group": "trees",
+      "n_features": 29
+    },
+    {
+      "uid": "rf_deep__trees",
+      "weight": 0.11594955777882027,
+      "metric": 0.611336106840564,
+      "family": "rf",
+      "feature_group": "trees",
+      "n_features": 29
+    }
+  ]
+}

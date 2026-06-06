@@ -1,0 +1,12 @@
+{
+  "n_features": 1719,
+  "n_samples": 37973,
+  "q_ratio": 22.090168702734147,
+  "lambda_plus": 1.4707992969217565,
+  "n_signal_eigenvalues": 208,
+  "n_noise_eigenvalues": 1511,
+  "n_negative_eigenvalues": 72,
+  "signal_variance_pct": 73.9,
+  "noise_variance_pct": 26.1,
+  "top_eigenvalue": 117.24371629690174
+}

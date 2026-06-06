@@ -1,204 +1,184 @@
 """
 run.py
 ------
-Entry point for the strategy module.
+Entry point for NBA strategy model training.
 
 Usage:
-    python -m strategy.run [--market-weight 0.3] [--model lgbm|logreg|both]
+    python -m strategy.run                   # all targets
+    python -m strategy.run --target winner
+    python -m strategy.run --target spread
+    python -m strategy.run --target h1_spread
 """
 
+from __future__ import annotations
+
 import argparse
-import warnings
-from pathlib import Path
+import time
 
-import numpy as np
-import pandas as pd
-
-from strategy.config import (
-    SURVIVING_FEATURES, BRACKET_2026, DEFAULT_MARKET_WEIGHT,
-    DATA_DIR, OUTPUT_DIR,
+from strategy.config import OUTPUT_DIR
+from strategy.data import load, TARGET_MAP
+from strategy.models import (
+    build_classifier, build_regressor, build_multiclass,
+    available_classifiers, available_regressors, available_multiclass,
 )
-from strategy.data import (
-    load_game_pairs, load_team_features, resolve_bracket_teams,
-    load_path_features, load_market_data,
-)
-from strategy.model import train_and_evaluate, calibrate, compare_models
-from strategy.bracket import compute_pairwise_probs, compute_championship_probs
-from strategy.market import blend, compute_edges, trade_recommendations
+from strategy.train import train_and_evaluate
+from strategy.evaluate import print_model_comparison, fit_spread_residuals, save_results
 
 
-def main(market_weight: float = DEFAULT_MARKET_WEIGHT,
-         model_type: str = "both"):
+def _elapsed(t0: float) -> str:
+    s = time.time() - t0
+    return f"{s:.1f}s" if s < 60 else f"{s/60:.1f}m"
 
-    output = Path(OUTPUT_DIR)
-    output.mkdir(parents=True, exist_ok=True)
 
-    # ── Step 1: Load data ────────────────────────────────────────────────
-    print("Step 1: Loading data...")
-    pairs_df = load_game_pairs()
-    team_df = load_team_features()
+def run_target(target: str) -> dict:
+    t0 = time.time()
+    _, task = TARGET_MAP[target]
 
-    avail = [f for f in SURVIVING_FEATURES if f in pairs_df.columns]
-    missing = [f for f in SURVIVING_FEATURES if f not in pairs_df.columns]
-    if missing:
-        print(f"  Warning: {len(missing)} features not in game_pairs: {missing}")
-    print(f"  {len(pairs_df)} games, {len(avail)} surviving features")
+    if task == "multiclass":
+        build_fn = build_multiclass
+        model_names = available_multiclass()
+    elif task == "classification":
+        build_fn = build_classifier
+        model_names = available_classifiers()
+    else:
+        build_fn = build_regressor
+        model_names = available_regressors()
 
-    # ── Step 2: Train models ─────────────────────────────────────────────
-    print("\nStep 2: Training models on surviving features...")
+    print(f"\n{'='*60}")
+    print(f"  Target: {target}  ({task})")
+    print(f"{'='*60}")
 
     results = {}
-    if model_type in ("lgbm", "both"):
-        print("  Training LightGBM...")
-        results["lgbm"] = train_and_evaluate(pairs_df, avail, "lgbm")
-    if model_type in ("logreg", "both"):
-        print("  Training LogReg...")
-        results["logreg"] = train_and_evaluate(pairs_df, avail, "logreg")
+    for name in model_names:
+        X, y, seasons = load(target, model_name=name)
+        if not results:
+            print(f"  Samples: {len(X)}, Seasons: {seasons.nunique()}")
+        print(f"\n  [{name}] training... ({X.shape[1]} features)")
+        t1 = time.time()
+        results[name] = train_and_evaluate(X, y, seasons, name, build_fn, task)
+        folds = len(results[name]["cv_df"])
+        print(f"  [{name}] done — {folds} folds [{_elapsed(t1)}]")
 
-    best_name = compare_models(results)
-    best = results[best_name]
+    print_model_comparison(results, task)
 
-    # Save CV results
-    for name, res in results.items():
-        res["cv_results"].to_csv(output / f"cv_{name}.csv", index=False)
+    residual_dist = None
+    if task == "regression":
+        best_name = min(results, key=lambda n: results[n]["cv_df"]["val_loss"].mean()
+                        if not results[n]["cv_df"].empty else float("inf"))
+        residual_dist = fit_spread_residuals(results[best_name]["oof_preds"])
+        print(f"\n  Residual Student-t fit (model={best_name}):")
+        print(f"    df={residual_dist.kwds['df']:.2f}, "
+              f"loc={residual_dist.kwds['loc']:.2f}, "
+              f"scale={residual_dist.kwds['scale']:.2f}")
 
-    # Calibrate best model
-    X_all = pairs_df[avail]
-    y_all = pairs_df["team_a_wins"].astype(int)
-    cal_model = calibrate(best["model"], X_all, y_all)
+    save_results(results, OUTPUT_DIR, target, spread_residual_dist=residual_dist)
 
-    # ── Step 3: Resolve 2026 bracket ─────────────────────────────────────
-    print("\nStep 3: Resolving 2026 bracket...")
-    name_to_id = resolve_bracket_teams(BRACKET_2026)
-    id_to_name = {v: k for k, v in name_to_id.items()}
+    print(f"\n  Total: {_elapsed(t0)}")
+    return results
 
-    s1a_name, s1b_name = BRACKET_2026["semi1"]
-    s2a_name, s2b_name = BRACKET_2026["semi2"]
-    s1a, s1b = name_to_id[s1a_name], name_to_id[s1b_name]
-    s2a, s2b = name_to_id[s2a_name], name_to_id[s2b_name]
-    team_ids = [s1a, s1b, s2a, s2b]
 
-    print(f"  Semi 1: {s1a_name} ({s1a}) vs {s1b_name} ({s1b})")
-    print(f"  Semi 2: {s2a_name} ({s2a}) vs {s2b_name} ({s2b})")
+ALL_TARGETS = list(TARGET_MAP.keys())
 
-    # ── Step 4: Load path features + compute pairwise probs ──────────────
-    print("\nStep 4: Computing pairwise probabilities...")
 
-    # Try loading actual path features (through E8)
-    path_features = None
-    try:
-        path_features = load_path_features(team_ids, 2026)
-        has_path = any(
-            pf.get("path_games_played", 0) > 0
-            for pf in path_features.values()
+def run_full_pipeline(targets: list[str] | None = None, resume: bool = False) -> None:
+    """
+    End-to-end automated pipeline:
+      Phase 0: Feature routing (feature_report.csv → per-group lists)
+      Phase 1: Forward selection of complementary features (cached)
+      Phase 2: Train all specialist models via LOYO CV
+      Phase 3: Compare flat weights vs stacking, auto-select
+      Phase 4: Retrain final ensemble on full data, pickle
+      Phase 5: Log results
+    """
+    from strategy.feature_routing import run_routing
+    from strategy.forward_select import run_forward_selection
+    from strategy.ensemble import run_specialist_ensemble
+    from strategy.config import FEATURES_ROOT
+
+    if targets is None:
+        targets = ALL_TARGETS
+
+    for target in targets:
+        pipeline_t0 = time.time()
+        print(f"\n{'#'*70}")
+        print(f"  FULL PIPELINE — {target}")
+        print(f"{'#'*70}")
+
+        # Pre-check: feature_report.csv must exist
+        report_path = FEATURES_ROOT / target / "filtered" / "feature_report.csv"
+        if not report_path.exists():
+            print(f"\n  SKIP '{target}': no feature_report.csv found.")
+            print(f"  Run first: python -m feature_pipeline.analysis.run "
+                  f"--target target_{target} --output-dir output/features/{target}")
+            continue
+
+        # Phase 0: Feature routing
+        print(f"\n  Phase 0: Feature routing...")
+        t0 = time.time()
+        feature_lists = run_routing(target)
+        print(f"    trees={len(feature_lists['trees'])}, "
+              f"linear={len(feature_lists['linear'])}, "
+              f"diversity={len(feature_lists['diversity'])}, "
+              f"full={len(feature_lists['full'])}  [{_elapsed(t0)}]")
+
+        # Phase 0.5: Logistic validation (classification targets only, cached)
+        _, task = TARGET_MAP[target]
+        if task == "classification":
+            from strategy.logistic_validation import run_logistic_validation
+            from strategy.config import FEATURES_ROOT
+            # Use logistic_validation.csv as cache marker — only written by this phase,
+            # never by Phase 0 routing (which writes feature_list_linear.txt).
+            marker_path = FEATURES_ROOT / target / "logistic_validation.csv"
+            report_mtime = (FEATURES_ROOT / target / "filtered" / "feature_report.csv").stat().st_mtime
+            is_fresh = marker_path.exists() and marker_path.stat().st_mtime > report_mtime
+            linear_list_path = FEATURES_ROOT / target / "filtered" / "feature_list_linear.txt"
+            if is_fresh and linear_list_path.exists():
+                qualified = linear_list_path.read_text().strip().splitlines()
+                print(f"\n  Phase 0.5: Logistic validation (cached — {len(qualified)} qualified features)")
+            else:
+                print(f"\n  Phase 0.5: Logistic validation (running Box-Tidwell + iterative VIF + LOYO stability)...")
+                t0 = time.time()
+                qualified = run_logistic_validation(target, make_plots=False)
+                print(f"    {len(qualified)} features qualified for LogReg  [{_elapsed(t0)}]")
+
+        # Phase 1: Forward selection
+        print(f"\n  Phase 1: Forward selection...")
+        t0 = time.time()
+        tree_features = run_forward_selection(target)
+        print(f"    Final tree set: {len(tree_features)} features  [{_elapsed(t0)}]")
+
+        # Phase 2-4: Specialist ensemble (trains, selects, stacks, pickles)
+        print(f"\n  Phase 2-4: Specialist ensemble training...")
+        results = run_specialist_ensemble(target)
+
+        print(f"\n  Pipeline complete for '{target}' [{_elapsed(pipeline_t0)}]")
+        print(f"  Final metric: {results.get('final_metric', 'N/A')}")
+        print(f"  Method: {results.get('combination_method', 'N/A')}")
+
+
+def main(target: str = "all", full_pipeline: bool = False,
+         targets_flag: list[str] | None = None) -> None:
+    if full_pipeline:
+        pipeline_targets = targets_flag if targets_flag else (
+            ALL_TARGETS if target == "all" else [target]
         )
-        if has_path:
-            print("  Using actual E8 path features")
-        else:
-            print("  No path data available (2026 tournament results not in Kaggle)")
-            path_features = None
-    except Exception as e:
-        print(f"  Path features unavailable: {e}")
-
-    pairwise = compute_pairwise_probs(
-        cal_model, team_df, team_ids, 2026, path_features
-    )
-
-    print("\n  Pairwise probabilities:")
-    for (ta, tb), p in sorted(pairwise.items()):
-        if ta < tb:
-            na = id_to_name.get(ta, str(ta))
-            nb = id_to_name.get(tb, str(tb))
-            print(f"    {na} vs {nb}: {na} {p:.1%} | {nb} {1-p:.1%}")
-
-    # ── Step 5: Closed-form bracket probabilities ────────────────────────
-    print("\nStep 5: Championship probabilities (closed-form)...")
-    bracket_df = compute_championship_probs(team_ids, pairwise)
-    bracket_df["team_name"] = bracket_df["TeamID"].map(id_to_name)
-
-    # Get seeds
-    season_2026 = team_df[team_df["Season"] == 2026].set_index("TeamID")
-    bracket_df["seed"] = bracket_df["TeamID"].apply(
-        lambda t: int(season_2026.loc[t, "seed_num"])
-        if t in season_2026.index else "?"
-    )
-
-    print("\n  " + "-" * 60)
-    print(f"  {'Team':<18} {'Seed':>4} {'Win Semi':>10} {'Champion':>10}")
-    print("  " + "-" * 60)
-    for _, row in bracket_df.sort_values("p_champion", ascending=False).iterrows():
-        print(f"  {row['team_name']:<18} {row['seed']:>4} "
-              f"{row['p_win_semi']:>10.1%} {row['p_champion']:>10.1%}")
-    print("  " + "-" * 60)
-
-    # ── Step 6: Market blend ─────────────────────────────────────────────
-    if market_weight>0:
-        print(f"\nStep 6: Blending with Kalshi market (weight={market_weight})...")
-
-        # Build model probs dict keyed by team name
-        model_probs = {}
-        for _, row in bracket_df.iterrows():
-            model_probs[row["team_name"]] = row["p_champion"]
-
-        # Load market data
-        mkt_all = load_market_data(DATA_DIR, 2026)
-        # Filter to just our 4 teams, normalize
-        ff_names = set(name_to_id.keys())
-
-        # Handle UConn -> Connecticut mapping
-        from feature_pipeline.config import TEAM_NAME_MAP
-        reverse_map = {v: k for k, v in TEAM_NAME_MAP.items()}
-
-        market_probs = {}
-        for name in ff_names:
-            # Try exact name and common aliases
-            candidates = [name] + [k for k, v in TEAM_NAME_MAP.items() if v == name]
-            for c in candidates:
-                if c in mkt_all:
-                    market_probs[name] = mkt_all[c]
-                    break
-
-        # Normalize market probs to sum to 1 across FF teams
-        mkt_total = sum(market_probs.values()) if market_probs else 0
-        if mkt_total > 0:
-            market_probs = {t: p / mkt_total for t, p in market_probs.items()}
-
-        if market_probs:
-            blended = blend(model_probs, market_probs, market_weight)
-            edges = compute_edges(model_probs, market_probs)
-            recs = trade_recommendations(model_probs, market_probs)
-
-            print("\n  " + "-" * 75)
-            print(f"  {'Team':<18} {'Model':>8} {'Market':>8} {'Blended':>8} {'Edge':>8}")
-            print("  " + "-" * 75)
-            for team in sorted(blended, key=lambda t: -blended[t]):
-                mp = model_probs.get(team, 0)
-                mk = market_probs.get(team, 0)
-                bl = blended[team]
-                ed = edges.get(team, 0)
-                print(f"  {team:<18} {mp:>8.1%} {mk:>8.1%} {bl:>8.1%} {ed:>+8.1%}")
-            print("  " + "-" * 75)
-
-        print("\n  Trade recommendations (half-Kelly, $1000 bankroll):")
-        for _, row in recs.iterrows():
-            if row["direction"] != "HOLD":
-                print(f"    {row['team']}: {row['direction']} "
-                      f"${row['bet_amount']:.0f} ({row['kelly_pct']:.1f}% Kelly) "
-                      f"EV=${row['expected_value']:.2f}")
-
-        recs.to_csv(output / "trade_recommendations.csv", index=False)
+        run_full_pipeline(pipeline_targets)
     else:
-        print(f"  Market weight is {market_weight} — skipping blend")
-        print("Change it in strategy/config.py")
-
-    # ── Save outputs ─────────────────────────────────────────────────────
-    bracket_df.to_csv(output / "predictions_2026.csv", index=False)
-    print(f"\nOutputs saved to {output}/")
+        targets = ALL_TARGETS if target == "all" else [target]
+        for t in targets:
+            run_target(t)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="March Madness strategy")
-    parser.add_argument("--market-weight", type=float, default=DEFAULT_MARKET_WEIGHT)
-    parser.add_argument("--model", default="both", choices=["lgbm", "logreg", "both"])
+    parser = argparse.ArgumentParser(description="NBA strategy model training")
+    parser.add_argument("--target", default="all",
+                        choices=ALL_TARGETS + ["all"])
+    parser.add_argument("--full-pipeline", action="store_true",
+                        help="Run end-to-end: routing → forward selection → specialist ensemble")
+    parser.add_argument("--targets", nargs="+", default=None,
+                        choices=ALL_TARGETS,
+                        help="Specific targets for --full-pipeline (default: all)")
+    parser.add_argument("--resume", action="store_true",
+                        help="Resume from last checkpoint (uses cached results)")
     args = parser.parse_args()
-    main(market_weight=args.market_weight, model_type=args.model)
+    main(args.target, full_pipeline=args.full_pipeline, targets_flag=args.targets)

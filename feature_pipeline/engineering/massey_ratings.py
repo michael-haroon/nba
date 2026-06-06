@@ -9,6 +9,7 @@ density, roster experience, and travel.
 
 from __future__ import annotations
 
+import logging
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Iterable
@@ -16,6 +17,8 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
+
+logger = logging.getLogger(__name__)
 
 
 try:  # Optional: the direct normal-equation path below does not require scipy.
@@ -267,6 +270,33 @@ def _team_components(games: pd.DataFrame, teams: list[int]) -> list[list[int]]:
     return components
 
 
+def schedule_is_connected(games: pd.DataFrame) -> bool:
+    """True when all teams sit in one connected schedule component."""
+    if games.empty:
+        return False
+    teams = sorted(
+        set(games["home_team_id"].astype(int).tolist())
+        | set(games["away_team_id"].astype(int).tolist())
+    )
+    return len(_team_components(games, teams)) == 1
+
+
+def _emit_fit_notes(notes: list[str]) -> None:
+    """Route fit diagnostics: expected factor drops are debug, real issues stay warning."""
+    for note in notes:
+        if (
+            "unavailable; dropped from" in note
+            or ("coverage" in note and "below" in note)
+            or "has no variation; dropped from" in note
+            or ("unavailable;" in note and "used unweighted" in note)
+        ):
+            logger.debug("[fit_massey] %s", note)
+        elif "disconnected" in note:
+            logger.info("[fit_massey] %s", note)
+        else:
+            logger.warning("[fit_massey] %s", note)
+
+
 def _usable_factor_columns(
     games: pd.DataFrame,
     design: MasseyDesign,
@@ -314,12 +344,135 @@ def _weights_for_design(games: pd.DataFrame, design: MasseyDesign) -> tuple[np.n
     return weights.to_numpy(dtype=float), []
 
 
+def _build_normal_equations_vectorized(
+    df: pd.DataFrame,
+    team_to_idx: dict[int, int],
+    teams: list[int],
+    extra_columns: list[str],
+    design: "MasseyDesign",
+    weights: np.ndarray,
+    y: np.ndarray,
+    preview_rows: int = 8,
+) -> tuple[np.ndarray, np.ndarray, pd.DataFrame, pd.Series]:
+    """
+    Vectorized normal equation assembly: M = X.T @ diag(W) @ X, p = X.T @ diag(W) @ y.
+
+    Returns (normal_matrix, target_vector, x_preview, y_preview).
+    """
+    n_games = len(df)
+    n_teams = len(teams)
+    n_cols = n_teams + len(extra_columns)
+
+    home_ids = df["home_team_id"].map(team_to_idx).values.astype(int)
+    away_ids = df["away_team_id"].map(team_to_idx).values.astype(int)
+
+    X = np.zeros((n_games, n_cols), dtype=float)
+    X[np.arange(n_games), home_ids] = 1.0
+    X[np.arange(n_games), away_ids] = -1.0
+
+    for j, col in enumerate(extra_columns):
+        if col == "home_advantage":
+            is_neutral = df.get("is_neutral", pd.Series(False, index=df.index))
+            vals = np.where(is_neutral.values, design.neutral_home_value, 1.0)
+        else:
+            vals = pd.to_numeric(df[col], errors="coerce").fillna(0.0).values
+        X[:, n_teams + j] = vals
+
+    XW = X * weights[:, None]
+    normal = XW.T @ X
+    target = XW.T @ y
+
+    columns = [f"team_{team}" for team in teams] + extra_columns
+    x_preview = pd.DataFrame(X[:preview_rows], columns=columns)
+    y_preview = pd.Series(y[:preview_rows], name="home_margin")
+
+    return normal, target, x_preview, y_preview
+
+
+def _build_colley_vectorized(
+    df: pd.DataFrame,
+    team_to_idx: dict[int, int],
+    teams: list[int],
+    home_score_col: str = "home_score",
+    away_score_col: str = "away_score",
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Vectorized Colley matrix and win/loss assembly.
+
+    Returns (M, wins, losses) where C = 2I + M and b = 1 + 0.5*(wins - losses).
+    """
+    n = len(teams)
+    home_ids = df["home_team_id"].map(team_to_idx).values.astype(int)
+    away_ids = df["away_team_id"].map(team_to_idx).values.astype(int)
+
+    M = np.zeros((n, n), dtype=float)
+    np.add.at(M, (home_ids, home_ids), 1.0)
+    np.add.at(M, (away_ids, away_ids), 1.0)
+    np.add.at(M, (home_ids, away_ids), -1.0)
+    np.add.at(M, (away_ids, home_ids), -1.0)
+
+    home_scores = pd.to_numeric(df[home_score_col], errors="coerce").values
+    away_scores = pd.to_numeric(df[away_score_col], errors="coerce").values
+
+    home_wins_mask = home_scores > away_scores
+    away_wins_mask = away_scores > home_scores
+    ties_mask = home_scores == away_scores
+
+    wins = np.zeros(n, dtype=float)
+    losses = np.zeros(n, dtype=float)
+    np.add.at(wins, home_ids[home_wins_mask], 1.0)
+    np.add.at(losses, away_ids[home_wins_mask], 1.0)
+    np.add.at(wins, away_ids[away_wins_mask], 1.0)
+    np.add.at(losses, home_ids[away_wins_mask], 1.0)
+    np.add.at(wins, home_ids[ties_mask], 0.5)
+    np.add.at(losses, home_ids[ties_mask], 0.5)
+    np.add.at(wins, away_ids[ties_mask], 0.5)
+    np.add.at(losses, away_ids[ties_mask], 0.5)
+
+    return M, wins, losses
+
+
+def _zermelo_vectorized(
+    team_a_ids: np.ndarray,
+    team_b_ids: np.ndarray,
+    win_weights_a: np.ndarray,
+    win_weights_b: np.ndarray,
+    n_teams: int,
+    n_iter: int = 100,
+) -> np.ndarray:
+    """
+    Vectorized Zermelo/Bradley-Terry iteration.
+
+    team_a_ids[i], team_b_ids[i]: the two teams in game i.
+    win_weights_a[i]: fractional win credit for team_a in game i.
+    win_weights_b[i]: fractional win credit for team_b in game i.
+    """
+    all_team_ids = np.concatenate([team_a_ids, team_b_ids])
+    all_opponent_ids = np.concatenate([team_b_ids, team_a_ids])
+    all_win_weights = np.concatenate([win_weights_a, win_weights_b])
+
+    frac_wins = np.bincount(all_team_ids, weights=all_win_weights, minlength=n_teams)
+
+    pi = np.ones(n_teams, dtype=float)
+    for _ in range(n_iter):
+        pair_denoms = 1.0 / (pi[all_team_ids] + pi[all_opponent_ids])
+        denom_per_team = np.bincount(all_team_ids, weights=pair_denoms, minlength=n_teams)
+        pi = np.where(denom_per_team > 0, frac_wins / denom_per_team, 1.0)
+        pi /= pi.mean()
+
+    final_delta = float(np.abs(pi - np.ones_like(pi)).max())
+    logger.debug("[_zermelo_vectorized] n_teams=%d n_iter=%d final_max_delta=%.4e",
+                 n_teams, n_iter, final_delta)
+
+    return pi
+
+
 def _row_entries_for_game(
     game: pd.Series,
     team_to_idx: dict[int, int],
     team_count: int,
     extra_columns: list[str],
-    design: MasseyDesign,
+    design: "MasseyDesign",
 ) -> dict[int, float]:
     entries: dict[int, float] = {
         team_to_idx[int(game["home_team_id"])]: 1.0,
@@ -398,27 +551,28 @@ def fit_massey(
 
     columns = [f"team_{team}" for team in teams] + extra_columns
     n_cols = len(columns)
-    normal = np.zeros((n_cols, n_cols), dtype=float)
-    target = np.zeros(n_cols, dtype=float)
     weights, weight_notes = _weights_for_design(df, design)
     notes.extend(weight_notes)
-    preview_records: list[dict[str, float]] = []
-    preview_y: list[float] = []
 
-    for pos, (_, game) in enumerate(df.iterrows()):
-        entries = _row_entries_for_game(game, team_to_idx, len(teams), extra_columns, design)
-        y = float(game["home_score"] - game["away_score"])
-        w = float(weights[pos])
-        for i, vi in entries.items():
-            target[i] += w * vi * y
-            for j, vj in entries.items():
-                normal[i, j] += w * vi * vj
-        if len(preview_records) < preview_rows:
-            record = {col: 0.0 for col in columns}
-            for i, value in entries.items():
-                record[columns[i]] = value
-            preview_records.append(record)
-            preview_y.append(y)
+    y_vec = (df["home_score"].astype(float) - df["away_score"].astype(float)).values
+    normal, target, x_preview, y_preview = _build_normal_equations_vectorized(
+        df, team_to_idx, teams, extra_columns, design, weights, y_vec, preview_rows
+    )
+
+    unconstrained_cond = float("inf")
+    if normal.size > 0:
+        unconstrained_cond = float(np.linalg.cond(normal))
+        matrix_rank = int(np.linalg.matrix_rank(normal))
+        logger.info(
+            "[fit_massey] design=%s season=%s games=%d teams=%d cond(M_unconstrained)=%.2e rank=%d/%d",
+            design.name,
+            season,
+            len(df),
+            len(teams),
+            unconstrained_cond,
+            matrix_rank,
+            n_cols,
+        )
 
     constrained = normal.copy()
     constrained_target = target.copy()
@@ -436,6 +590,27 @@ def fit_massey(
         constrained[row_idx, [team_to_idx[t] for t in comp]] = 1.0
         constrained_target[row_idx] = 0.0
 
+    constrained_cond = float("inf")
+    if constrained.size > 0:
+        constrained_cond = float(np.linalg.cond(constrained))
+        constrained_rank = int(np.linalg.matrix_rank(constrained))
+        logger.info(
+            "[fit_massey] design=%s season=%s cond(M_constrained)=%.2e rank=%d/%d components=%d",
+            design.name,
+            season,
+            constrained_cond,
+            constrained_rank,
+            n_cols,
+            len(components),
+        )
+        if constrained_cond > 1e10:
+            logger.warning(
+                "[fit_massey] design=%s season=%s ill-conditioned constrained matrix (cond=%.2e) — ratings may be unreliable",
+                design.name,
+                season,
+                constrained_cond,
+            )
+
     try:
         beta = np.linalg.solve(constrained, constrained_target)
         solver = "numpy.linalg.solve"
@@ -445,6 +620,11 @@ def fit_massey(
         notes.append(
             "Normal equations remained singular after constraints; used least-squares fallback."
         )
+
+    logger.debug("[fit_massey] design=%s season=%s solver=%s rating_range=[%.3f, %.3f]",
+                 design.name, season, solver,
+                 float(beta[:len(teams)].min()), float(beta[:len(teams)].max()))
+    _emit_fit_notes(notes)
 
     coeffs = {columns[i]: float(beta[i]) for i in range(n_cols)}
     rating_values = beta[: len(teams)]
@@ -473,11 +653,718 @@ def fit_massey(
         target_vector=target,
         constrained_matrix=constrained,
         constrained_target=constrained_target,
-        x_preview=pd.DataFrame(preview_records, columns=columns),
-        y_preview=pd.Series(preview_y, name="home_margin"),
+        x_preview=x_preview,
+        y_preview=y_preview,
         components=components,
         dropped_columns=dropped,
         solver=solver,
+        rank=int(np.linalg.matrix_rank(normal)) if n_cols else 0,
+        warnings=notes,
+    )
+
+
+def fit_colley(
+    games: pd.DataFrame,
+    *,
+    season: int | str | None = None,
+    as_of_date: str | pd.Timestamp | None = None,
+) -> MasseyFit:
+    """
+    Fit the Colley rating system for one season/snapshot.
+
+    The Colley matrix C = 2I + M where M is the Massey matrix (team-team
+    block only). The RHS is b_i = 1 + 0.5*(wins_i - losses_i). Unlike
+    Massey, the Colley system is always invertible — no constraints needed.
+
+    The solved ratings incorporate strength of schedule implicitly via the
+    linear system coupling (each team's rating depends on opponents' ratings).
+    """
+    design = MasseyDesign("colley")
+
+    df = normalize_massey_games(games)
+    if season is not None:
+        df = df[df["season"] == season].copy()
+    snapshot_date = pd.to_datetime(as_of_date) if as_of_date is not None else None
+    if snapshot_date is not None:
+        df = df[df["game_date"] <= snapshot_date].copy()
+
+    if df.empty:
+        empty = pd.DataFrame(columns=["season", "team_id", "colley", "colley_rank"])
+        return MasseyFit(
+            design=design,
+            season=season,
+            as_of_date=snapshot_date,
+            teams=[],
+            columns=[],
+            ratings=empty,
+            coefficients={},
+            normal_matrix=np.zeros((0, 0)),
+            target_vector=np.zeros(0),
+            constrained_matrix=np.zeros((0, 0)),
+            constrained_target=np.zeros(0),
+            x_preview=pd.DataFrame(),
+            y_preview=pd.Series(dtype=float, name="colley_b"),
+            components=[],
+            solver="empty",
+            warnings=["No completed games available for Colley fit."],
+        )
+
+    teams = sorted(
+        set(df["home_team_id"].astype(int).tolist())
+        | set(df["away_team_id"].astype(int).tolist())
+    )
+    team_to_idx = {team: idx for idx, team in enumerate(teams)}
+    n = len(teams)
+
+    M, wins, losses = _build_colley_vectorized(df, team_to_idx, teams)
+
+    # Colley matrix: C = 2I + M
+    C = 2.0 * np.eye(n) + M
+
+    # Colley RHS: b_i = 1 + 0.5*(w_i - l_i)
+    b = 1.0 + 0.5 * (wins - losses)
+
+    cond_c = np.linalg.cond(C) if n > 0 else float("inf")
+    logger.info("[fit_colley] season=%s games=%d teams=%d cond(C)=%.2e",
+                season, len(df), n, cond_c)
+
+    try:
+        r = np.linalg.solve(C, b)
+        solver = "numpy.linalg.solve"
+    except np.linalg.LinAlgError:
+        r, *_ = np.linalg.lstsq(C, b, rcond=None)
+        solver = "numpy.linalg.lstsq"
+
+    logger.debug("[fit_colley] season=%s solver=%s rating_range=[%.3f, %.3f]",
+                 season, solver, float(r.min()), float(r.max()))
+
+    columns = [f"team_{team}" for team in teams]
+    coeffs = {columns[i]: float(r[i]) for i in range(n)}
+
+    ratings = pd.DataFrame({
+        "season": season if season is not None else df["season"].iloc[0],
+        "team_id": teams,
+        "colley": r,
+    })
+    ratings["colley_rank"] = (
+        ratings["colley"].rank(ascending=False, method="min").astype(int)
+    )
+
+    return MasseyFit(
+        design=design,
+        season=season if season is not None else df["season"].iloc[0],
+        as_of_date=snapshot_date,
+        teams=teams,
+        columns=columns,
+        ratings=ratings,
+        coefficients=coeffs,
+        normal_matrix=M,
+        target_vector=b,
+        constrained_matrix=C,
+        constrained_target=b,
+        x_preview=pd.DataFrame(),
+        y_preview=pd.Series(b[:8], name="colley_b"),
+        components=_team_components(df, teams),
+        solver=solver,
+        rank=int(np.linalg.matrix_rank(C)),
+        warnings=[],
+    )
+
+
+QUARTERS = ("q1", "q2", "q3", "q4")
+
+
+def fit_massey_quarter(
+    games: pd.DataFrame,
+    design: MasseyDesign,
+    quarter: str,
+    *,
+    season: int | str | None = None,
+    as_of_date: str | pd.Timestamp | None = None,
+) -> MasseyFit:
+    """
+    Fit a Massey design using per-quarter scores as the target.
+
+    Expects games to have columns `home_{quarter}_score` and `away_{quarter}_score`
+    (e.g. home_q1_score, away_q1_score). The design matrix X is identical to
+    full-game Massey; only the target vector changes.
+    """
+    home_col = f"home_{quarter}_score"
+    away_col = f"away_{quarter}_score"
+    suffix = f"_{quarter}"
+    rating_name = f"{design.name}{suffix}"
+
+    df = prepare_massey_context(games)
+    if season is not None:
+        df = df[df["season"] == season].copy()
+    snapshot_date = pd.to_datetime(as_of_date) if as_of_date is not None else None
+    if snapshot_date is not None:
+        df = df[df["game_date"] <= snapshot_date].copy()
+
+    # Drop rows missing quarter scores
+    for col in (home_col, away_col):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+        else:
+            empty = pd.DataFrame(columns=["season", "team_id", rating_name, f"{rating_name}_rank"])
+            return MasseyFit(
+                design=MasseyDesign(rating_name),
+                season=season, as_of_date=snapshot_date,
+                teams=[], columns=[], ratings=empty, coefficients={},
+                normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+                constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+                x_preview=pd.DataFrame(),
+                y_preview=pd.Series(dtype=float, name=f"{quarter}_margin"),
+                components=[], solver="empty",
+                warnings=[f"Column {col} not found."],
+            )
+    df = df.dropna(subset=[home_col, away_col])
+
+    if df.empty:
+        empty = pd.DataFrame(columns=["season", "team_id", rating_name, f"{rating_name}_rank"])
+        return MasseyFit(
+            design=MasseyDesign(rating_name),
+            season=season, as_of_date=snapshot_date,
+            teams=[], columns=[], ratings=empty, coefficients={},
+            normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+            constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+            x_preview=pd.DataFrame(),
+            y_preview=pd.Series(dtype=float, name=f"{quarter}_margin"),
+            components=[], solver="empty",
+            warnings=[f"No games with {quarter} scores for this fit."],
+        )
+
+    teams = sorted(
+        set(df["home_team_id"].astype(int).tolist())
+        | set(df["away_team_id"].astype(int).tolist())
+    )
+    team_to_idx = {team: idx for idx, team in enumerate(teams)}
+
+    usable_factors, dropped, notes = _usable_factor_columns(df, design)
+    extra_columns = []
+    if design.include_home_advantage:
+        extra_columns.append("home_advantage")
+    extra_columns.extend(usable_factors)
+
+    columns = [f"team_{team}" for team in teams] + extra_columns
+    n_cols = len(columns)
+    weights, weight_notes = _weights_for_design(df, design)
+    notes.extend(weight_notes)
+
+    y_vec = (pd.to_numeric(df[home_col], errors="coerce") - pd.to_numeric(df[away_col], errors="coerce")).values.astype(float)
+    normal, target, _, _ = _build_normal_equations_vectorized(
+        df, team_to_idx, teams, extra_columns, design, weights, y_vec, preview_rows=0
+    )
+
+    constrained = normal.copy()
+    constrained_target = target.copy()
+    components = _team_components(df, teams)
+
+    for comp in components:
+        row_idx = team_to_idx[comp[-1]]
+        constrained[row_idx, :] = 0.0
+        constrained[row_idx, [team_to_idx[t] for t in comp]] = 1.0
+        constrained_target[row_idx] = 0.0
+
+    try:
+        beta = np.linalg.solve(constrained, constrained_target)
+        solver = "numpy.linalg.solve"
+    except np.linalg.LinAlgError:
+        beta, *_ = np.linalg.lstsq(constrained, constrained_target, rcond=None)
+        solver = "numpy.linalg.lstsq"
+
+    _emit_fit_notes(notes)
+
+    rating_values = beta[: len(teams)]
+    ratings = pd.DataFrame({
+        "season": season if season is not None else df["season"].iloc[0],
+        "team_id": teams,
+        rating_name: rating_values,
+    })
+    ratings[f"{rating_name}_rank"] = (
+        ratings[rating_name].rank(ascending=False, method="min").astype(int)
+    )
+
+    return MasseyFit(
+        design=MasseyDesign(rating_name),
+        season=season if season is not None else df["season"].iloc[0],
+        as_of_date=snapshot_date,
+        teams=teams, columns=columns, ratings=ratings,
+        coefficients={columns[i]: float(beta[i]) for i in range(n_cols)},
+        normal_matrix=normal, target_vector=target,
+        constrained_matrix=constrained, constrained_target=constrained_target,
+        x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float, name=f"{quarter}_margin"),
+        components=components, dropped_columns=dropped, solver=solver,
+        rank=int(np.linalg.matrix_rank(normal)) if n_cols else 0,
+        warnings=notes,
+    )
+
+
+def fit_colley_quarter(
+    games: pd.DataFrame,
+    quarter: str,
+    *,
+    season: int | str | None = None,
+    as_of_date: str | pd.Timestamp | None = None,
+) -> MasseyFit:
+    """
+    Fit Colley ratings using per-quarter wins/losses.
+
+    A team 'wins' a quarter if it outscores the opponent in that quarter.
+    Ties count as 0.5 win + 0.5 loss.
+    """
+    home_col = f"home_{quarter}_score"
+    away_col = f"away_{quarter}_score"
+    rating_name = f"colley_{quarter}"
+
+    df = normalize_massey_games(games)
+    if season is not None:
+        df = df[df["season"] == season].copy()
+    snapshot_date = pd.to_datetime(as_of_date) if as_of_date is not None else None
+    if snapshot_date is not None:
+        df = df[df["game_date"] <= snapshot_date].copy()
+
+    for col in (home_col, away_col):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+        else:
+            empty = pd.DataFrame(columns=["season", "team_id", rating_name, f"{rating_name}_rank"])
+            return MasseyFit(
+                design=MasseyDesign(rating_name),
+                season=season, as_of_date=snapshot_date,
+                teams=[], columns=[], ratings=empty, coefficients={},
+                normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+                constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+                x_preview=pd.DataFrame(),
+                y_preview=pd.Series(dtype=float, name=f"colley_{quarter}_b"),
+                components=[], solver="empty",
+                warnings=[f"Column {col} not found."],
+            )
+    df = df.dropna(subset=[home_col, away_col])
+
+    if df.empty:
+        empty = pd.DataFrame(columns=["season", "team_id", rating_name, f"{rating_name}_rank"])
+        return MasseyFit(
+            design=MasseyDesign(rating_name),
+            season=season, as_of_date=snapshot_date,
+            teams=[], columns=[], ratings=empty, coefficients={},
+            normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+            constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+            x_preview=pd.DataFrame(),
+            y_preview=pd.Series(dtype=float, name=f"colley_{quarter}_b"),
+            components=[], solver="empty",
+            warnings=[f"No games with {quarter} scores for Colley fit."],
+        )
+
+    teams = sorted(
+        set(df["home_team_id"].astype(int).tolist())
+        | set(df["away_team_id"].astype(int).tolist())
+    )
+    team_to_idx = {team: idx for idx, team in enumerate(teams)}
+    n = len(teams)
+
+    M, wins, losses = _build_colley_vectorized(
+        df, team_to_idx, teams, home_score_col=home_col, away_score_col=away_col
+    )
+
+    C = 2.0 * np.eye(n) + M
+    b = 1.0 + 0.5 * (wins - losses)
+
+    try:
+        r = np.linalg.solve(C, b)
+        solver = "numpy.linalg.solve"
+    except np.linalg.LinAlgError:
+        r, *_ = np.linalg.lstsq(C, b, rcond=None)
+        solver = "numpy.linalg.lstsq"
+
+    columns = [f"team_{team}" for team in teams]
+    ratings = pd.DataFrame({
+        "season": season if season is not None else df["season"].iloc[0],
+        "team_id": teams,
+        rating_name: r,
+    })
+    ratings[f"{rating_name}_rank"] = (
+        ratings[rating_name].rank(ascending=False, method="min").astype(int)
+    )
+
+    return MasseyFit(
+        design=MasseyDesign(rating_name),
+        season=season if season is not None else df["season"].iloc[0],
+        as_of_date=snapshot_date,
+        teams=teams, columns=columns, ratings=ratings,
+        coefficients={columns[i]: float(r[i]) for i in range(n)},
+        normal_matrix=M, target_vector=b,
+        constrained_matrix=C, constrained_target=b,
+        x_preview=pd.DataFrame(),
+        y_preview=pd.Series(b[:8], name=f"colley_{quarter}_b"),
+        components=_team_components(df, teams),
+        solver=solver, rank=int(np.linalg.matrix_rank(C)),
+        warnings=[],
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Alternative Rating Systems: Wolfe, Wobus, Whitlock
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fit_wolfe(
+    games: pd.DataFrame,
+    *,
+    season: int | str | None = None,
+    as_of_date: str | pd.Timestamp | None = None,
+    home_advantage: float = 3.0,
+    n_iter: int = 100,
+) -> MasseyFit:
+    """
+    Wolfe (Bradley-Terry, win/loss only): P(i beats j) = πi / (πi + πj).
+    Iterative Zermelo algorithm. Pure W/L — no margin. Home team gets
+    opponent strength reduced by home_advantage equivalent.
+    """
+    design = MasseyDesign("wolfe")
+    df = normalize_massey_games(games)
+    if season is not None:
+        df = df[df["season"] == season].copy()
+    snapshot_date = pd.to_datetime(as_of_date) if as_of_date is not None else None
+    if snapshot_date is not None:
+        df = df[df["game_date"] <= snapshot_date].copy()
+
+    if df.empty or len(df) < 5:
+        empty = pd.DataFrame(columns=["season", "team_id", "wolfe", "wolfe_rank"])
+        return MasseyFit(
+            design=design, season=season, as_of_date=snapshot_date,
+            teams=[], columns=[], ratings=empty, coefficients={},
+            normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+            constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+            x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+            components=[], solver="empty", warnings=["Insufficient data."],
+        )
+
+    teams = sorted(set(df["home_team_id"].tolist()) | set(df["away_team_id"].tolist()))
+    team_to_idx = {t: i for i, t in enumerate(teams)}
+    n = len(teams)
+
+    # Vectorized Zermelo: pure W/L (winner gets 1.0, loser gets 0.0)
+    home_ids = df["home_team_id"].map(team_to_idx).values.astype(int)
+    away_ids = df["away_team_id"].map(team_to_idx).values.astype(int)
+    home_scores = df["home_score"].values.astype(float)
+    away_scores = df["away_score"].values.astype(float)
+
+    home_wins = home_scores > away_scores
+    away_wins = away_scores > home_scores
+
+    # Only include decided games (no ties for Wolfe)
+    decided = home_wins | away_wins
+    team_a_ids = np.where(home_wins, home_ids, away_ids)[decided]
+    team_b_ids = np.where(home_wins, away_ids, home_ids)[decided]
+    win_weights_a = np.ones(decided.sum(), dtype=float)
+    win_weights_b = np.zeros(decided.sum(), dtype=float)
+
+    pi = _zermelo_vectorized(team_a_ids, team_b_ids, win_weights_a, win_weights_b, n, n_iter)
+
+    ratings = pd.DataFrame({
+        "season": season if season is not None else df["season"].iloc[0],
+        "team_id": teams,
+        "wolfe": pi,
+    })
+    ratings["wolfe_rank"] = ratings["wolfe"].rank(ascending=False, method="min").astype(int)
+
+    return MasseyFit(
+        design=design, season=season, as_of_date=snapshot_date,
+        teams=teams, columns=[f"team_{t}" for t in teams], ratings=ratings,
+        coefficients={}, normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+        constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+        x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+        components=_team_components(df, teams), solver="zermelo_iterative",
+        warnings=[],
+    )
+
+
+def fit_wobus(
+    games: pd.DataFrame,
+    *,
+    season: int | str | None = None,
+    as_of_date: str | pd.Timestamp | None = None,
+    sigma: float = 13.0,
+    margin_cap: int = 24,
+    n_iter: int = 100,
+) -> MasseyFit:
+    """
+    Wobus (Bradley-Terry with margin-weighted fractional wins).
+    Convert margin to win probability via logistic: P = 1/(1+exp(-margin/sigma)).
+    Feed fractional wins into Zermelo/B-T algorithm.
+    """
+    design = MasseyDesign("wobus")
+    df = normalize_massey_games(games)
+    if season is not None:
+        df = df[df["season"] == season].copy()
+    snapshot_date = pd.to_datetime(as_of_date) if as_of_date is not None else None
+    if snapshot_date is not None:
+        df = df[df["game_date"] <= snapshot_date].copy()
+
+    if df.empty or len(df) < 5:
+        empty = pd.DataFrame(columns=["season", "team_id", "wobus", "wobus_rank"])
+        return MasseyFit(
+            design=design, season=season, as_of_date=snapshot_date,
+            teams=[], columns=[], ratings=empty, coefficients={},
+            normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+            constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+            x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+            components=[], solver="empty", warnings=["Insufficient data."],
+        )
+
+    teams = sorted(set(df["home_team_id"].tolist()) | set(df["away_team_id"].tolist()))
+    team_to_idx = {t: i for i, t in enumerate(teams)}
+    n = len(teams)
+
+    # Vectorized fractional wins via logistic margin transform
+    home_ids = df["home_team_id"].map(team_to_idx).values.astype(int)
+    away_ids = df["away_team_id"].map(team_to_idx).values.astype(int)
+    home_scores = df["home_score"].values.astype(float)
+    away_scores = df["away_score"].values.astype(float)
+
+    margins = np.abs(home_scores - away_scores)
+    margins = np.minimum(margins, margin_cap)
+    p_win = 1.0 / (1.0 + np.exp(-margins / sigma))
+
+    home_wins = home_scores > away_scores
+    away_wins = away_scores > home_scores
+    ties = home_scores == away_scores
+
+    # Winner gets p_win, loser gets 1-p_win; ties get 0.5 each
+    win_weights_a = np.where(home_wins, p_win, np.where(away_wins, 1 - p_win, 0.5))
+    win_weights_b = np.where(home_wins, 1 - p_win, np.where(away_wins, p_win, 0.5))
+
+    pi = _zermelo_vectorized(home_ids, away_ids, win_weights_a, win_weights_b, n, n_iter)
+
+    ratings = pd.DataFrame({
+        "season": season if season is not None else df["season"].iloc[0],
+        "team_id": teams,
+        "wobus": pi,
+    })
+    ratings["wobus_rank"] = ratings["wobus"].rank(ascending=False, method="min").astype(int)
+
+    return MasseyFit(
+        design=design, season=season, as_of_date=snapshot_date,
+        teams=teams, columns=[f"team_{t}" for t in teams], ratings=ratings,
+        coefficients={}, normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+        constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+        x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+        components=_team_components(df, teams), solver="zermelo_fractional",
+        warnings=[],
+    )
+
+
+def fit_whitlock(
+    games: pd.DataFrame,
+    *,
+    season: int | str | None = None,
+    as_of_date: str | pd.Timestamp | None = None,
+    margin_cap: int = 24,
+    win_bonus: float = 5.0,
+    home_penalty: float = 3.0,
+) -> MasseyFit:
+    """
+    Whitlock (LP-formulated as linear system).
+    Per-game: WinRank - LoseRank = sqrt(min(margin, cap)) + sqrt(win_bonus) - sqrt(home_penalty if home won)
+    Solved as least-squares on the linear system with per-team slack balancing.
+    """
+    design = MasseyDesign("whitlock")
+    df = normalize_massey_games(games)
+    if season is not None:
+        df = df[df["season"] == season].copy()
+    snapshot_date = pd.to_datetime(as_of_date) if as_of_date is not None else None
+    if snapshot_date is not None:
+        df = df[df["game_date"] <= snapshot_date].copy()
+
+    if df.empty or len(df) < 5:
+        empty = pd.DataFrame(columns=["season", "team_id", "whitlock", "whitlock_rank"])
+        return MasseyFit(
+            design=design, season=season, as_of_date=snapshot_date,
+            teams=[], columns=[], ratings=empty, coefficients={},
+            normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+            constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+            x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+            components=[], solver="empty", warnings=["Insufficient data."],
+        )
+
+    teams = sorted(set(df["home_team_id"].tolist()) | set(df["away_team_id"].tolist()))
+    team_to_idx = {t: i for i, t in enumerate(teams)}
+    n_teams = len(teams)
+    n_games = len(df)
+
+    # Build system: one equation per game
+    # WinRank - LoseRank = sqrt(min(margin, cap)) + sqrt(win_bonus) - sqrt(home_penalty) if home won
+    X = np.zeros((n_games, n_teams))
+    y = np.zeros(n_games)
+
+    home_ids = df["home_team_id"].map(team_to_idx).values.astype(int)
+    away_ids = df["away_team_id"].map(team_to_idx).values.astype(int)
+    home_scores = df["home_score"].values.astype(float)
+    away_scores = df["away_score"].values.astype(float)
+
+    margins = np.minimum(np.abs(home_scores - away_scores), margin_cap)
+    home_wins = home_scores > away_scores
+    away_wins = away_scores > home_scores
+
+    # Winner gets +1, loser gets -1
+    winner_ids = np.where(home_wins, home_ids, np.where(away_wins, away_ids, home_ids))
+    loser_ids = np.where(home_wins, away_ids, np.where(away_wins, home_ids, away_ids))
+    decided = home_wins | away_wins
+
+    X[np.arange(n_games)[decided], winner_ids[decided]] = 1.0
+    X[np.arange(n_games)[decided], loser_ids[decided]] = -1.0
+
+    # RHS: sqrt(margin) + sqrt(win_bonus) adjusted for home/away winner
+    y = np.sqrt(margins) + np.sqrt(win_bonus)
+    y[home_wins] -= np.sqrt(home_penalty)
+    y[away_wins] += np.sqrt(home_penalty)
+    y[~decided] = 0.0
+
+    # Solve via normal equations with sum-to-zero constraint
+    XtX = X.T @ X
+    Xty = X.T @ y
+    constrained = XtX.copy()
+    constrained_target = Xty.copy()
+    constrained[-1, :] = 1.0
+    constrained_target[-1] = 0.0
+
+    try:
+        beta = np.linalg.solve(constrained, constrained_target)
+    except np.linalg.LinAlgError:
+        beta, *_ = np.linalg.lstsq(constrained, constrained_target, rcond=None)
+
+    ratings = pd.DataFrame({
+        "season": season if season is not None else df["season"].iloc[0],
+        "team_id": teams,
+        "whitlock": beta,
+    })
+    ratings["whitlock_rank"] = ratings["whitlock"].rank(ascending=False, method="min").astype(int)
+
+    return MasseyFit(
+        design=design, season=season, as_of_date=snapshot_date,
+        teams=teams, columns=[f"team_{t}" for t in teams], ratings=ratings,
+        coefficients={}, normal_matrix=XtX, target_vector=Xty,
+        constrained_matrix=constrained, constrained_target=constrained_target,
+        x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+        components=_team_components(df, teams), solver="normal_equations",
+        warnings=[],
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Off/Def Massey Split
+# ─────────────────────────────────────────────────────────────────────────────
+
+def fit_massey_offdef(
+    games: pd.DataFrame,
+    design: MasseyDesign,
+    target_col_home: str,
+    target_col_away: str,
+    rating_name: str,
+    *,
+    season: int | str | None = None,
+    as_of_date: str | pd.Timestamp | None = None,
+) -> MasseyFit:
+    """
+    Fit Massey using a custom target: target_col_home - target_col_away.
+    Same design matrix as standard Massey (team +1/-1 + context columns),
+    only the y vector changes.
+
+    Use for off/def splits:
+      OFF: target_col_home="home_offrtg", target_col_away="away_offrtg"
+      DEF: target_col_home="home_defrtg", target_col_away="away_defrtg"
+    """
+    df = prepare_massey_context(games)
+    if season is not None:
+        df = df[df["season"] == season].copy()
+    snapshot_date = pd.to_datetime(as_of_date) if as_of_date is not None else None
+    if snapshot_date is not None:
+        df = df[df["game_date"] <= snapshot_date].copy()
+
+    # Check target columns exist and have data
+    for col in (target_col_home, target_col_away):
+        if col not in df.columns:
+            empty = pd.DataFrame(columns=["season", "team_id", rating_name, f"{rating_name}_rank"])
+            return MasseyFit(
+                design=MasseyDesign(rating_name), season=season, as_of_date=snapshot_date,
+                teams=[], columns=[], ratings=empty, coefficients={},
+                normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+                constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+                x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+                components=[], solver="empty",
+                warnings=[f"Column {col} not found."],
+            )
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    df = df.dropna(subset=[target_col_home, target_col_away])
+    if df.empty or len(df) < 10:
+        empty = pd.DataFrame(columns=["season", "team_id", rating_name, f"{rating_name}_rank"])
+        return MasseyFit(
+            design=MasseyDesign(rating_name), season=season, as_of_date=snapshot_date,
+            teams=[], columns=[], ratings=empty, coefficients={},
+            normal_matrix=np.zeros((0, 0)), target_vector=np.zeros(0),
+            constrained_matrix=np.zeros((0, 0)), constrained_target=np.zeros(0),
+            x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+            components=[], solver="empty",
+            warnings=["Insufficient data for off/def fit."],
+        )
+
+    teams = sorted(set(df["home_team_id"].tolist()) | set(df["away_team_id"].tolist()))
+    team_to_idx = {t: i for i, t in enumerate(teams)}
+
+    usable_factors, dropped, notes = _usable_factor_columns(df, design)
+    extra_columns = []
+    if design.include_home_advantage:
+        extra_columns.append("home_advantage")
+    extra_columns.extend(usable_factors)
+
+    columns = [f"team_{team}" for team in teams] + extra_columns
+    n_cols = len(columns)
+    weights, weight_notes = _weights_for_design(df, design)
+    notes.extend(weight_notes)
+
+    y_vec = (pd.to_numeric(df[target_col_home], errors="coerce") - pd.to_numeric(df[target_col_away], errors="coerce")).values.astype(float)
+    normal, target, _, _ = _build_normal_equations_vectorized(
+        df, team_to_idx, teams, extra_columns, design, weights, y_vec, preview_rows=0
+    )
+
+    constrained = normal.copy()
+    constrained_target = target.copy()
+    components = _team_components(df, teams)
+
+    for comp in components:
+        row_idx = team_to_idx[comp[-1]]
+        constrained[row_idx, :] = 0.0
+        constrained[row_idx, [team_to_idx[t] for t in comp]] = 1.0
+        constrained_target[row_idx] = 0.0
+
+    try:
+        beta = np.linalg.solve(constrained, constrained_target)
+        solver = "numpy.linalg.solve"
+    except np.linalg.LinAlgError:
+        beta, *_ = np.linalg.lstsq(constrained, constrained_target, rcond=None)
+        solver = "numpy.linalg.lstsq"
+
+    _emit_fit_notes(notes)
+
+    rating_values = beta[:len(teams)]
+    ratings = pd.DataFrame({
+        "season": season if season is not None else df["season"].iloc[0],
+        "team_id": teams,
+        rating_name: rating_values,
+    })
+    ratings[f"{rating_name}_rank"] = (
+        ratings[rating_name].rank(ascending=False, method="min").astype(int)
+    )
+
+    return MasseyFit(
+        design=MasseyDesign(rating_name), season=season, as_of_date=snapshot_date,
+        teams=teams, columns=columns, ratings=ratings,
+        coefficients={columns[i]: float(beta[i]) for i in range(n_cols)},
+        normal_matrix=normal, target_vector=target,
+        constrained_matrix=constrained, constrained_target=constrained_target,
+        x_preview=pd.DataFrame(), y_preview=pd.Series(dtype=float),
+        components=components, dropped_columns=dropped, solver=solver,
         rank=int(np.linalg.matrix_rank(normal)) if n_cols else 0,
         warnings=notes,
     )

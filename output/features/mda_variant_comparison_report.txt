@@ -1,0 +1,73 @@
+======================================================================
+MDA VARIANT COMPARISON REPORT
+Generated from existing pipeline output
+======================================================================
+
+QUESTION: Are PCA-MDA, Residualized MDA, and Desub-MDA redundant?
+
+======================================================================
+TARGET: winner (classification)
+======================================================================
+Features scored: 1719
+
+--- Rank Correlations ---
+  PCA-MDA vs Resid-MDA:   Spearman=-0.122  Kendall=-0.081
+  PCA-MDA vs Desub-MDA:   Spearman=-0.029  Kendall=-0.014
+  Resid-MDA vs Desub-MDA: Spearman=0.158  Kendall=0.105
+
+INTERPRETATION: All three are essentially UNCORRELATED in their rankings.
+They are NOT redundant — they each surface different signal.
+
+--- Top-20 Overlap ---
+  PCA ∩ Resid:   0/20
+  PCA ∩ Desub:   0/20
+  Resid ∩ Desub: 0/20
+  All three:     0/20
+
+ZERO overlap in top-20 across all three methods!
+
+--- What each method uniquely surfaces (top-20 exclusive) ---
+  PCA-MDA:   ['sf_110', 'sf_292', 'sf_372', 'sf_382', 'sf_383', 'sum_roll10_3pa', 'sum_roll10_pctfga_2pt', 'sum_roll10_pctfga_3pt']
+  Resid-MDA: ['diff_bpidefense', 'diff_roll10_bpi', 'diff_roll10_bpirank', 'diff_roll10_deftalent', 'diff_roll10_playoffbpi', 'diff_roll20_bpi', 'diff_roll20_bpidefense', 'diff_roll20_deftalent']
+  Desub-MDA: ['diff_context_adjusted_massey_q1', 'diff_context_adjusted_massey_q3', 'diff_def_default_massey', 'diff_def_location_adjusted_massey', 'diff_roll10_defrtg', 'diff_roll10_defrtg_venue', 'diff_roll10_opp_pitp', 'diff_roll20_defrtg']
+
+======================================================================
+TARGET: spread (regression)
+======================================================================
+  PCA-MDA vs Resid-MDA:  Spearman=-0.066  Kendall=-0.043
+  Top-20 overlap: 0/20
+
+======================================================================
+FILTERING IMPACT
+======================================================================
+
+What changes if you remove Resid-MDA from the filter?
+  49 features move from NEEDS SPECIFICATION -> ACCEPTED
+  (Resid-MDA was the ONLY method failing them)
+  0 features change REJECTED status
+
+Without resid_mda: ACCEPTED=77, NEEDS SPEC=1637, REJECTED=5
+With resid_mda:    ACCEPTED=28, NEEDS SPEC=1686, REJECTED=5
+
+Features downgraded from ACCEPTED to NEEDS SPEC by resid_mda:
+  diff_win_pct_20, diff_roll20_plus_minus, diff_offrtg_vs_bad_def,
+  diff_default_massey, diff_roll5_plus_minus, diff_win_streak,
+  diff_crowd_adjusted_massey_q1, diff_experience_adjusted_massey_q2, ...
+
+======================================================================
+CONCLUSION
+======================================================================
+
+The three methods are COMPLETELY different lenses:
+  - PCA-MDA: variance-driven (which features load on important PCs)
+  - Resid-MDA: unique info after removing cross-cluster redundancy
+  - Desub-MDA: unique info within-cluster (no substitution)
+
+Skipping Resid-MDA:
+  PRO: saves ~6-8 hours on M1 MacBook
+  CON: lose 1 vote in the 5-method ensemble filter
+        49 features become ACCEPTED that were NEEDS SPEC
+        (arguably this is FINE — they pass MDI + SFI + PCA-MDA)
+
+Recommendation: skip Resid-MDA for iteration speed. Run it once
+for final feature selection before deployment.

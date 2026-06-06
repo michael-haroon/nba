@@ -17,14 +17,19 @@ References:
   MLAM   Ch.4 (ONC), Ch.6 (CFI)
 """
 
+import logging
 import warnings
+
+from tqdm import tqdm
+
+logger = logging.getLogger(__name__)
 import numpy as np
 import pandas as pd
 from itertools import combinations
 from joblib import Parallel, delayed
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
-from sklearn.metrics import log_loss, roc_auc_score
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.ensemble import BaggingClassifier, BaggingRegressor, RandomForestClassifier
+from sklearn.metrics import log_loss, roc_auc_score, r2_score
 from sklearn.model_selection import KFold
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples
@@ -33,7 +38,69 @@ from scipy.spatial.distance import squareform
 from scipy.stats import wilcoxon as scipy_wilcoxon, weightedtau
 from sklearn.decomposition import PCA
 from feature_pipeline.config import RF_PARAMS
-from feature_pipeline.compute import get_n_jobs, get_parallel_split
+from feature_pipeline.compute import get_n_jobs, get_parallel_split, blas_limit, blas_full
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Marcenko-Pastur denoising + detoning  (de Prado AFML Ch.2)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def denoise_corr(corr: pd.DataFrame, q: float) -> pd.DataFrame:
+    """
+    Denoise a correlation matrix via the Marcenko-Pastur theorem (AFML Ch.2).
+    q = T / N  (observations / features).
+
+    Eigenvalues at or below the MP upper bound λ+ are noise.  They are replaced
+    with their mean so the matrix trace — and therefore the total explained
+    variance — is preserved.
+    """
+    evals, evecs = np.linalg.eigh(corr.values)
+
+    # MP upper bound for unit-variance random matrix (σ²=1 for corr matrix)
+    lambda_plus = (1.0 + q ** -0.5) ** 2
+
+    noise_mask = evals <= lambda_plus
+    if noise_mask.any():
+        noise_mean = evals[noise_mask].mean()
+        evals = np.where(noise_mask, noise_mean, evals)
+
+    corr_clean = evecs @ np.diag(evals) @ evecs.T
+    # Clip floating-point drift so diagonal stays exactly 1
+    diag_sqrt = np.sqrt(np.maximum(np.diag(corr_clean), 1e-12))
+    corr_clean = corr_clean / np.outer(diag_sqrt, diag_sqrt)
+    np.fill_diagonal(corr_clean, 1.0)
+
+    return pd.DataFrame(corr_clean, index=corr.index, columns=corr.columns)
+
+
+def detone_corr(corr: pd.DataFrame, n_remove: int = 1) -> pd.DataFrame:
+    """
+    Detone a (denoised) correlation matrix by zeroing out the n_remove largest
+    eigenvectors (the 'market mode') (AFML Ch.2).  This exposes cluster
+    structure that would otherwise be masked by the common market factor.
+    Renormalises so the diagonal stays 1.
+    """
+    evals, evecs = np.linalg.eigh(corr.values)  # ascending order
+    evals_detoned = evals.copy()
+    evals_detoned[-n_remove:] = 0.0
+
+    corr_detoned = evecs @ np.diag(evals_detoned) @ evecs.T
+    diag_sqrt = np.sqrt(np.maximum(np.diag(corr_detoned), 1e-12))
+    corr_detoned = corr_detoned / np.outer(diag_sqrt, diag_sqrt)
+    np.fill_diagonal(corr_detoned, 1.0)
+
+    return pd.DataFrame(corr_detoned, index=corr.index, columns=corr.columns)
+
+
+def _align_proba(prob: np.ndarray, fit_classes: np.ndarray,
+                 all_labels: np.ndarray) -> np.ndarray:
+    """Expand prob columns to match all_labels, filling missing classes with 0."""
+    if np.array_equal(fit_classes, all_labels):
+        return prob
+    out = np.zeros((prob.shape[0], len(all_labels)), dtype=prob.dtype)
+    col_idx = np.searchsorted(all_labels, fit_classes)
+    out[:, col_idx] = prob
+    return out
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -43,29 +110,44 @@ from feature_pipeline.compute import get_n_jobs, get_parallel_split
 class PurgedYearKFold:
     """
     Leave-one-year-out cross-validation for temporal data.
-    Train on all years except the held-out year.
-    No purging needed when the fold boundary is a whole year,
-    because there is no overlap between years (one row per team per year).
-
-    This is appropriate for our dataset: each row = team × year.
-    Holding out a year means the model has never seen any data from that year.
+    When n_splits is None (default), does true LOYO (one fold per unique year).
+    When n_splits is set, groups consecutive years into k folds — useful when
+    the dataset is too small for LOYO to produce meaningful test sets.
     """
 
-    def __init__(self, years: pd.Series):
+    def __init__(self, years: pd.Series, n_splits: int = None):
         self.unique_years = sorted(years.unique())
+        self.n_splits = n_splits  # None = LOYO, int = k-fold over years
 
     def split(self, X, y=None, groups=None):
-        years = groups  # pass df['year'] as groups
+        years = groups
         if years is None:
             raise ValueError("Pass df['year'] as the groups argument.")
-        for test_year in self.unique_years:
-            train_idx = np.where(years != test_year)[0]
-            test_idx  = np.where(years == test_year)[0]
-            if len(train_idx) == 0 or len(test_idx) == 0:
-                continue
-            yield train_idx, test_idx
+
+        if self.n_splits is None:
+            # Leave-one-year-out
+            for test_year in self.unique_years:
+                train_idx = np.where(years != test_year)[0]
+                test_idx  = np.where(years == test_year)[0]
+                if len(train_idx) == 0 or len(test_idx) == 0:
+                    continue
+                yield train_idx, test_idx
+        else:
+            # Group years into k folds chronologically
+            k = min(self.n_splits, len(self.unique_years))
+            year_folds = np.array_split(self.unique_years, k)
+            for fold_years in year_folds:
+                test_mask  = np.isin(years, fold_years)
+                train_mask = ~test_mask
+                train_idx = np.where(train_mask)[0]
+                test_idx  = np.where(test_mask)[0]
+                if len(train_idx) == 0 or len(test_idx) == 0:
+                    continue
+                yield train_idx, test_idx
 
     def get_n_splits(self):
+        if self.n_splits is not None:
+            return min(self.n_splits, len(self.unique_years))
         return len(self.unique_years)
 
 
@@ -73,16 +155,30 @@ class PurgedYearKFold:
 #  Build a base RF classifier (de Prado's recommended setup)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def build_rf(n_estimators: int = 1000, n_jobs: int = -1) -> BaggingClassifier:
+def build_rf(n_estimators: int = 1000, n_jobs: int = -1,
+             regression: bool = False):
     """
-    de Prado's recommended setup (AFML Ch.8):
-    - Decision trees with max_features=1 (one random feature per split)
-    - Wrapped in BaggingClassifier for OOB and ensemble variance reduction
-    - balanced_subsample to handle class imbalance in Final Four data
+    de Prado's recommended setup (AFML Ch.8).
+    regression=True builds a BaggingRegressor for continuous targets (spread/total).
+    regression=False (default) builds the classifier used for winner/series targets.
     """
+    if regression:
+        base = DecisionTreeRegressor(
+            max_features=1,
+            min_weight_fraction_leaf=0.02,
+        )
+        return BaggingRegressor(
+            estimator=base,
+            n_estimators=n_estimators,
+            max_features=1.0,
+            max_samples=1.0,
+            oob_score=False,
+            n_jobs=n_jobs,
+            random_state=42,
+        )
     base = DecisionTreeClassifier(
         criterion="entropy",
-        max_features=1,          # key for MDI: every feature gets a fair shot
+        max_features=1,
         class_weight="balanced",
         min_weight_fraction_leaf=0.02,
     )
@@ -91,7 +187,7 @@ def build_rf(n_estimators: int = 1000, n_jobs: int = -1) -> BaggingClassifier:
         n_estimators=n_estimators,
         max_features=1.0,
         max_samples=1.0,
-        oob_score=False,         # don't use OOB — use purged CV instead
+        oob_score=False,
         n_jobs=n_jobs,
         random_state=42,
     )
@@ -101,7 +197,7 @@ def build_rf(n_estimators: int = 1000, n_jobs: int = -1) -> BaggingClassifier:
 #  MDI  (de Prado AFML Ch.8 §8.3.1)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def feat_imp_mdi(fit: BaggingClassifier,
+def feat_imp_mdi(fit,
                  feat_names: list) -> tuple:
     """
     Mean Decrease Impurity across all trees in the ensemble.
@@ -136,50 +232,68 @@ def feat_imp_mdi(fit: BaggingClassifier,
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _mda_one_fold(clf_params, X_tr_vals, X_te_vals, y_tr_vals, y_te_vals,
-                  col_names, w_tr_vals, scoring, seed):
+                  col_names, w_tr_vals, scoring, seed, all_labels=None):
     """
     Run one MDA fold: fit model, score base + all permutations.
-
-    Uses backend="multiprocessing" (fork on Linux) at the outer level so
-    BaggingClassifier's inner n_jobs threads actually run — loky blocks nested
-    subprocess spawning, but forked processes can use threads freely.
+    scoring: 'log_loss' or 'roc_auc' for classifiers; 'r2' for regressors.
     """
     import os
-    from sklearn.tree import DecisionTreeClassifier
-    from sklearn.ensemble import BaggingClassifier
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+    from sklearn.ensemble import BaggingClassifier, BaggingRegressor
+    from sklearn.metrics import r2_score
 
     rng = np.random.default_rng(seed)
-    base = DecisionTreeClassifier(
-        criterion="entropy", max_features=1,
-        class_weight="balanced", min_weight_fraction_leaf=0.02,
-    )
-    clf = BaggingClassifier(
-        estimator=base, n_estimators=clf_params["n_estimators"],
-        max_features=1.0, max_samples=1.0, oob_score=False,
-        n_jobs=clf_params["n_jobs"], random_state=clf_params["random_state"],
-    )
+    is_regression = (scoring == "r2")
+
+    if is_regression:
+        base = DecisionTreeRegressor(max_features=1, min_weight_fraction_leaf=0.02)
+        clf = BaggingRegressor(
+            estimator=base, n_estimators=clf_params["n_estimators"],
+            max_features=1.0, max_samples=1.0, oob_score=False,
+            n_jobs=clf_params["n_jobs"], random_state=clf_params["random_state"],
+        )
+    else:
+        base = DecisionTreeClassifier(
+            criterion="entropy", max_features=1,
+            class_weight="balanced", min_weight_fraction_leaf=0.02,
+        )
+        clf = BaggingClassifier(
+            estimator=base, n_estimators=clf_params["n_estimators"],
+            max_features=1.0, max_samples=1.0, oob_score=False,
+            n_jobs=clf_params["n_jobs"], random_state=clf_params["random_state"],
+        )
+
     X_tr = pd.DataFrame(X_tr_vals, columns=col_names)
     X_te = pd.DataFrame(X_te_vals, columns=col_names)
     y_tr = pd.Series(y_tr_vals)
     y_te = pd.Series(y_te_vals)
 
     fit = clf.fit(X_tr, y_tr, sample_weight=w_tr_vals)
-    prob = fit.predict_proba(X_te)
 
-    if scoring == "log_loss":
-        base_score = -log_loss(y_te, prob, labels=fit.classes_)
+    if is_regression:
+        pred = fit.predict(X_te)
+        base_score = r2_score(y_te, pred)
     else:
-        base_score = roc_auc_score(y_te, prob[:, 1])
+        ll_labels = all_labels if all_labels is not None else fit.classes_
+        prob = _align_proba(fit.predict_proba(X_te), fit.classes_, ll_labels)
+        if scoring == "log_loss":
+            base_score = -log_loss(y_te, prob, labels=ll_labels)
+        else:
+            base_score = roc_auc_score(y_te, prob[:, 1])
 
     perm_fold = {}
     for col in col_names:
         X_perm = X_te.copy()
         X_perm[col] = rng.permutation(X_perm[col].values)
-        prob_perm = fit.predict_proba(X_perm)
-        if scoring == "log_loss":
-            perm_fold[col] = -log_loss(y_te, prob_perm, labels=fit.classes_)
+        if is_regression:
+            pred_perm = fit.predict(X_perm)
+            perm_fold[col] = r2_score(y_te, pred_perm)
         else:
-            perm_fold[col] = roc_auc_score(y_te, prob_perm[:, 1])
+            prob_perm = _align_proba(fit.predict_proba(X_perm), fit.classes_, ll_labels)
+            if scoring == "log_loss":
+                perm_fold[col] = -log_loss(y_te, prob_perm, labels=ll_labels)
+            else:
+                perm_fold[col] = roc_auc_score(y_te, prob_perm[:, 1])
 
     return base_score, perm_fold
 
@@ -189,7 +303,8 @@ def feat_imp_mda(clf,
                  y: pd.Series,
                  years: pd.Series,
                  sample_weight: pd.Series = None,
-                 scoring: str = "log_loss") -> tuple:
+                 scoring: str = "log_loss",
+                 cv_splits: int = None) -> tuple:
     """
     Mean Decrease Accuracy via purged year-CV.
     Shuffles one feature at a time and measures accuracy drop.
@@ -205,30 +320,32 @@ def feat_imp_mda(clf,
                  (base_score - permuted_score). Use for distribution plots and
                  t-tests vs. null H0: mean == 0 (shuffling has no effect).
     """
-    cv = PurgedYearKFold(years)
+    cv = PurgedYearKFold(years, n_splits=cv_splits)
     n_folds = cv.get_n_splits()
     n_outer, n_inner = get_parallel_split(n_folds)
 
     clf_params = {
         "n_estimators": clf.n_estimators,
-        "n_jobs": n_inner,   # threads inside each forked worker — works with fork
+        "n_jobs": n_inner,
         "random_state": 42,
     }
 
     folds = list(cv.split(X, y, groups=years.values))
-    # backend="multiprocessing" → fork on Linux; forked processes can thread freely
-    results = Parallel(n_jobs=n_outer, backend="multiprocessing")(
-        delayed(_mda_one_fold)(
-            clf_params,
-            X.iloc[tr].values, X.iloc[te].values,
-            y.iloc[tr].values, y.iloc[te].values,
-            list(X.columns),
-            sample_weight.iloc[tr].values if sample_weight is not None else None,
-            scoring,
-            seed=i,
+    all_labels = None if scoring == "r2" else np.unique(y.values)
+    with blas_limit(1):
+        results = Parallel(n_jobs=n_outer, backend="multiprocessing")(
+            delayed(_mda_one_fold)(
+                clf_params,
+                X.iloc[tr].values, X.iloc[te].values,
+                y.iloc[tr].values, y.iloc[te].values,
+                list(X.columns),
+                sample_weight.iloc[tr].values if sample_weight is not None else None,
+                scoring,
+                seed=i,
+                all_labels=all_labels,
+            )
+            for i, (tr, te) in enumerate(folds)
         )
-        for i, (tr, te) in enumerate(folds)
-    )
 
     base_scores = [r[0] for r in results]
     base_arr = np.array(base_scores)
@@ -249,28 +366,348 @@ def feat_imp_mda(clf,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  De-substituted MDA  (Approach B: one from C_i, keep all others)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _desub_mda_one_task(feat_idx, other_idxs, X_vals, X_tr_idx, X_te_idx,
+                        y_vals, w_vals, n_estimators, scoring, seed,
+                        all_labels=None, regression=False):
+    """
+    One (feature, fold) task for de-substituted MDA.
+    Trains on {feature} + {all non-cluster features}, shuffles the target feature.
+    """
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+    from sklearn.ensemble import BaggingClassifier, BaggingRegressor
+    from sklearn.metrics import r2_score as _r2
+
+    rng = np.random.default_rng(seed)
+    col_idxs = [feat_idx] + other_idxs
+
+    X_tr = X_vals[np.ix_(X_tr_idx, col_idxs)]
+    X_te = X_vals[np.ix_(X_te_idx, col_idxs)]
+    y_tr = y_vals[X_tr_idx]
+    y_te = y_vals[X_te_idx]
+    w_tr = w_vals[X_tr_idx] if w_vals is not None else None
+
+    if regression:
+        base = DecisionTreeRegressor(max_features=1, min_weight_fraction_leaf=0.02)
+        clf = BaggingRegressor(
+            estimator=base, n_estimators=n_estimators,
+            max_features=1.0, max_samples=1.0, oob_score=False,
+            n_jobs=1, random_state=42,
+        )
+    else:
+        base = DecisionTreeClassifier(
+            criterion="entropy", max_features=1,
+            class_weight="balanced", min_weight_fraction_leaf=0.02,
+        )
+        clf = BaggingClassifier(
+            estimator=base, n_estimators=n_estimators,
+            max_features=1.0, max_samples=1.0, oob_score=False,
+            n_jobs=1, random_state=42,
+        )
+
+    try:
+        if not regression and len(np.unique(y_tr)) < 2:
+            return None
+        fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
+
+        if regression:
+            base_score = _r2(y_te, fit.predict(X_te))
+        else:
+            ll_labels = all_labels if all_labels is not None else fit.classes_
+            prob = _align_proba(fit.predict_proba(X_te), fit.classes_, ll_labels)
+            base_score = -log_loss(y_te, prob, labels=ll_labels)
+
+        X_te_perm = X_te.copy()
+        X_te_perm[:, 0] = rng.permutation(X_te_perm[:, 0])
+
+        if regression:
+            perm_score = _r2(y_te, fit.predict(X_te_perm))
+        else:
+            prob_perm = _align_proba(fit.predict_proba(X_te_perm), fit.classes_, ll_labels)
+            perm_score = -log_loss(y_te, prob_perm, labels=ll_labels)
+
+        return base_score - perm_score
+    except Exception:
+        return None
+
+
+def feat_imp_desub_mda(X: pd.DataFrame,
+                       y: pd.Series,
+                       years: pd.Series,
+                       clusters: dict,
+                       sample_weight: pd.Series = None,
+                       scoring: str = "log_loss",
+                       cv_splits: int = None,
+                       n_estimators: int = 300,
+                       regression: bool = False) -> tuple:
+    """
+    De-substituted MDA (Approach B): for each feature f in cluster C_i,
+    train a model on {f} + {all features NOT in C_i}, then shuffle f.
+
+    Eliminates substitution: no cluster-mate of f is present to compensate.
+    Full cross-cluster context is preserved.
+
+    Returns:
+        summary: DataFrame(index=feature, columns=[mean, std])
+        raw:     DataFrame(index=fold, columns=features)
+    """
+    cv = PurgedYearKFold(years, n_splits=cv_splits)
+    folds = list(cv.split(X, y, groups=years.values))
+    n_folds = len(folds)
+
+    X_vals = X.values
+    y_vals = y.values
+    w_vals = sample_weight.values if sample_weight is not None else None
+    col_names = list(X.columns)
+    col_to_idx = {c: i for i, c in enumerate(col_names)}
+    all_labels = None if regression else np.unique(y_vals)
+
+    feat_to_cluster = {}
+    for cid, members in clusters.items():
+        for m in members:
+            feat_to_cluster[m] = cid
+
+    tasks = []
+    for feat in col_names:
+        feat_idx = col_to_idx[feat]
+        cid = feat_to_cluster.get(feat)
+        if cid is None:
+            other_idxs = [col_to_idx[c] for c in col_names if c != feat]
+        else:
+            cluster_members = set(clusters[cid])
+            other_idxs = [col_to_idx[c] for c in col_names
+                          if c not in cluster_members]
+        for fi, (tr, te) in enumerate(folds):
+            tasks.append((feat, fi, feat_idx, other_idxs, tr, te))
+
+    with blas_limit(1):
+        results = Parallel(n_jobs=-1, backend="loky")(
+            delayed(_desub_mda_one_task)(
+                feat_idx, other_idxs, X_vals, tr, te,
+                y_vals, w_vals, n_estimators, scoring,
+                seed=fi, all_labels=all_labels, regression=regression,
+            )
+            for feat, fi, feat_idx, other_idxs, tr, te in tasks
+        )
+
+    raw_records = {col: [None] * n_folds for col in col_names}
+    for (feat, fi, *_), score in zip(tasks, results):
+        if score is not None:
+            raw_records[feat][fi] = score
+
+    records = {}
+    final_raw = {}
+    for col in col_names:
+        scores = [s for s in raw_records[col] if s is not None]
+        if scores:
+            records[col] = {"mean": np.mean(scores),
+                            "std": np.std(scores) * len(scores) ** -0.5}
+            final_raw[col] = scores
+
+    summary = pd.DataFrame(records).T
+    summary.columns = ["mean", "std"]
+
+    max_folds = max(len(v) for v in final_raw.values()) if final_raw else 0
+    raw = pd.DataFrame(
+        {col: vals + [np.nan] * (max_folds - len(vals))
+         for col, vals in final_raw.items()}
+    )
+    return summary.sort_values("mean", ascending=False), raw
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  PCA-MDA  (de Prado AFML Ch.8 / MLAM Ch.6 — orthogonal feature basis)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def feat_imp_pca_mda(X: pd.DataFrame,
+                     y: pd.Series,
+                     years: pd.Series,
+                     sample_weight: pd.Series = None,
+                     scoring: str = "log_loss",
+                     cv_splits: int = None,
+                     n_estimators: int = 1000,
+                     regression: bool = False,
+                     variance_threshold: float = 0.95) -> tuple:
+    """
+    MDA on principal components (de Prado AFML Ch.8 / MLAM Ch.6).
+
+    Steps:
+      1. Standardize X (zero mean, unit variance per feature)
+      2. PCA → keep k components explaining variance_threshold of variance
+      3. Run standard MDA on the PC matrix (no substitution — PCs are orthogonal)
+      4. Map PC importance back to original features via |loading| × pc_importance
+
+    Returns:
+        summary: DataFrame(index=original feature, columns=[mean, std])
+        raw:     DataFrame(index=fold, columns=original features)
+        pc_summary: DataFrame(index=PC_i, columns=[mean, std]) — raw PC-level importance
+    """
+    with blas_full():
+        # Standardize
+        X_std = (X - X.mean()) / X.std().replace(0, 1)
+        X_filled = X_std.fillna(0)
+
+        # PCA — keep components up to variance_threshold
+        pca = PCA()
+        pca.fit(X_filled.values)
+        cum_var = np.cumsum(pca.explained_variance_ratio_)
+        k = int(np.searchsorted(cum_var, variance_threshold)) + 1
+        k = min(k, X_filled.shape[1])
+
+        W = pca.components_[:k].T          # (n_features, k)
+        P_vals = X_filled.values @ W       # (n_samples, k)
+
+    pc_names = [f"PC_{i}" for i in range(k)]
+    X_pc = pd.DataFrame(P_vals, index=X.index, columns=pc_names)
+
+    clf = build_rf(n_estimators=n_estimators, n_jobs=1, regression=regression)
+    pc_summary, pc_raw = feat_imp_mda(
+        clf, X_pc, y, years,
+        sample_weight=sample_weight,
+        scoring=scoring,
+        cv_splits=cv_splits,
+    )
+
+    # Map back: importance_i = sum_j |W[i,j]| * mean_importance_PC_j
+    # Weighted by explained variance ratio too
+    pc_imp = pc_summary["mean"].values                          # (k,)
+    abs_loadings = np.abs(W)                                    # (n_features, k)
+    feat_imp_vals = abs_loadings @ pc_imp                       # (n_features,)
+
+    # Normalise so they sum to 1 (consistent with MDI)
+    total = feat_imp_vals.sum()
+    if total > 0:
+        feat_imp_vals = feat_imp_vals / total
+
+    # Build per-fold raw by projecting PC fold scores back to features
+    # raw shape: (n_folds, n_features)
+    feat_raw_dict = {}
+    for feat_i, feat_name in enumerate(X.columns):
+        fold_scores = []
+        for fold_j in range(len(pc_raw)):
+            pc_fold = pc_raw.iloc[fold_j].values      # (k,) scores for this fold
+            feat_score = float(np.abs(W[feat_i]) @ pc_fold)
+            fold_scores.append(feat_score)
+        feat_raw_dict[feat_name] = fold_scores
+
+    summary_df = pd.DataFrame({
+        "mean": feat_imp_vals,
+        "std":  np.zeros(len(X.columns)),
+    }, index=X.columns).sort_values("mean", ascending=False)
+
+    raw_df = pd.DataFrame(feat_raw_dict)
+    return summary_df, raw_df, pc_summary
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Residualized MDA  (de Prado MLAM Ch.6 — cross-cluster orthogonalization)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def feat_imp_residual_mda(X: pd.DataFrame,
+                          y: pd.Series,
+                          years: pd.Series,
+                          clusters: dict,
+                          sample_weight: pd.Series = None,
+                          scoring: str = "log_loss",
+                          cv_splits: int = None,
+                          n_estimators: int = 1000,
+                          regression: bool = False) -> tuple:
+    """
+    Residualized MDA (de Prado MLAM Ch.6).
+
+    For each feature X_i in cluster C_k:
+        X_i_residual = X_i - X_other @ lstsq(X_other, X_i)
+    where X_other = all features NOT in C_k.
+
+    If |other features| > n_samples/10 (degrees of freedom risk), first reduce
+    X_other via PCA keeping 95% of variance, then regress against the PCs.
+
+    Then run standard MDA on the full residualized matrix — each residual
+    contains only the unique information that feature contributes beyond
+    what other clusters already provide.
+
+    Returns:
+        summary: DataFrame(index=feature, columns=[mean, std])
+        raw:     DataFrame(index=fold, columns=features)
+    """
+    col_names = list(X.columns)
+    n_samples = len(X)
+    cluster_sets = {cid: set(members) for cid, members in clusters.items()}
+    X_vals = X.fillna(0).values.astype(np.float64)
+
+    # Build per-cluster X_other once, then create tasks per feature
+    tasks = []  # (col_idx, X_other_vals)
+    for cid, cluster_members in clusters.items():
+        other_cols = [c for c in col_names if c not in cluster_sets[cid]]
+        if not other_cols:
+            continue
+        X_other = X[other_cols].fillna(0).values.astype(np.float64)
+        # Reduce via PCA if too many regressors (degrees of freedom guard)
+        if X_other.shape[1] > n_samples // 10:
+            pca_r = PCA(n_components=min(n_samples // 10, X_other.shape[1]))
+            X_other = pca_r.fit_transform(X_other)
+        for feat in cluster_members:
+            if feat in col_names:
+                tasks.append((col_names.index(feat), X_other))
+
+    def _residualize(col_idx, X_other):
+        f = X_vals[:, col_idx]
+        coef, _, _, _ = np.linalg.lstsq(X_other, f, rcond=None)
+        return col_idx, f - X_other @ coef
+
+    with blas_limit(1):
+        results = Parallel(n_jobs=-1, backend="loky")(
+            delayed(_residualize)(ci, X_other) for ci, X_other in tasks
+        )
+
+    X_resid_vals = X_vals.copy()
+    for ci, resid in results:
+        X_resid_vals[:, ci] = resid
+
+    X_resid = pd.DataFrame(X_resid_vals, index=X.index, columns=col_names)
+
+    clf = build_rf(n_estimators=n_estimators, n_jobs=1, regression=regression)
+    return feat_imp_mda(
+        clf, X_resid, y, years,
+        sample_weight=sample_weight,
+        scoring=scoring,
+        cv_splits=cv_splits,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 #  SFI  (de Prado AFML Ch.8 §8.4.1)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _sfi_one_task(col_idx, X_col_vals, X_tr_idx, X_te_idx,
-                  y_vals, w_vals, n_estimators):
+                  y_vals, w_vals, n_estimators, regression=False):
     """
     Single atomic SFI task: train on one (feature, fold) pair.
-    No inner n_jobs — this IS the leaf-level unit of work.
-    Flattenining to (feature × fold) tasks eliminates all nesting.
+    regression=True uses BaggingRegressor + R²; False uses BaggingClassifier + log_loss.
     """
-    from sklearn.tree import DecisionTreeClassifier
-    from sklearn.ensemble import BaggingClassifier
+    from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+    from sklearn.ensemble import BaggingClassifier, BaggingRegressor
+    from sklearn.metrics import r2_score
 
-    base = DecisionTreeClassifier(
-        criterion="entropy", max_features=1,
-        class_weight="balanced", min_weight_fraction_leaf=0.02,
-    )
-    clf = BaggingClassifier(
-        estimator=base, n_estimators=n_estimators,
-        max_features=1.0, max_samples=1.0, oob_score=False,
-        n_jobs=1, random_state=42,
-    )
+    if regression:
+        base = DecisionTreeRegressor(max_features=1, min_weight_fraction_leaf=0.02)
+        clf = BaggingRegressor(
+            estimator=base, n_estimators=n_estimators,
+            max_features=1.0, max_samples=1.0, oob_score=False,
+            n_jobs=1, random_state=42,
+        )
+    else:
+        base = DecisionTreeClassifier(
+            criterion="entropy", max_features=1,
+            class_weight="balanced", min_weight_fraction_leaf=0.02,
+        )
+        clf = BaggingClassifier(
+            estimator=base, n_estimators=n_estimators,
+            max_features=1.0, max_samples=1.0, oob_score=False,
+            n_jobs=1, random_state=42,
+        )
 
     X_tr = X_col_vals[X_tr_idx]
     X_te = X_col_vals[X_te_idx]
@@ -278,12 +715,17 @@ def _sfi_one_task(col_idx, X_col_vals, X_tr_idx, X_te_idx,
     y_te = y_vals[X_te_idx]
     w_tr = w_vals[X_tr_idx] if w_vals is not None else None
 
-    if len(np.unique(y_tr)) < 2:
-        return None
     try:
-        fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
-        prob = fit.predict_proba(X_te)
-        return -log_loss(y_te, prob, labels=fit.classes_)
+        if regression:
+            fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
+            return r2_score(y_te, fit.predict(X_te))
+        else:
+            if len(np.unique(y_tr)) < 2:
+                return None
+            all_labels = np.unique(y_vals)
+            fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
+            prob = _align_proba(fit.predict_proba(X_te), fit.classes_, all_labels)
+            return -log_loss(y_te, prob, labels=all_labels)
     except Exception:
         return None
 
@@ -292,25 +734,32 @@ def feat_imp_sfi(clf,
                  X: pd.DataFrame,
                  y: pd.Series,
                  years: pd.Series,
-                 sample_weight: pd.Series = None) -> tuple:
+                 sample_weight: pd.Series = None,
+                 regression: bool = False,
+                 cv_splits: int = None) -> tuple:
     """
     Single Feature Importance: train the model on ONE feature at a time.
     Immune to substitution effects between correlated features.
 
-    Parallelism: flattened to (feature × fold) atomic tasks so there is zero
-    nesting. n_features × n_folds tasks run across all CPUs with n_jobs=-1 and
-    n_jobs=1 inside each task — avoids loky's nested-spawn restriction entirely.
+    regression=True: uses R² scoring (for spread/total targets).
+    regression=False: uses neg-log-loss scoring (for classification targets).
+    cv_splits: if set, groups years into k folds instead of leave-one-year-out.
 
     Returns:
-        summary: DataFrame(index=feature, columns=[mean, std])
-        raw:     DataFrame(index=fold, columns=features) — per-fold log-loss scores.
+        summary: DataFrame(index=feature, columns=[mean, std, null_score])
+        raw:     DataFrame(index=fold, columns=features) — per-fold scores.
     """
-    cv = PurgedYearKFold(years)
+    cv = PurgedYearKFold(years, n_splits=cv_splits)
     folds = list(cv.split(X, y, groups=years.values))
     n_folds = len(folds)
 
-    p_pos = y.mean()
-    null_ll = np.log(p_pos) * p_pos + np.log(1 - p_pos) * (1 - p_pos)
+    # Null score: -log_loss of a no-skill predictor that always outputs the prior
+    if regression:
+        null_score = 0.0  # R²=0 means no better than predicting the mean
+    else:
+        classes, counts = np.unique(y.values, return_counts=True)
+        class_probs = counts / counts.sum()
+        null_score = np.sum(class_probs * np.log(class_probs + 1e-15))
 
     X_vals = X.values
     y_vals = y.values
@@ -318,24 +767,24 @@ def feat_imp_sfi(clf,
     n_estimators = clf.n_estimators
     col_names = list(X.columns)
 
-    # Build flat task list: one entry per (feature_idx, fold_idx)
     tasks = [
         (ci, fi, X_vals[:, ci:ci + 1], tr, te)
         for ci in range(len(col_names))
         for fi, (tr, te) in enumerate(folds)
     ]
 
-    results = Parallel(n_jobs=-1, backend="loky")(
-        delayed(_sfi_one_task)(ci, X_col, tr, te, y_vals, w_vals, n_estimators)
-        for ci, fi, X_col, tr, te in tasks
-    )
+    with blas_limit(1):
+        results = Parallel(n_jobs=-1, backend="loky")(
+            delayed(_sfi_one_task)(ci, X_col, tr, te, y_vals, w_vals, n_estimators, regression)
+            for ci, fi, X_col, tr, te in tasks
+        )
 
-    # Reconstruct per-feature score lists
     raw_records = {col: [None] * n_folds for col in col_names}
     for (ci, fi, *_), score in zip(tasks, results):
         if score is not None:
             raw_records[col_names[ci]][fi] = score
 
+    null_col = "null_r2" if regression else "null_log_loss"
     records = {}
     final_raw = {}
     for col in col_names:
@@ -343,11 +792,11 @@ def feat_imp_sfi(clf,
         if scores:
             records[col] = {"mean": np.mean(scores),
                             "std":  np.std(scores) * len(scores) ** -0.5,
-                            "null_log_loss": null_ll}
+                            null_col: null_score}
             final_raw[col] = scores
 
     result = pd.DataFrame(records).T
-    result.columns = ["mean", "std", "null_log_loss"]
+    result.columns = ["mean", "std", null_col]
 
     max_folds = max(len(v) for v in final_raw.values()) if final_raw else 0
     raw = pd.DataFrame(
@@ -377,45 +826,136 @@ def _onc_one_combo(X_vals, k, seed):
     return q, labels
 
 
-def onc_cluster(corr: pd.DataFrame,
-                max_clusters: int = None,
-                n_init: int = 20) -> dict:
+def _onc_flat(corr: pd.DataFrame,
+              max_clusters: int = None,
+              n_init: int = 20) -> dict | None:
     """
-    Optimal Number of Clusters for a correlation matrix.
-    Returns dict: {cluster_id: [feature_names]}.
-    Uses silhouette t-stat as the quality criterion (de Prado MLAM §4.4).
-    Grid search over seeds × k is parallelized.
+    One pass of ONC: grid search over (k, seed) combos.
+    Returns {cluster_id: [feature_names]} or None if no valid split exists.
     """
     X = ((1 - corr.fillna(0)) / 2.0) ** 0.5   # correlation → distance
     X_vals = X.values
+    n = X.shape[1]
+    if n < 2:
+        return None
     if max_clusters is None:
-        max_clusters = X.shape[1] - 1
-
-    n_total = n_init * (max_clusters - 1)
-    n_jobs = min(get_n_jobs(), n_total)
+        max_clusters = n - 1
+    max_clusters = min(max_clusters, n - 1)
+    if max_clusters < 2:
+        return None
 
     combos = [(k, seed) for seed in range(n_init) for k in range(2, max_clusters + 1)]
-    results = Parallel(n_jobs=n_jobs, prefer="threads")(
-        delayed(_onc_one_combo)(X_vals, k, seed) for k, seed in combos
-    )
+    n_jobs = min(get_n_jobs(), len(combos))
+    with blas_limit(1):
+        results = Parallel(n_jobs=n_jobs, backend="loky")(
+            delayed(_onc_one_combo)(X_vals, k, seed) for k, seed in combos
+        )
 
     best_quality = -np.inf
-    best_labels  = None
+    best_labels = None
     for r in results:
         if r is None:
             continue
         q, labels = r
         if q > best_quality:
             best_quality = q
-            best_labels  = labels
+            best_labels = labels
 
     if best_labels is None:
-        return {i: [col] for i, col in enumerate(corr.columns)}
+        return None
 
     clusters = {}
     for i, label in enumerate(best_labels):
         clusters.setdefault(label, []).append(corr.columns[i])
     return clusters
+
+
+def _partition_quality(corr: pd.DataFrame, partition: dict) -> dict:
+    """
+    Per-cluster mean silhouette score for a full partition.
+    Uses the full distance matrix so inter-cluster distances are accurate.
+    """
+    X = ((1 - corr.fillna(0)) / 2.0) ** 0.5
+    X_vals = X.values
+    feat_idx = {col: i for i, col in enumerate(corr.columns)}
+
+    label_arr = np.empty(len(corr.columns), dtype=int)
+    for cid, members in partition.items():
+        for m in members:
+            label_arr[feat_idx[m]] = cid
+
+    if len(np.unique(label_arr)) < 2:
+        return {cid: 0.0 for cid in partition}
+
+    sil = silhouette_samples(X_vals, label_arr)
+    return {
+        cid: sil[[feat_idx[m] for m in members]].mean()
+        for cid, members in partition.items()
+    }
+
+
+def _global_mean_silhouette(corr: pd.DataFrame, partition: dict) -> float:
+    """Global mean silhouette score for a partition."""
+    qualities = _partition_quality(corr, partition)
+    return np.mean(list(qualities.values()))
+
+
+def onc_cluster(corr: pd.DataFrame,
+                max_clusters: int = None,
+                n_init: int = 20) -> dict:
+    """
+    Greedy divisive ONC (de Prado MLAM Ch.4, improved recursion).
+
+    Algorithm:
+      1. Flat KMeans grid-search to get initial partition P.
+      2. Greedy divisive refinement:
+         a. Order clusters by mean silhouette (worst first).
+         b. For each cluster C_i, attempt subdivision via _onc_flat().
+         c. If subdivision found: build candidate P' = (P - C_i) + children.
+         d. If global mean silhouette of P' > P: accept, restart from (a).
+         e. Else: reject, try next cluster.
+      3. Stop when no subdivision improves global quality (local optimum).
+
+    No arbitrary thresholds. The global silhouette criterion is the only gate.
+
+    Returns {cluster_id: [feature_names]}.
+    """
+    partition = _onc_flat(corr, max_clusters=max_clusters, n_init=n_init)
+    if partition is None or len(partition) <= 1:
+        return {0: list(corr.columns)}
+
+    current_quality = _global_mean_silhouette(corr, partition)
+
+    improved = True
+    while improved:
+        improved = False
+        qualities = _partition_quality(corr, partition)
+        sorted_cids = sorted(qualities, key=lambda c: qualities[c])
+
+        for cid in sorted_cids:
+            members = partition[cid]
+            if len(members) < 4:
+                continue
+
+            sub_corr = corr.loc[members, members]
+            sub = _onc_flat(sub_corr, max_clusters=max_clusters, n_init=n_init)
+            if sub is None or len(sub) <= 1:
+                continue
+
+            next_id = max(partition.keys()) + 1
+            candidate = {c: m for c, m in partition.items() if c != cid}
+            for sub_members in sub.values():
+                candidate[next_id] = sub_members
+                next_id += 1
+
+            candidate_quality = _global_mean_silhouette(corr, candidate)
+            if candidate_quality > current_quality:
+                partition = candidate
+                current_quality = candidate_quality
+                improved = True
+                break
+
+    return partition
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -447,24 +987,41 @@ def feat_imp_cfi_mda(clf,
                      y: pd.Series,
                      years: pd.Series,
                      clusters: dict,
-                     sample_weight: pd.Series = None) -> pd.DataFrame:
-    """Clustered MDA: shuffle all features in a cluster simultaneously."""
-    cv = PurgedYearKFold(years)
+                     sample_weight: pd.Series = None,
+                     scoring: str = "log_loss",
+                     cv_splits: int = None) -> tuple:
+    """
+    Clustered MDA: shuffle all features in a cluster simultaneously.
+
+    Returns:
+        summary: DataFrame(index=cluster_label, columns=[mean, std])
+        raw:     DataFrame(index=fold, columns=cluster_id) — per-fold importance
+                 (base_score - permuted_score). Used for p-value tests and to
+                 propagate cluster-level signal back to individual features.
+    """
+    from sklearn.metrics import r2_score as _r2
+    cv = PurgedYearKFold(years, n_splits=cv_splits)
     base_scores   = []
     cluster_perms = {cid: [] for cid in clusters}
+    is_regression = (scoring == "r2")
+    all_labels = None if is_regression else np.unique(y.values)
 
-    for train_idx, test_idx in cv.split(X, y, groups=years.values):
+    for train_idx, test_idx in tqdm(list(cv.split(X, y, groups=years.values)),
+                                    desc="CFI-MDA folds", unit="fold", leave=False):
         X_tr = X.iloc[train_idx]
         X_te = X.iloc[test_idx]
         y_tr = y.iloc[train_idx]
         y_te = y.iloc[test_idx]
         w_tr = sample_weight.iloc[train_idx] if sample_weight is not None else None
 
-        if y_tr.nunique() < 2:
+        if not is_regression and y_tr.nunique() < 2:
             continue
         fit = clf.fit(X_tr, y_tr, sample_weight=w_tr)
-        prob = fit.predict_proba(X_te)
-        base_scores.append(-log_loss(y_te, prob, labels=fit.classes_))
+        if is_regression:
+            base_scores.append(_r2(y_te, fit.predict(X_te)))
+        else:
+            prob = _align_proba(fit.predict_proba(X_te), fit.classes_, all_labels)
+            base_scores.append(-log_loss(y_te, prob, labels=all_labels))
 
         for cid, members in clusters.items():
             present = [m for m in members if m in X.columns]
@@ -473,25 +1030,29 @@ def feat_imp_cfi_mda(clf,
                 continue
             X_te_perm = X_te.copy()
             shuffle_vals = X_te_perm[present].values.copy()
-            np.random.shuffle(shuffle_vals)        # shuffle rows
+            np.random.shuffle(shuffle_vals)
             X_te_perm[present] = shuffle_vals
-            prob_perm = fit.predict_proba(X_te_perm)
-            cluster_perms[cid].append(
-                -log_loss(y_te, prob_perm, labels=fit.classes_)
-            )
+            if is_regression:
+                cluster_perms[cid].append(_r2(y_te, fit.predict(X_te_perm)))
+            else:
+                prob_perm = _align_proba(fit.predict_proba(X_te_perm), fit.classes_, all_labels)
+                cluster_perms[cid].append(-log_loss(y_te, prob_perm, labels=all_labels))
 
     base = np.array(base_scores)
     records = {}
+    raw_records = {}
     for cid, members in clusters.items():
         perm = np.array(cluster_perms[cid])
         imp  = base - perm
         label = f"Cluster_{cid} ({', '.join([m for m in members if m in X.columns])})"
         records[label] = {"mean": imp.mean(),
                           "std":  imp.std() * len(imp) ** -0.5}
+        raw_records[cid] = imp
 
     result = pd.DataFrame(records).T
     result.columns = ["mean", "std"]
-    return result.sort_values("mean", ascending=False)
+    raw = pd.DataFrame(raw_records)
+    return result.sort_values("mean", ascending=False), raw
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -595,6 +1156,87 @@ def compute_pvalues(raw: pd.DataFrame,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  Diagnostic: distribution of CFI-MDA fold scores
+# ─────────────────────────────────────────────────────────────────────────────
+
+def plot_cfi_mda_distributions(cfi_mda_raw: pd.DataFrame,
+                               clusters: dict,
+                               output_path: str = None,
+                               top_n: int = 20) -> None:
+    """
+    Plot the distribution of per-fold CFI-MDA importance scores (base - permuted)
+    for each cluster.  This is the data the z-score is applied to.
+
+    With only ~7-20 CV folds the distribution is tiny — the z-score is a
+    convenient summary but normality is not guaranteed.  Each panel shows:
+      - A histogram / rug of the raw fold scores
+      - A vertical line at 0 (null) and at the mean
+      - The z-score and sample size
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from scipy.stats import shapiro, norm
+
+    # Build cluster labels
+    cluster_labels = {}
+    for cid, members in clusters.items():
+        cluster_labels[cid] = f"C{cid} ({len(members)} feats)"
+
+    cids = list(cfi_mda_raw.columns)
+    n_show = min(top_n, len(cids))
+    # Sort by mean importance descending so the most important clusters appear first
+    col_means = {cid: cfi_mda_raw[cid].dropna().mean() for cid in cids}
+    cids_sorted = sorted(cids, key=lambda c: col_means[c], reverse=True)[:n_show]
+
+    ncols = 4
+    nrows = (n_show + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 3.5 * nrows))
+    axes = np.array(axes).flatten()
+
+    for ax, cid in zip(axes, cids_sorted):
+        vals = cfi_mda_raw[cid].dropna().values
+        mean_val = vals.mean()
+        se = vals.std() / np.sqrt(len(vals)) if len(vals) > 1 else np.inf
+        z = mean_val / se if se > 0 else 0.0
+
+        ax.hist(vals, bins=max(5, len(vals) // 2), edgecolor="black",
+                color="#5b8db8", alpha=0.75)
+        ax.axvline(0, color="red", lw=1.5, linestyle="--", label="null=0")
+        ax.axvline(mean_val, color="navy", lw=2, label=f"mean={mean_val:.4f}")
+
+        # Shapiro-Wilk normality note
+        if len(vals) >= 3:
+            _, sw_p = shapiro(vals)
+            sw_note = f"SW p={sw_p:.2f}"
+        else:
+            sw_note = "n<3"
+
+        label = cluster_labels.get(cid, str(cid))
+        ax.set_title(f"{label}\nz={z:.2f}  n={len(vals)}  {sw_note}", fontsize=8)
+        ax.set_xlabel("base − permuted score", fontsize=7)
+        ax.set_ylabel("folds", fontsize=7)
+        ax.legend(fontsize=6)
+
+    for ax in axes[n_show:]:
+        ax.set_visible(False)
+
+    fig.suptitle(
+        "CFI-MDA fold score distributions\n"
+        "(z-score applies to these ~n samples — check SW p for normality)",
+        fontsize=10, y=1.01,
+    )
+    fig.tight_layout()
+
+    if output_path:
+        fig.savefig(output_path, bbox_inches="tight", dpi=120)
+        print(f"  Distribution plot saved to {output_path}")
+    else:
+        plt.show()
+    plt.close(fig)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 #  Bootstrap CI  (non-parametric confidence interval for the mean)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -622,32 +1264,46 @@ def bootstrap_ci(values: np.ndarray,
 # ─────────────────────────────────────────────────────────────────────────────
 
 def filter_features(mdi_raw: pd.DataFrame,
-                    mda_raw: pd.DataFrame,
+                    cfi_mda_raw: pd.DataFrame,
+                    clusters: dict,
                     sfi_raw: pd.DataFrame = None,
                     sfi_null: float = None,
-                    mda_z_threshold: float = 1.0,
+                    desub_mda_raw: pd.DataFrame = None,
+                    pca_mda_raw: pd.DataFrame = None,
+                    resid_mda_raw: pd.DataFrame = None,
                     p_threshold: float = 0.10) -> pd.DataFrame:
     """
-    Apply de Prado's filtering criteria to raw importance distributions.
+    Three-tier feature classification:
+      ACCEPTED          — passes ALL available tests. Proven signal.
+      NEEDS SPECIFICATION — passes SOME tests. Signal exists but partial/conditional.
+      REJECTED          — fails ALL tests. No signal detected.
 
-    MDI pass: mean > 1/F AND (bootstrap CI lower > 1/F OR Wilcoxon p < p_threshold)
-    MDA pass: mean > 0, z-score > mda_z_threshold, not detrimental (mean < 0)
-    SFI pass: mean > sfi_null AND bootstrap CI lower > sfi_null
+    Tests:
+      MDI pass:      mean > 1/F AND (bootstrap CI lower > 1/F OR Wilcoxon p < threshold)
+      SFI pass:      mean > sfi_null AND bootstrap CI lower > sfi_null
+      Desub MDA pass: bootstrap CI lower > 0 OR Wilcoxon p < threshold
+      CFI-MDA:       cluster-level, reported but not used for individual pass/fail
 
-    Returns DataFrame with per-feature pass/fail, tier assignment, composite rank.
-    Tiers: STRONG (all pass), MODERATE (2/3), WEAK (1/3), REJECTED (0 or detrimental).
+    No penalization for partial passes. Passing one test means signal exists.
     """
+    feat_to_cluster = {}
+    if clusters:
+        for cid, members in clusters.items():
+            for m in members:
+                feat_to_cluster[m] = cid
+
     all_features = set()
-    for df in [mdi_raw, mda_raw, sfi_raw]:
+    for df in [mdi_raw, sfi_raw, desub_mda_raw]:
         if df is not None and not df.empty:
             all_features.update(df.columns.tolist())
+    all_features.update(feat_to_cluster.keys())
 
     n_features = len(all_features)
     threshold_1F = 1.0 / n_features if n_features > 0 else 0.0
 
     rows = []
     for feat in sorted(all_features):
-        row = {"feature": feat}
+        row = {"feature": feat, "cluster_id": feat_to_cluster.get(feat, np.nan)}
 
         # ── MDI ──────────────────────────────────────────────────────────
         if mdi_raw is not None and feat in mdi_raw.columns:
@@ -670,29 +1326,6 @@ def filter_features(mdi_raw: pd.DataFrame,
         else:
             row.update({"mdi_mean": np.nan, "mdi_passes": np.nan})
 
-        # ── MDA ──────────────────────────────────────────────────────────
-        if mda_raw is not None and feat in mda_raw.columns:
-            vals = mda_raw[feat].dropna().values.astype(float)
-            if len(vals) >= 2:
-                mda_mean = vals.mean()
-                mda_std = vals.std()
-                n = len(vals)
-                mda_se = mda_std / np.sqrt(n) if n > 1 else np.inf
-                mda_z = mda_mean / mda_se if mda_se > 0 else 0
-                row.update({
-                    "mda_mean": mda_mean, "mda_z": mda_z,
-                    "mda_detrimental": mda_mean < 0,
-                    "mda_passes": (
-                        mda_mean > 0 and
-                        mda_z >= mda_z_threshold and
-                        not (mda_mean < 0)
-                    ),
-                })
-            else:
-                row.update({"mda_mean": np.nan, "mda_detrimental": False, "mda_passes": False})
-        else:
-            row.update({"mda_mean": np.nan, "mda_detrimental": False, "mda_passes": np.nan})
-
         # ── SFI ──────────────────────────────────────────────────────────
         if sfi_raw is not None and feat in sfi_raw.columns and sfi_null is not None:
             vals = sfi_raw[feat].dropna().values.astype(float)
@@ -701,8 +1334,6 @@ def filter_features(mdi_raw: pd.DataFrame,
                 row.update({
                     "sfi_mean": sfi_mean, "sfi_ci_lo": sfi_ci_lo,
                     "sfi_ci_hi": sfi_ci_hi,
-                    # Pass: mean better than coin-flip AND CI lower > null
-                    # Scores are -log_loss: higher (less negative) = better
                     "sfi_passes": (sfi_mean > sfi_null and sfi_ci_lo > sfi_null),
                 })
             else:
@@ -710,50 +1341,118 @@ def filter_features(mdi_raw: pd.DataFrame,
         else:
             row.update({"sfi_mean": np.nan, "sfi_passes": np.nan})
 
+        # ── De-substituted MDA (individual-level) ────────────────────────
+        if desub_mda_raw is not None and feat in desub_mda_raw.columns:
+            vals = desub_mda_raw[feat].dropna().values.astype(float)
+            if len(vals) >= 4:
+                desub_mean, desub_ci_lo, desub_ci_hi = bootstrap_ci(vals)
+                diffs = vals - 0.0
+                diffs = diffs[diffs != 0]
+                p_desub = scipy_wilcoxon(diffs, alternative='greater')[1] if len(diffs) >= 4 else np.nan
+                row.update({
+                    "desub_mda_mean": desub_mean, "desub_mda_ci_lo": desub_ci_lo,
+                    "desub_mda_ci_hi": desub_ci_hi, "desub_mda_p": p_desub,
+                    "desub_mda_passes": (
+                        desub_ci_lo > 0 or (not np.isnan(p_desub) and p_desub < p_threshold)
+                    ),
+                })
+            else:
+                row.update({"desub_mda_mean": np.nan, "desub_mda_passes": False})
+        else:
+            row.update({"desub_mda_mean": np.nan, "desub_mda_passes": np.nan})
+
+        # ── PCA-MDA ──────────────────────────────────────────────────────
+        if pca_mda_raw is not None and feat in pca_mda_raw.columns:
+            vals = pca_mda_raw[feat].dropna().values.astype(float)
+            if len(vals) >= 4:
+                pca_mda_mean, pca_mda_ci_lo, pca_mda_ci_hi = bootstrap_ci(vals)
+                diffs = vals - 0.0
+                diffs = diffs[diffs != 0]
+                p_pca = scipy_wilcoxon(diffs, alternative='greater')[1] if len(diffs) >= 4 else np.nan
+                row.update({
+                    "pca_mda_mean": pca_mda_mean, "pca_mda_ci_lo": pca_mda_ci_lo,
+                    "pca_mda_ci_hi": pca_mda_ci_hi, "pca_mda_p": p_pca,
+                    "pca_mda_passes": (
+                        pca_mda_ci_lo > 0 or (not np.isnan(p_pca) and p_pca < p_threshold)
+                    ),
+                })
+            else:
+                row.update({"pca_mda_mean": np.nan, "pca_mda_passes": False})
+        else:
+            row.update({"pca_mda_mean": np.nan, "pca_mda_passes": np.nan})
+
+        # ── Residualized MDA ─────────────────────────────────────────────
+        if resid_mda_raw is not None and feat in resid_mda_raw.columns:
+            vals = resid_mda_raw[feat].dropna().values.astype(float)
+            if len(vals) >= 4:
+                resid_mean, resid_ci_lo, resid_ci_hi = bootstrap_ci(vals)
+                diffs = vals - 0.0
+                diffs = diffs[diffs != 0]
+                p_resid = scipy_wilcoxon(diffs, alternative='greater')[1] if len(diffs) >= 4 else np.nan
+                row.update({
+                    "resid_mda_mean": resid_mean, "resid_mda_ci_lo": resid_ci_lo,
+                    "resid_mda_ci_hi": resid_ci_hi, "resid_mda_p": p_resid,
+                    "resid_mda_passes": (
+                        resid_ci_lo > 0 or (not np.isnan(p_resid) and p_resid < p_threshold)
+                    ),
+                })
+            else:
+                row.update({"resid_mda_mean": np.nan, "resid_mda_passes": False})
+        else:
+            row.update({"resid_mda_mean": np.nan, "resid_mda_passes": np.nan})
+
+        # ── CFI-MDA (cluster-level, for reporting) ───────────────────────
+        cid = feat_to_cluster.get(feat)
+        if cfi_mda_raw is not None and cid is not None and cid in cfi_mda_raw.columns:
+            vals = cfi_mda_raw[cid].dropna().values.astype(float)
+            if len(vals) >= 2:
+                cfi_mean = vals.mean()
+                cfi_se = vals.std() / np.sqrt(len(vals)) if len(vals) > 1 else np.inf
+                row.update({
+                    "cfi_mda_cluster_mean": cfi_mean,
+                    "cfi_mda_cluster_passes": cfi_mean > 0,
+                })
+            else:
+                row.update({"cfi_mda_cluster_mean": np.nan, "cfi_mda_cluster_passes": False})
+        else:
+            row.update({"cfi_mda_cluster_mean": np.nan, "cfi_mda_cluster_passes": np.nan})
+
         rows.append(row)
 
     report = pd.DataFrame(rows).set_index("feature")
 
-    # Count methods available and passed
-    for col in ["mdi_passes", "mda_passes", "sfi_passes"]:
-        if col not in report.columns:
-            report[col] = np.nan
+    # Determine pass columns available
+    pass_cols = [c for c in ["mdi_passes", "sfi_passes", "desub_mda_passes",
+                             "pca_mda_passes", "resid_mda_passes"]
+                 if c in report.columns]
 
-    report["n_methods_available"] = (
-        report["mdi_passes"].notna().astype(int) +
-        report["mda_passes"].notna().astype(int) +
-        report["sfi_passes"].notna().astype(int)
+    report["n_methods_available"] = sum(
+        report[col].notna().astype(int) for col in pass_cols
     )
-    report["n_methods_passed"] = (
-        report["mdi_passes"].fillna(False).astype(int) +
-        report["mda_passes"].fillna(False).astype(int) +
-        report["sfi_passes"].fillna(False).astype(int)
+    report["n_methods_passed"] = sum(
+        report[col].fillna(False).astype(int) for col in pass_cols
     )
-    report["mda_kills"] = report.get("mda_detrimental", pd.Series(False, index=report.index)).fillna(False)
 
     def assign_tier(r):
-        if r["mda_kills"]:
-            return "REJECTED (detrimental)"
         n_avail = r["n_methods_available"]
         if n_avail == 0:
             return "UNKNOWN"
-        ratio = r["n_methods_passed"] / n_avail
-        if ratio == 1.0:
-            return "STRONG"
-        elif ratio >= 0.67:
-            return "MODERATE"
-        elif ratio >= 0.34:
-            return "WEAK"
-        return "REJECTED"
+        n_passed = r["n_methods_passed"]
+        if n_passed == n_avail:
+            return "ACCEPTED"
+        elif n_passed == 0:
+            return "REJECTED"
+        return "NEEDS SPECIFICATION"
 
     report["tier"] = report.apply(assign_tier, axis=1)
 
     # Composite rank (lower = better)
-    for method in ["mdi", "mda", "sfi"]:
-        col = f"{method}_mean"
+    for method, col in [("mdi", "mdi_mean"), ("sfi", "sfi_mean"), ("desub_mda", "desub_mda_mean"),
+                        ("pca_mda", "pca_mda_mean"), ("resid_mda", "resid_mda_mean")]:
         if col in report.columns:
             report[f"{method}_rank"] = report[col].rank(ascending=False, na_option="bottom")
-    rank_cols = [c for c in ["mdi_rank", "mda_rank", "sfi_rank"] if c in report.columns]
+    rank_cols = [c for c in ["mdi_rank", "sfi_rank", "desub_mda_rank",
+                             "pca_mda_rank", "resid_mda_rank"] if c in report.columns]
     if rank_cols:
         report["composite_rank"] = report[rank_cols].mean(axis=1)
         report = report.sort_values("composite_rank")
@@ -816,14 +1515,20 @@ def pca_cross_check(X: pd.DataFrame,
         if len(common) < 3:
             tau_results[method] = {"tau": np.nan, "p_value": np.nan}
             continue
-        # weightedtau: higher-ranked items get more weight (hyperbolic weighing)
-        tau, p = weightedtau(
-            pca_info.loc[common, "pca_rank"].values,
-            ranks[common].values,
-        )
+        # weightedtau: scipy always returns nan for p-value; use permutation test
+        pca_ranks = pca_info.loc[common, "pca_rank"].values
+        imp_ranks = ranks[common].values
+        tau, _ = weightedtau(pca_ranks, imp_ranks)
+        rng_perm = np.random.default_rng(42)
+        n_perm = 1000
+        perm_taus = np.array([
+            weightedtau(pca_ranks, rng_perm.permutation(imp_ranks))[0]
+            for _ in range(n_perm)
+        ])
+        p = float((np.abs(perm_taus) >= np.abs(tau)).mean())
         tau_results[method] = {
             "tau": float(tau) if not np.isnan(tau) else None,
-            "p_value": float(p) if not np.isnan(p) else None,
+            "p_value": p,
         }
 
     # Print summary
@@ -839,6 +1544,65 @@ def pca_cross_check(X: pd.DataFrame,
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  Target-independent clustering (run once, reuse for all targets)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def compute_shared_clustering(X: pd.DataFrame) -> dict:
+    """
+    Compute target-independent ONC clustering from the feature matrix.
+    ONC only uses X.corr() — no target y is involved.
+
+    Returns dict with:
+        'clusters': {cluster_id: [feature_names]}
+        'denoising_info': dict of MP denoising diagnostics
+    """
+    print(f"\n[Shared] Computing target-independent clustering on {X.shape[1]} features...")
+
+    print("  1/2  Marcenko-Pastur denoising + detoning...")
+    with blas_full():
+        corr_raw = X.corr().fillna(0)
+        q = X.shape[0] / X.shape[1]
+
+        evals_raw = np.linalg.eigvalsh(corr_raw.values)
+        lambda_plus = (1.0 + (1.0 / q) ** 0.5) ** 2
+        n_signal = int((evals_raw > lambda_plus).sum())
+        n_noise = int((evals_raw <= lambda_plus).sum())
+        n_negative = int((evals_raw < 0).sum())
+        signal_var = float(evals_raw[evals_raw > lambda_plus].sum())
+        total_var = float(evals_raw.sum())
+
+        denoising_info = {
+            "n_features": X.shape[1],
+            "n_samples": X.shape[0],
+            "q_ratio": float(q),
+            "lambda_plus": float(lambda_plus),
+            "n_signal_eigenvalues": n_signal,
+            "n_noise_eigenvalues": n_noise,
+            "n_negative_eigenvalues": n_negative,
+            "signal_variance_pct": round(100 * signal_var / total_var, 1) if total_var > 0 else 0,
+            "noise_variance_pct": round(100 * (total_var - signal_var) / total_var, 1) if total_var > 0 else 0,
+            "top_eigenvalue": float(evals_raw.max()),
+        }
+        corr_denoised = denoise_corr(corr_raw, q=q)
+        corr_cluster = detone_corr(corr_denoised, n_remove=1)
+
+    print(f"    lambda+ = {lambda_plus:.4f}, signal eigenvalues: {n_signal}, "
+          f"noise: {n_noise}, signal variance: {denoising_info['signal_variance_pct']}%")
+
+    print("  2/2  ONC clustering (greedy divisive on denoised+detoned matrix)...")
+    clusters = onc_cluster(corr_cluster, max_clusters=5)
+    print(f"    Found {len(clusters)} clusters:")
+    for cid, members in sorted(clusters.items(), key=lambda x: -len(x[1])):
+        print(f"    Cluster {cid} ({len(members)} features): {members[:5]}"
+              + (" ..." if len(members) > 5 else ""))
+
+    return {
+        "clusters": clusters,
+        "denoising_info": denoising_info,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 #  Master importance runner
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -846,147 +1610,265 @@ def run_all_importance(X: pd.DataFrame,
                        y: pd.Series,
                        years: pd.Series,
                        sample_weight: pd.Series = None,
-                       run_sfi: bool = True) -> dict:
+                       run_sfi: bool = True,
+                       run_desub_mda: bool = True,
+                       run_pca_mda: bool = True,
+                       run_residual_mda: bool = True,
+                       regression: bool = False,
+                       cv_splits: int = None,
+                       precomputed: dict = None) -> dict:
     """
-    Run feature importance following de Prado's full protocol:
-      1. Unsupervised Pre-processing  — denoise/detone correlation matrix
-      2. Unsupervised Discovery       — ONC clustering on denoised corr
-      3. Supervised Attribution       — CFI (MDI + MDA on clusters)
-      4. Unsupervised Orthogonalization — PCA on features, rank by eigenvalue
-      5. Supervised Orthogonal Importance — MDI/MDA/SFI on PCA components
-      6. Validation                   — weighted Kendall's tau (eigenvalue rank vs importance rank)
-      7. Algorithmic Filtering        — drop MDI < 1/F, drop MDA < 0
+    De Prado feature importance pipeline (AFML Ch.8 + MLAM Ch.4/6):
+      1. Denoise (Marcenko-Pastur) + detone correlation matrix
+      2. ONC clustering (greedy divisive on denoised+detoned matrix)
+      3. CFI-MDI + CFI-MDA (cluster-level importance)
+      4. MDI (per-feature, in-sample)
+      5. SFI (per-feature, standalone OOS)
+      6. De-substituted MDA (within-cluster ranking, substitution-free)
+      7. PCA cross-check + weighted Kendall's tau
+      8. Algorithmic filtering (three-tier: ACCEPTED / NEEDS SPECIFICATION / REJECTED)
 
-    NOTE — functions that must be updated to fully implement this protocol:
-      • denoise_corr() + detone_corr(): Not yet implemented. Step 1 currently uses
-        the raw correlation matrix as a placeholder.
-      • pca_cross_check(): Must be restructured to (a) project X into PCA components,
-        (b) run MDI/MDA/SFI on those components, (c) rank components by eigenvalue,
-        and (d) compute Kendall's tau between eigenvalue ranks and importance ranks.
-        Currently it ranks original features by variance-weighted PCA loading and
-        compares against a pre-built importance_summary — this does NOT match the
-        new protocol. It will also need clf, y, and years passed in so it can run
-        supervised importance directly on the components.
-      • filter_features(): Step 7 filtering should ultimately use the importance
-        results from the PCA components (Step 5) once pca_cross_check is updated.
-        Until then it continues to operate on raw-feature MDI/MDA/SFI distributions.
-
+    If precomputed is provided (from compute_shared_clustering), skips steps 1-2.
     Returns a dict of DataFrames.
     """
+    import json as _json
+
     print(f"\nRunning feature importance on {X.shape[0]} samples, "
           f"{X.shape[1]} features, {years.nunique()} years...")
 
-    # ── Step 1: Unsupervised pre-processing — denoise / detone corr ──────
-    # TODO: replace with denoise_corr(corr) + detone_corr(...) once implemented.
-    # Denoising (Marcenko-Pastur) removes random eigenvectors; detoning removes
-    # the market "tone" (first eigenvector) so cluster structure is cleaner.
-    print("\n1/7  Unsupervised pre-processing (denoising / detoning)...")
-    corr = X.corr()
-    corr_denoised = corr  # placeholder until denoise_corr / detone_corr exist
+    if precomputed is not None:
+        print("\n1/8  Using precomputed clustering (target-independent)...")
+        clusters = precomputed["clusters"]
+        denoising_info = precomputed["denoising_info"]
+        print(f"    {len(clusters)} clusters (precomputed)")
+        print("2/8  Skipped (precomputed)")
+    else:
+        # ── Step 1: Denoise + detone correlation matrix ──────────────────────
+        print("\n1/8  Marcenko-Pastur denoising + detoning...")
+        with blas_full():
+            corr_raw = X.corr().fillna(0)
+            q = X.shape[0] / X.shape[1]  # T/N
 
-    # ── Step 2: Unsupervised discovery — ONC clustering ──────────────────
-    print("2/7  ONC clustering (unsupervised structure discovery)...")
-    clusters = onc_cluster(corr_denoised, max_clusters=max(2, X.shape[1] // 2))
-    print(f"    Found {len(clusters)} clusters:")
-    for cid, members in clusters.items():
-        print(f"    Cluster {cid}: {members}")
+            evals_raw = np.linalg.eigvalsh(corr_raw.values)
+            lambda_plus = (1.0 + (1.0 / q) ** 0.5) ** 2
+            n_signal = int((evals_raw > lambda_plus).sum())
+            n_noise = int((evals_raw <= lambda_plus).sum())
+            n_negative = int((evals_raw < 0).sum())
+            signal_var = float(evals_raw[evals_raw > lambda_plus].sum())
+            total_var = float(evals_raw.sum())
 
-    # ── Step 3: Supervised attribution — CFI (MDI + MDA on clusters) ─────
-    print("3/7  CFI — Clustered Feature Importance (MDI + MDA on clusters)...")
-    # These run in the main process so give them full CPU budget
+            denoising_info = {
+                "n_features": X.shape[1],
+                "n_samples": X.shape[0],
+                "q_ratio": float(q),
+                "lambda_plus": float(lambda_plus),
+                "n_signal_eigenvalues": n_signal,
+                "n_noise_eigenvalues": n_noise,
+                "n_negative_eigenvalues": n_negative,
+                "signal_variance_pct": round(100 * signal_var / total_var, 1) if total_var > 0 else 0,
+                "noise_variance_pct": round(100 * (total_var - signal_var) / total_var, 1) if total_var > 0 else 0,
+                "top_eigenvalue": float(evals_raw.max()),
+            }
+            corr_denoised = denoise_corr(corr_raw, q=q)
+            corr_cluster = detone_corr(corr_denoised, n_remove=1)
+
+        print(f"    λ+ = {lambda_plus:.4f}, signal eigenvalues: {n_signal}, "
+              f"noise: {n_noise}, signal variance: {denoising_info['signal_variance_pct']}%")
+        print(f"    Denoised + detoned (1 dominant eigenvector removed for clustering)")
+        logger.info("[importance] denoising: lambda_plus=%.4f signal_evals=%d noise_evals=%d signal_var=%.1f%%",
+                    lambda_plus, n_signal, n_noise, denoising_info["signal_variance_pct"])
+
+        # ── Step 2: ONC clustering (greedy divisive) ─────────────────────────
+        print("2/8  ONC clustering (greedy divisive on denoised+detoned matrix)...")
+        clusters = onc_cluster(corr_cluster, max_clusters=5)
+        print(f"    Found {len(clusters)} clusters:")
+        for cid, members in sorted(clusters.items(), key=lambda x: -len(x[1])):
+            print(f"    Cluster {cid} ({len(members)} features): {members[:5]}"
+                  + (" ..." if len(members) > 5 else ""))
+            logger.debug("[importance] ONC cluster %d (%d features): %s", cid, len(members), members[:8])
+        logger.info("[importance] ONC: %d clusters", len(clusters))
+
+    # ── Step 3: CFI — fit full RF, then MDI + CFI-MDA on clusters ────────
+    print("3/8  CFI-MDI + CFI-MDA (simultaneous cluster permutation)...")
     n_jobs_full = get_n_jobs()
-    clf = build_rf(n_estimators=1000, n_jobs=n_jobs_full)
+    mda_scoring = "r2" if regression else "log_loss"
+    clf = build_rf(n_estimators=1000, n_jobs=n_jobs_full, regression=regression)
     clf.fit(X, y, sample_weight=sample_weight)
 
     cfi_mdi = feat_imp_cfi_mdi(clf, list(X.columns), clusters)
-    cfi_mda = feat_imp_cfi_mda(
-        build_rf(n_estimators=300, n_jobs=n_jobs_full), X, y, years, clusters, sample_weight
+    cfi_mda, cfi_mda_raw = feat_imp_cfi_mda(
+        build_rf(n_estimators=300, n_jobs=n_jobs_full, regression=regression),
+        X, y, years, clusters, sample_weight,
+        scoring=mda_scoring, cv_splits=cv_splits,
     )
+    print(f"    CFI-MDA: {(cfi_mda['mean'] > 0).sum()}/{len(cfi_mda)} clusters "
+          f"with positive importance")
 
-    # ── Steps 4–6: PCA + importance on components + Kendall's tau ────────
-    # TODO: once pca_cross_check() is updated, Steps 4–6 will live entirely
-    # inside that call:
-    #   Step 4 — fit PCA on X; rank components by eigenvalue
-    #   Step 5 — run MDI/MDA/SFI on PCA-transformed X (components as features)
-    #   Step 6 — weighted Kendall's tau between eigenvalue ranks and importance ranks
-    #
-    # For now, MDI/MDA/SFI still run on the original features (not PCA components)
-    # so that the existing pca_cross_check() signature is satisfied and Step 7
-    # filtering has per-feature distributions to work with.
-
-    print("4/7  MDI (in-sample, on original features — will move to PCA components)...")
+    # ── Step 4: Per-feature MDI ──────────────────────────────────────────
+    print("4/8  MDI (per-feature, in-sample)...")
     mdi, mdi_raw = feat_imp_mdi(clf, list(X.columns))
     mdi_pvals = compute_pvalues(mdi_raw, null_mean=1.0 / X.shape[1])
+    logger.info("[importance] MDI top-10: %s", mdi.head(10).index.tolist())
 
-    print("5/7  MDA (purged year-CV, on original features — will move to PCA components)...")
-    # MDA folds are parallelized internally; pass n_estimators so _mda_one_fold reconstructs correctly
-    mda, mda_raw = feat_imp_mda(
-        build_rf(n_estimators=500, n_jobs=1), X, y, years, sample_weight
-    )
-    mda_pvals = compute_pvalues(mda_raw, null_mean=0.0)
-
+    # ── Step 5: SFI ──────────────────────────────────────────────────────
     sfi = None
     sfi_raw = None
     sfi_pvals = None
-    null_ll = 0.0
+    null_score = 0.0
     if run_sfi:
-        print("5/7  SFI (standalone, purged year-CV — will move to PCA components)...")
-        # SFI features are parallelized externally; inner jobs set in _sfi_one_feature
+        print("5/8  SFI (per-feature, purged year-CV, standalone)...")
         sfi, sfi_raw = feat_imp_sfi(
-            build_rf(n_estimators=300, n_jobs=1), X, y, years, sample_weight
+            build_rf(n_estimators=300, n_jobs=1, regression=regression),
+            X, y, years, sample_weight,
+            regression=regression, cv_splits=cv_splits,
         )
-        null_ll = sfi["null_log_loss"].iloc[0] if "null_log_loss" in sfi.columns else 0.0
-        sfi_pvals = compute_pvalues(sfi_raw, null_mean=null_ll, alternative="greater")
+        null_col = "null_r2" if regression else "null_log_loss"
+        null_score = sfi[null_col].iloc[0] if null_col in sfi.columns else 0.0
+        sfi_pvals = compute_pvalues(sfi_raw, null_mean=null_score, alternative="greater")
+        logger.info("[importance] SFI top-10: %s", sfi.head(10).index.tolist())
 
-    # Build per-feature summary for pca_cross_check (temporary until Step 5
-    # moves inside pca_cross_check and runs on PCA components)
+    # ── Step 6: De-substituted MDA (optional, slow) ─────────────────────
+    desub_mda = None
+    desub_mda_raw = None
+    if run_desub_mda:
+        print("6/10  De-substituted MDA (within-cluster ranking, substitution-free)...")
+        desub_mda, desub_mda_raw = feat_imp_desub_mda(
+            X, y, years, clusters,
+            sample_weight=sample_weight,
+            scoring=mda_scoring,
+            cv_splits=cv_splits,
+            n_estimators=300,
+            regression=regression,
+        )
+        print(f"    Computed for {len(desub_mda)} features")
+        logger.info("[importance] Desub-MDA top-10: %s",
+                    desub_mda.nlargest(10, "mean").index.tolist())
+    else:
+        print("6/10  De-substituted MDA skipped (run_desub_mda=False)")
+
+    # ── Step 7: PCA-MDA ──────────────────────────────────────────────────
+    pca_mda = None
+    pca_mda_raw = None
+    pca_mda_pc_summary = None
+    if run_pca_mda:
+        print("7/10  PCA-MDA (orthogonal basis, substitution-free)...")
+        pca_mda, pca_mda_raw, pca_mda_pc_summary = feat_imp_pca_mda(
+            X, y, years,
+            sample_weight=sample_weight,
+            scoring=mda_scoring,
+            cv_splits=cv_splits,
+            n_estimators=300,
+            regression=regression,
+        )
+        print(f"    PCA-MDA: {(pca_mda['mean'] > 0).sum()}/{len(pca_mda)} features "
+              f"with positive importance")
+        logger.info("[importance] PCA-MDA top-10: %s", pca_mda.head(10).index.tolist())
+    else:
+        print("7/10  PCA-MDA skipped (run_pca_mda=False)")
+
+    # ── Step 8: Residualized MDA ──────────────────────────────────────────
+    resid_mda = None
+    resid_mda_raw = None
+    if run_residual_mda:
+        print("8/10  Residualized MDA (cross-cluster orthogonalization)...")
+        resid_mda, resid_mda_raw = feat_imp_residual_mda(
+            X, y, years, clusters,
+            sample_weight=sample_weight,
+            scoring=mda_scoring,
+            cv_splits=cv_splits,
+            n_estimators=300,
+            regression=regression,
+        )
+        print(f"    Residualized MDA: {(resid_mda['mean'] > 0).sum()}/{len(resid_mda)} features "
+              f"with positive importance")
+        logger.info("[importance] Residual-MDA top-10: %s",
+                    resid_mda.head(10).index.tolist())
+    else:
+        print("8/10  Residualized MDA skipped (run_residual_mda=False)")
+
+    # ── Build per-feature summary ────────────────────────────────────────
     summary = mdi[["mean"]].rename(columns={"mean": "MDI"})
     summary = summary.join(mdi_pvals.rename("p_MDI"), how="left")
-    summary = summary.join(mda[["mean"]].rename(columns={"mean": "MDA"}), how="outer")
-    summary = summary.join(mda_pvals.rename("p_MDA"), how="left")
+
+    feat_to_cluster = {m: cid for cid, members in clusters.items() for m in members}
+    cfi_mda_by_feat = pd.Series(
+        {f: cfi_mda.loc[
+            next((lbl for lbl in cfi_mda.index if f"Cluster_{feat_to_cluster[f]}" in lbl), None),
+            "mean"
+        ] if f in feat_to_cluster else np.nan
+         for f in summary.index},
+        name="CFI_MDA",
+    )
+    summary = summary.join(cfi_mda_by_feat, how="left")
     if sfi is not None:
         summary = summary.join(sfi[["mean"]].rename(columns={"mean": "SFI"}), how="outer")
         summary = summary.join(sfi_pvals.rename("p_SFI"), how="left")
+    if desub_mda is not None:
+        summary = summary.join(desub_mda[["mean"]].rename(columns={"mean": "DESUB_MDA"}), how="left")
+    if pca_mda is not None:
+        summary = summary.join(pca_mda[["mean"]].rename(columns={"mean": "PCA_MDA"}), how="left")
+    if resid_mda is not None:
+        summary = summary.join(resid_mda[["mean"]].rename(columns={"mean": "RESID_MDA"}), how="left")
     summary["rank_MDI"] = summary["MDI"].rank(ascending=False)
-    summary["rank_MDA"] = summary["MDA"].rank(ascending=False)
+    summary["rank_CFI_MDA"] = summary["CFI_MDA"].rank(ascending=False)
     if sfi is not None:
         summary["rank_SFI"] = summary["SFI"].rank(ascending=False)
+    if desub_mda is not None:
+        summary["rank_DESUB_MDA"] = summary["DESUB_MDA"].rank(ascending=False)
+    if pca_mda is not None:
+        summary["rank_PCA_MDA"] = summary["PCA_MDA"].rank(ascending=False)
+    if resid_mda is not None:
+        summary["rank_RESID_MDA"] = summary["RESID_MDA"].rank(ascending=False)
     summary["avg_rank"] = summary[[c for c in summary.columns if c.startswith("rank_")]].mean(axis=1)
     summary = summary.sort_values("avg_rank")
 
-    print("\n=== Feature Importance Summary ===")
-    print(summary.to_string())
+    print("\n=== Feature Importance Summary (top 30) ===")
+    print(summary.head(30).to_string())
 
-    print("\n6/7  PCA cross-check + weighted Kendall's tau...")
-    pca_info, tau_results = pca_cross_check(X, summary)
+    # ── Step 9: PCA cross-check ──────────────────────────────────────────
+    print("\n9/10  PCA cross-check + weighted Kendall's tau (permutation p-values)...")
+    with blas_full():
+        pca_info, tau_results = pca_cross_check(X, summary)
 
-    # ── Step 7: Algorithmic filtering ─────────────────────────────────────
-    print("\n7/7  Algorithmic filtering (MDI < 1/F + MDA detrimental)...")
-    sfi_null_val = null_ll if run_sfi else None
+    # ── Step 10: Algorithmic filtering ───────────────────────────────────
+    print("\n10/10  Algorithmic filtering (ACCEPTED / NEEDS SPECIFICATION / REJECTED)...")
+    sfi_null_val = null_score if run_sfi else None
     filter_report = filter_features(
-        mdi_raw, mda_raw,
+        mdi_raw, cfi_mda_raw, clusters,
         sfi_raw=sfi_raw,
         sfi_null=sfi_null_val,
+        desub_mda_raw=desub_mda_raw,
+        pca_mda_raw=pca_mda_raw,
+        resid_mda_raw=resid_mda_raw,
     )
     tier_counts = filter_report["tier"].value_counts()
     for tier, count in tier_counts.items():
         print(f"    {tier}: {count}")
-    survivors = filter_report[filter_report["tier"].isin(["STRONG", "MODERATE"])]
-    print(f"    → {len(survivors)} features survive (STRONG + MODERATE)")
+        logger.info("[importance] filter tier %s: %d features", tier, count)
+    survivors = filter_report[filter_report["tier"].isin(["ACCEPTED", "NEEDS SPECIFICATION"])]
+    print(f"    → {len(survivors)} features survive (ACCEPTED + NEEDS SPECIFICATION)")
+    logger.info("[importance] survivors=%d / %d features", len(survivors), X.shape[1])
 
     return {
-        "mdi":             mdi,
-        "mdi_raw":         mdi_raw,
-        "mda":             mda,
-        "mda_raw":         mda_raw,
-        "sfi":             sfi,
-        "sfi_raw":         sfi_raw,
-        "cfi_mdi":         cfi_mdi,
-        "cfi_mda":         cfi_mda,
-        "clusters":        clusters,
-        "summary":         summary,
-        "filter_report":   filter_report,
-        "survivors":       survivors.index.tolist(),
-        "pca_info":        pca_info,
-        "tau_results":     tau_results,
+        "mdi":                  mdi,
+        "mdi_raw":              mdi_raw,
+        "sfi":                  sfi,
+        "sfi_raw":              sfi_raw,
+        "desub_mda":            desub_mda,
+        "desub_mda_raw":        desub_mda_raw,
+        "pca_mda":              pca_mda,
+        "pca_mda_raw":          pca_mda_raw,
+        "pca_mda_pc_summary":   pca_mda_pc_summary,
+        "resid_mda":            resid_mda,
+        "resid_mda_raw":        resid_mda_raw,
+        "cfi_mdi":              cfi_mdi,
+        "cfi_mda":              cfi_mda,
+        "cfi_mda_raw":          cfi_mda_raw,
+        "clusters":             clusters,
+        "summary":              summary,
+        "filter_report":        filter_report,
+        "survivors":            survivors.index.tolist(),
+        "pca_info":             pca_info,
+        "tau_results":          tau_results,
+        "denoising_info":       denoising_info,
     }

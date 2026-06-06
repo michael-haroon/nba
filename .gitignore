@@ -1,9 +1,23 @@
 # Cache
 __pycache__
+*cache*
+
 
 # Data
 *.csv
 *.tsv
 *.parquet
-data/
 *.json.zst
+kendall_tau.json
+*.log
+
+# Images
+*.png
+
+# Models
+*.pkl
+
+# Keys
+backtest.txt
+.env
+.env*

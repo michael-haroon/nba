@@ -1,135 +1,106 @@
 """
 data.py
 -------
-Load pre-computed data, resolve team names, build prediction feature vectors.
+Load game_features parquet and return aligned X, y, seasons for LOYO CV.
 """
 
-import warnings
+from __future__ import annotations
+
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
 from strategy.config import (
-    SURVIVING_FEATURES, DATA_DIR, GAME_PAIRS_PATH, TEAM_FEATURES_PATH,
+    GAME_PARQUET, FEATURE_PATHS,
+    get_feature_list_path,
+    load_feature_list,
 )
 
 
-def load_game_pairs(path: str = GAME_PAIRS_PATH) -> pd.DataFrame:
-    """Load pre-built game pairs, subset to surviving features + metadata."""
-    df = pd.read_csv(path)
-    meta_cols = ["Season", "TeamA", "TeamB", "team_a_wins", "round_num", "DayNum"]
-    # Deduplicate: TeamB may appear in both meta_cols and SURVIVING_FEATURES
-    all_cols = list(dict.fromkeys(
-        [c for c in meta_cols if c in df.columns] +
-        [c for c in SURVIVING_FEATURES if c in df.columns]
-    ))
-    df = df[all_cols].copy()
+TARGET_MAP = {
+    "winner": ("target_winner", "classification"),
+    "home_score": ("target_home_score", "regression"),
+    "away_score": ("target_away_score", "regression"),
+    "spread": ("target_spread", "regression"),
+    "total": ("target_total", "regression"),
+    "h1_spread": ("target_h1_spread", "regression"),
+    "h2_spread": ("target_h2_spread", "regression"),
+    "h1_total": ("target_h1_total", "regression"),
+    "h2_total": ("target_h2_total", "regression"),
+    "home_wins_h1": ("target_home_wins_h1", "classification"),
+    "home_wins_h2": ("target_home_wins_h2", "classification"),
+    "overtime": ("target_overtime", "classification"),
+    "series_winner": ("target_series_winner", "classification"),
+    "series_total_games": ("target_series_total_games", "regression"),
+    "series_spread": ("target_series_spread", "regression"),
+    "series_exact": ("target_series_exact", "multiclass"),
+}
 
-    # Median-impute NaN in feature columns (BPI, NET-based features have era gaps)
-    for col in SURVIVING_FEATURES:
-        if col in df.columns and df[col].isna().any():
-            df[col] = df[col].fillna(df[col].median())
-
-    return df
-
-
-def load_team_features(path: str = TEAM_FEATURES_PATH) -> pd.DataFrame:
-    """Load per-team season features for prediction."""
-    return pd.read_csv(path)
+MULTICLASS_TARGETS = {"series_exact"}
 
 
-def resolve_bracket_teams(bracket: dict, data_dir: str = DATA_DIR) -> dict:
+def load(target: str, model_name: str | None = None) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
     """
-    Resolve bracket team names to Kaggle TeamIDs.
-    Returns {team_name: TeamID} for all 4 teams.
+    Load data for any supported target.
+
+    Args:
+        target      — key from TARGET_MAP (e.g. 'winner', 'spread', 'h1_spread')
+        model_name  — optional model name to load a model-specific feature list
+
+    Returns:
+        X        — feature DataFrame, NaNs preserved (tree models handle them natively)
+        y        — target Series
+        seasons  — season string per row (for LOYO CV)
     """
-    from feature_pipeline.name_resolver import build_id_lookup, resolve_team_id
-    from feature_pipeline.config import TEAM_NAME_MAP
+    if target not in TARGET_MAP:
+        raise ValueError(f"Unknown target '{target}'. Choose from: {list(TARGET_MAP.keys())}")
 
-    kaggle_dir = f"{data_dir}/kaggle"
-    lookup = build_id_lookup(kaggle_dir)
+    target_col, task = TARGET_MAP[target]
 
-    result = {}
-    for matchup in bracket.values():
-        for name in matchup:
-            tid = resolve_team_id(name, lookup, TEAM_NAME_MAP)
-            if tid is None:
-                warnings.warn(f"Could not resolve team: {name}")
-            result[name] = int(tid) if tid is not None else None
-    return result
+    if model_name:
+        feature_path = get_feature_list_path(target, model_name)
+    else:
+        feature_path = FEATURE_PATHS[target]
+
+    df = pd.read_parquet(GAME_PARQUET)
+
+    features = load_feature_list(feature_path)
+    missing = [f for f in features if f not in df.columns]
+    if missing:
+        raise KeyError(f"{len(missing)} features in {feature_path.name} not found in parquet: {missing[:5]}")
+
+    valid = df[target_col].notna()
+    df = df[valid].reset_index(drop=True)
+
+    X = df[features].copy()
+    y = df[target_col].copy()
+    seasons = df["season"].copy()
+
+    if task == "regression":
+        y = y.astype(float)
+    elif task == "multiclass":
+        y = y.astype(str)
+    else:
+        y = y.astype(int)
+
+    return X, y, seasons
 
 
-def load_path_features(team_ids: list, season: int,
-                       data_dir: str = DATA_DIR) -> dict:
-    """Load actual tournament path features for Final Four teams (through E8)."""
-    from nba.strategy.game_model import load_actual_path_features
-    return load_actual_path_features(data_dir, season, team_ids)
-
-
-def build_matchup_features(team_df: pd.DataFrame,
-                           tid_a: int, tid_b: int,
-                           season: int,
-                           path_features: dict = None) -> np.ndarray:
+def load_by_group(target: str, group: str) -> tuple[pd.DataFrame, pd.Series, pd.Series]:
     """
-    Build a single-row diff feature vector for team_a vs team_b.
-    Canonical ordering: tid_a < tid_b (caller must handle flip).
-
-    Returns array of shape (1, n_features) in SURVIVING_FEATURES order.
+    Load data using a feature-group-specific list (trees, linear, diversity, full).
+    Uses the same mechanism as model-specific lists via get_feature_list_path().
     """
-    season_df = team_df[team_df["Season"] == season].set_index("TeamID")
-    if tid_a not in season_df.index or tid_b not in season_df.index:
-        return np.full((1, len(SURVIVING_FEATURES)), np.nan)
-
-    fa = season_df.loc[tid_a]
-    fb = season_df.loc[tid_b]
-
-    diffs = []
-    for feat in SURVIVING_FEATURES:
-        # TeamB is the higher TeamID in the canonical ordering — not a diff feature
-        if feat == "TeamB":
-            diffs.append(float(max(tid_a, tid_b)))
-            continue
-
-        base = feat.replace("diff_", "", 1)
-
-        # Check path feature override
-        if path_features and base.startswith("path_"):
-            va = path_features.get(tid_a, {}).get(base, np.nan)
-            vb = path_features.get(tid_b, {}).get(base, np.nan)
-        else:
-            va = float(fa[base]) if base in fa.index else np.nan
-            vb = float(fb[base]) if base in fb.index else np.nan
-
-        try:
-            diffs.append(float(va) - float(vb))
-        except (TypeError, ValueError):
-            diffs.append(np.nan)
-
-    return np.array(diffs, dtype=float).reshape(1, -1)
+    return load(target, model_name=group)
 
 
-def load_market_data(data_dir: str = DATA_DIR, year: int = 2026) -> dict:
+def impute_with_train_median(X_train: pd.DataFrame, X_val: pd.DataFrame
+                              ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Load Kalshi market implied probabilities for Final Four teams.
-    Returns {team_name: implied_prob} normalized to sum to 1.
+    Impute NaNs using training-fold medians only.
+    Used exclusively for Ridge/LogReg which cannot handle NaN.
+    Tree models should receive raw X without calling this.
     """
-    try:
-        from feature_pipeline.market_features import (
-            load_kalshi_trades, compute_market_features,
-        )
-        trades = load_kalshi_trades(data_dir)
-        mkt = compute_market_features(trades)
-        mkt_year = mkt[mkt["year"] == year].copy()
-
-        if mkt_year.empty:
-            warnings.warn(f"No market data for {year}")
-            return {}
-
-        # Return VWAP dict, normalized
-        team_vwap = dict(zip(mkt_year["team"], mkt_year["mkt_vwap"]))
-        total = sum(team_vwap.values())
-        if total > 0:
-            return {t: v / total for t, v in team_vwap.items()}
-        return team_vwap
-    except Exception as e:
-        warnings.warn(f"Market data loading failed: {e}")
-        return {}
+    medians = X_train.median()
+    return X_train.fillna(medians), X_val.fillna(medians)

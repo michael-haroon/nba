@@ -1,0 +1,5198 @@
+[
+  {
+    "name": "sf_000",
+    "columns": [
+      "diff_venue_switches_5",
+      "sum_roll5_sag_rating",
+      "diff_away_streak"
+    ],
+    "operation": "triple",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_001",
+    "columns": [
+      "sum_roll10_q1",
+      "sum_experience_adjusted_massey_q4",
+      "sum_roll10_rebpct_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_002",
+    "columns": [
+      "diff_roll20_opp_pitp",
+      "sum_roll5_ot3_std",
+      "sum_roll10_ot2"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_003",
+    "columns": [
+      "sum_roll20_opp_fbps_std",
+      "diff_roll10_opp_2nd_pts"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_004",
+    "columns": [
+      "diff_roll20_opp_tovpct_std",
+      "sum_roll10_game_id",
+      "sum_roll5_2fgm_pctuast_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_005",
+    "columns": [
+      "diff_roll20_pitp_std",
+      "sum_roll10_fgm_pctuast_std"
+    ],
+    "operation": "mul",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_006",
+    "columns": [
+      "sum_roll10_opp_pts_off_to",
+      "sum_roll20_ot2",
+      "diff_roll20_opp_2nd_pts"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_007",
+    "columns": [
+      "diff_roll10_astpct_std",
+      "sum_roll10_elo_score"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_008",
+    "columns": [
+      "sum_roll5_defrtg_std",
+      "sum_roll10_fgpct"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_009",
+    "columns": [
+      "diff_roll20_tov_std",
+      "diff_roll5_pctpts_2pt_std",
+      "sum_roll10_2fgm_pctast"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_010",
+    "columns": [
+      "diff_roll10_pctpts_3pt",
+      "sum_roll10_ftpct_std"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_011",
+    "columns": [
+      "diff_roll5_pts_std",
+      "sum_roll10_pts",
+      "sum_roll10_ot1_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_012",
+    "columns": [
+      "diff_roll5_pf",
+      "diff_crowd_adjusted_massey_q4"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_013",
+    "columns": [
+      "sum_roll5_netrtg",
+      "sum_roll20_drebpct"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_014",
+    "columns": [
+      "diff_roll5_opp_pitp",
+      "sum_roll5_plus_minus_std"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_015",
+    "columns": [
+      "diff_roll10_elo_score",
+      "diff_games_per_week_5"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_016",
+    "columns": [
+      "sum_roll20_rebpct",
+      "diff_roll10_pctfga_3pt"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_017",
+    "columns": [
+      "diff_acwr_pts",
+      "sum_roll10_ot4"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_018",
+    "columns": [
+      "diff_roll10_dreb_std",
+      "diff_roll20_orebpct_std",
+      "diff_roll20_game_id"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_019",
+    "columns": [
+      "sum_roll10_rebpct",
+      "diff_roll10_fta_std"
+    ],
+    "operation": "div",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_020",
+    "columns": [
+      "diff_roll10_dreb",
+      "sum_roll10_pf"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_021",
+    "columns": [
+      "sum_crowd_adjusted_massey_q4",
+      "sum_roll5_2fgm_pctuast"
+    ],
+    "operation": "sub",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_022",
+    "columns": [
+      "diff_crowd_adjusted_massey_q3",
+      "sum_roll10_plus_minus_std",
+      "diff_wobus_q4"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_023",
+    "columns": [
+      "diff_colley_q4",
+      "sum_roll10_pts_off_to_std",
+      "sum_roll10_q2"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_024",
+    "columns": [
+      "sum_roll10_defrtg",
+      "diff_roll10_efgpct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_025",
+    "columns": [
+      "sum_roll20_rebpct_std",
+      "diff_crowd_weighted_massey_q4"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_026",
+    "columns": [
+      "sum_roll5_pctpts_pitp_std",
+      "diff_roll20_reb_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_027",
+    "columns": [
+      "sum_roll10_pctpts_2pt_mr",
+      "diff_roll20_sag_rating_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_028",
+    "columns": [
+      "sum_roll5_pure_elo_std",
+      "diff_roll5_recent_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_029",
+    "columns": [
+      "diff_roll20_ftm_std",
+      "sum_roll20_ot4_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_030",
+    "columns": [
+      "diff_roll5_ftpct",
+      "diff_roll20_3pa"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_031",
+    "columns": [
+      "diff_roll5_pace",
+      "diff_roll10_sag_rating_std",
+      "diff_roll5_fbps_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_032",
+    "columns": [
+      "sum_roll5_ftpct",
+      "diff_location_adjusted_massey"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_033",
+    "columns": [
+      "diff_travel_distance_3",
+      "sum_roll20_ast_to"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_034",
+    "columns": [
+      "diff_roll20_ftpct",
+      "sum_roll5_ftpct",
+      "diff_roll5_pure_elo"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_035",
+    "columns": [
+      "diff_roll10_pctpts_ft",
+      "sum_roll5_pure_elo"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_036",
+    "columns": [
+      "sum_roll5_pctfga_3pt_std",
+      "sum_roll20_fgm_pctast_std"
+    ],
+    "operation": "mul",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_037",
+    "columns": [
+      "sum_roll5_blk",
+      "diff_roll20_ast"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_038",
+    "columns": [
+      "diff_roll20_pf",
+      "diff_roll20_fgpct",
+      "sum_roll5_3fgm_pctuast_std"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_039",
+    "columns": [
+      "diff_roll5_defrtg",
+      "sum_roll5_3pm_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_040",
+    "columns": [
+      "sum_roll10_opp_fbps",
+      "diff_roll5_opp_pitp",
+      "sum_roll20_netrtg_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_041",
+    "columns": [
+      "sum_roll10_3fgm_pctast_std",
+      "diff_roll5_ftpct"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_042",
+    "columns": [
+      "sum_roll10_opp_2nd_pts_std",
+      "sum_roll10_opp_orebpct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_043",
+    "columns": [
+      "diff_roll5_ot2_std",
+      "diff_roll5_tov"
+    ],
+    "operation": "add",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_044",
+    "columns": [
+      "diff_roll10_plus_minus",
+      "sum_roll10_efgpct"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_045",
+    "columns": [
+      "diff_wolfe_q4",
+      "diff_roll20_plus_minus_std",
+      "sum_experience_adjusted_massey_q1"
+    ],
+    "operation": "mul_add",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_046",
+    "columns": [
+      "diff_roll10_opp_fbps_std",
+      "diff_roll5_3ppct_std"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_047",
+    "columns": [
+      "diff_roll20_elo_score_std",
+      "sum_roll5_efgpct_std",
+      "sum_roll10_pctpts_off_to_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_048",
+    "columns": [
+      "diff_days_span_3",
+      "diff_roll5_q3",
+      "sum_roll20_dreb"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_049",
+    "columns": [
+      "diff_roll5_q3_std",
+      "diff_whitlock_q3"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_050",
+    "columns": [
+      "sum_roll20_ot4_std",
+      "sum_crowd_adjusted_massey_q3"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_051",
+    "columns": [
+      "sum_roll10_pace",
+      "diff_roll5_pctpts_off_to_std",
+      "sum_roll20_game_id"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_052",
+    "columns": [
+      "diff_roll10_game_id_std",
+      "sum_roll20_sag_rating"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_053",
+    "columns": [
+      "diff_roll5_3ppct_std",
+      "sum_roll5_recent_std",
+      "sum_roll20_netrtg"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_054",
+    "columns": [
+      "diff_roll20_orebpct",
+      "sum_roll5_fgpct"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_055",
+    "columns": [
+      "diff_roll20_fga",
+      "diff_roll5_fgm_pctuast_std",
+      "diff_roll20_q4"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_056",
+    "columns": [
+      "diff_context_adjusted_massey_q3",
+      "sum_roll5_fgpct_std",
+      "diff_roll10_q4_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_057",
+    "columns": [
+      "diff_roll5_pctpts_off_to",
+      "sum_roll20_pitp",
+      "sum_crowd_adjusted_massey_q1"
+    ],
+    "operation": "mul_add",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_058",
+    "columns": [
+      "sum_roll20_ot3_std",
+      "sum_roll20_oreb_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_059",
+    "columns": [
+      "sum_roll5_rebpct_std",
+      "diff_roll10_oreb_std"
+    ],
+    "operation": "mul",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_060",
+    "columns": [
+      "diff_roll10_orebpct_std",
+      "diff_roll10_stl_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_061",
+    "columns": [
+      "sum_roll20_ast",
+      "diff_roll20_3fgm_pctast_std",
+      "sum_roll10_golden_mean_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_062",
+    "columns": [
+      "diff_wobus_q2",
+      "diff_roll5_offrtg_std",
+      "sum_roll5_3ppct"
+    ],
+    "operation": "triple",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_063",
+    "columns": [
+      "diff_roll10_golden_mean",
+      "sum_roll5_ast_ratio"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_064",
+    "columns": [
+      "sum_golden_mean",
+      "diff_roll5_pctfga_2pt_std"
+    ],
+    "operation": "sub",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_065",
+    "columns": [
+      "sum_roll20_pf_std",
+      "sum_roll20_defrtg"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_066",
+    "columns": [
+      "sum_roll5_tovpct",
+      "sum_roll5_2fgm_pctast",
+      "sum_roll10_ot1"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_067",
+    "columns": [
+      "sum_roll5_3ppct",
+      "sum_default_massey_q2"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_068",
+    "columns": [
+      "diff_roll10_2fgm_pctast_std",
+      "diff_roll10_ot4_std",
+      "diff_roll20_pctpts_ft_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_069",
+    "columns": [
+      "diff_roll20_rebpct_std",
+      "diff_roll20_elo_score"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_070",
+    "columns": [
+      "diff_roll20_netrtg_std",
+      "diff_roll10_offrtg"
+    ],
+    "operation": "sub",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_071",
+    "columns": [
+      "diff_travel_adjusted_massey_q3",
+      "sum_roll10_2fgm_pctuast_std",
+      "sum_roll20_orebpct"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_072",
+    "columns": [
+      "diff_roll10_efgpct_std",
+      "sum_roll5_stl_std",
+      "sum_roll10_recent_std"
+    ],
+    "operation": "mul_add",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_073",
+    "columns": [
+      "sum_roll10_opp_orebpct",
+      "sum_roll5_pts_off_to_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_074",
+    "columns": [
+      "diff_roll5_q3_std",
+      "diff_roll5_pctfga_3pt_std",
+      "sum_roll5_fgm_pctast"
+    ],
+    "operation": "div_sum",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_075",
+    "columns": [
+      "sum_contestedshots_10",
+      "sum_crowd_adjusted_massey_q3"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_076",
+    "columns": [
+      "sum_roll10_sag_rating_std",
+      "sum_ot_frequency",
+      "sum_roll20_q4"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_077",
+    "columns": [
+      "sum_roll5_pctpts_2pt_std",
+      "sum_elo_score"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_078",
+    "columns": [
+      "diff_location_adjusted_massey_q2",
+      "diff_default_massey_q2"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_079",
+    "columns": [
+      "diff_roll10_pctpts_2pt",
+      "diff_contestedshots_10",
+      "diff_wobus_q1"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_080",
+    "columns": [
+      "diff_roll5_fgm_pctast_std",
+      "diff_whitlock_q2"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_081",
+    "columns": [
+      "sum_roll10_3fgm_pctuast",
+      "sum_roll10_opp_efgpct_std",
+      "diff_roll20_orebpct"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_082",
+    "columns": [
+      "sum_roll5_3pm",
+      "diff_roll10_q2_std"
+    ],
+    "operation": "mul",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_083",
+    "columns": [
+      "sum_roll10_pts_off_to_std",
+      "sum_roll5_blk",
+      "diff_venue_switches_3"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_084",
+    "columns": [
+      "sum_roll5_pctfga_2pt_std",
+      "diff_roll20_2nd_pts_std",
+      "sum_roll10_ot1_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_085",
+    "columns": [
+      "sum_colley_q3",
+      "diff_roll20_recent",
+      "sum_roll20_netrtg"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_086",
+    "columns": [
+      "sum_roll5_fta_rate_std",
+      "diff_travel_adjusted_massey"
+    ],
+    "operation": "mul",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_087",
+    "columns": [
+      "diff_travel_distance",
+      "diff_context_adjusted_massey_q3",
+      "diff_roll20_3pa_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_088",
+    "columns": [
+      "sum_roll10_ot2_std",
+      "diff_roll20_fta_std",
+      "sum_roll10_pts_off_to_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_089",
+    "columns": [
+      "sum_roll20_2nd_pts",
+      "sum_roll10_fgm_pctuast_std"
+    ],
+    "operation": "sub",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_090",
+    "columns": [
+      "sum_roll5_pctpts_ft_std",
+      "sum_roll5_q3",
+      "diff_roll5_elo_score"
+    ],
+    "operation": "mul_add",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_091",
+    "columns": [
+      "diff_roll10_pctpts_3pt_std",
+      "sum_roll20_drebpct"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_092",
+    "columns": [
+      "diff_roll5_blk_std",
+      "diff_recent",
+      "sum_roll20_2fgm_pctast"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_093",
+    "columns": [
+      "diff_roll10_pctpts_2pt_mr_std",
+      "sum_crowd_weighted_massey_q1",
+      "diff_roll20_fgm"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_094",
+    "columns": [
+      "diff_roll5_ot1",
+      "sum_roll10_3fgm_pctast",
+      "sum_roll20_netrtg_std"
+    ],
+    "operation": "triple",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_095",
+    "columns": [
+      "diff_roll10_efgpct_std",
+      "sum_roll10_plus_minus"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_096",
+    "columns": [
+      "sum_roll5_2fgm_pctast_std",
+      "diff_colley_q3",
+      "diff_roll10_3pa"
+    ],
+    "operation": "mul_add",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_097",
+    "columns": [
+      "sum_predictor",
+      "sum_roll10_opp_pitp",
+      "sum_travel_adjusted_massey"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_098",
+    "columns": [
+      "sum_roll20_opp_pts_off_to_std",
+      "diff_roll10_pts_off_to_std"
+    ],
+    "operation": "div",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_099",
+    "columns": [
+      "diff_roll5_opp_pitp_std",
+      "diff_roll20_pctpts_2pt_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_100",
+    "columns": [
+      "sum_roll5_orebpct",
+      "sum_roll10_ot3",
+      "sum_roll20_opp_fta_rate_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_101",
+    "columns": [
+      "diff_roll20_fta_std",
+      "sum_roll5_ftm"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_102",
+    "columns": [
+      "sum_roll20_pure_elo_std",
+      "diff_crowd_weighted_massey_q2"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_103",
+    "columns": [
+      "sum_experience_adjusted_massey_q4",
+      "diff_location_adjusted_massey"
+    ],
+    "operation": "div",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_104",
+    "columns": [
+      "sum_roll5_pctfga_2pt",
+      "sum_roll10_ot4_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_105",
+    "columns": [
+      "sum_roll20_game_id",
+      "diff_roll10_pts_off_to"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_106",
+    "columns": [
+      "diff_roll20_predictor",
+      "diff_roll20_ftm"
+    ],
+    "operation": "mul",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_107",
+    "columns": [
+      "sum_roll5_ast_ratio_std",
+      "sum_roll5_opp_efgpct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_108",
+    "columns": [
+      "sum_roll5_q4",
+      "diff_roll10_pctpts_off_to_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_109",
+    "columns": [
+      "diff_travel_distance",
+      "sum_roll5_pts_std",
+      "diff_roll20_fbps"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_110",
+    "columns": [
+      "sum_roll20_opp_pts_off_to_std",
+      "sum_roll20_ast_to_std",
+      "diff_scoring_entropy"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_111",
+    "columns": [
+      "diff_roll20_pctpts_ft",
+      "diff_wobus_q4",
+      "diff_roll20_stl_std"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_112",
+    "columns": [
+      "diff_roll5_pts_off_to",
+      "diff_roll10_pure_elo_std"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_113",
+    "columns": [
+      "diff_roll20_stl",
+      "diff_roll5_3pm_std",
+      "sum_roll20_pctpts_ft"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_114",
+    "columns": [
+      "diff_roll20_pctfga_2pt",
+      "diff_roll10_pctpts_3pt"
+    ],
+    "operation": "div",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_115",
+    "columns": [
+      "sum_ot_frequency",
+      "diff_roll5_opp_orebpct_std",
+      "diff_colley_q4"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_116",
+    "columns": [
+      "sum_roll20_q1",
+      "sum_roll10_pctfga_2pt_std",
+      "diff_roll20_pctpts_pitp_std"
+    ],
+    "operation": "div_sum",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_117",
+    "columns": [
+      "sum_roll10_ast_ratio_std",
+      "sum_roll5_pts"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_118",
+    "columns": [
+      "sum_acwr_pts",
+      "diff_roll10_tovpct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_119",
+    "columns": [
+      "sum_roll20_defrtg",
+      "diff_roll5_pure_elo_std"
+    ],
+    "operation": "sub",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_120",
+    "columns": [
+      "diff_travel_adjusted_massey_q1",
+      "diff_experience_adjusted_massey_q1"
+    ],
+    "operation": "mul",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_121",
+    "columns": [
+      "sum_roll5_3fgm_pctast_std",
+      "sum_roll20_pctpts_pitp_std"
+    ],
+    "operation": "div",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_122",
+    "columns": [
+      "diff_wobus_q3",
+      "sum_roll10_tspct_std"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_123",
+    "columns": [
+      "sum_roll20_offrtg_std",
+      "sum_roll5_q2_std",
+      "sum_roll5_pf"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_124",
+    "columns": [
+      "diff_roll5_rebpct_std",
+      "sum_roll10_opp_pts_off_to"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_125",
+    "columns": [
+      "sum_roll20_defrtg_std",
+      "sum_roll5_fgpct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_126",
+    "columns": [
+      "sum_roll5_fta_rate",
+      "diff_roll20_oreb_std",
+      "diff_scoring_entropy"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_127",
+    "columns": [
+      "diff_contestedshots_10",
+      "diff_wolfe_q3"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_128",
+    "columns": [
+      "diff_roll20_2fgm_pctuast_std",
+      "diff_roll10_pf",
+      "sum_roll20_fgm_pctast_std"
+    ],
+    "operation": "mul_add",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_129",
+    "columns": [
+      "diff_colley_q2",
+      "diff_roll20_pure_elo",
+      "sum_roll10_ast_std"
+    ],
+    "operation": "triple",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_130",
+    "columns": [
+      "diff_roll10_elo_score_std",
+      "sum_roll5_pts_std",
+      "sum_roll5_3fgm_pctuast"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_131",
+    "columns": [
+      "diff_location_adjusted_massey_q4",
+      "sum_roll20_pctpts_ft_std",
+      "sum_roll5_q3"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_132",
+    "columns": [
+      "sum_roll10_ot2",
+      "diff_roll5_3fgm_pctuast",
+      "diff_roll5_opp_tovpct"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_133",
+    "columns": [
+      "sum_experience_adjusted_massey",
+      "diff_roll20_elo_score",
+      "sum_roll5_stl"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_134",
+    "columns": [
+      "diff_roll20_pie",
+      "diff_recent",
+      "sum_roll5_fgm_pctast_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_135",
+    "columns": [
+      "sum_roll20_opp_orebpct",
+      "sum_ff_composite"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_136",
+    "columns": [
+      "diff_roll5_opp_tovpct",
+      "sum_roll10_sag_rating"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_137",
+    "columns": [
+      "sum_roll20_ot4",
+      "diff_roll10_ot4",
+      "diff_cusum_momentum"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_138",
+    "columns": [
+      "diff_roll20_opp_fbps",
+      "diff_roll5_2fgm_pctast"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_139",
+    "columns": [
+      "sum_roll20_pace_std",
+      "diff_roll5_fgm",
+      "sum_roll10_fbps"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_140",
+    "columns": [
+      "sum_roll20_tovpct",
+      "diff_roll10_pctfga_3pt",
+      "diff_roll10_pctfga_2pt_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_141",
+    "columns": [
+      "sum_roll10_pctpts_3pt_std",
+      "sum_roll10_3ppct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_142",
+    "columns": [
+      "sum_roll10_fgpct_std",
+      "diff_roll20_sag_rating_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_143",
+    "columns": [
+      "sum_roll20_orebpct",
+      "sum_roll10_ast_to_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_144",
+    "columns": [
+      "sum_roll20_pie",
+      "diff_roll10_sag_rating",
+      "diff_roll10_netrtg_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_145",
+    "columns": [
+      "sum_deflections_10",
+      "sum_roll10_rebpct",
+      "sum_roll5_3pm_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_146",
+    "columns": [
+      "diff_roll5_elo_score",
+      "diff_roll10_netrtg"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_147",
+    "columns": [
+      "sum_roll5_opp_orebpct",
+      "diff_wolfe"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_148",
+    "columns": [
+      "diff_roll5_fbps_std",
+      "diff_roll5_q4_std"
+    ],
+    "operation": "mul",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_149",
+    "columns": [
+      "sum_crowd_weighted_massey_q1",
+      "sum_roll5_3fgm_pctuast_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_150",
+    "columns": [
+      "sum_crowd_weighted_massey",
+      "diff_ff_oliver_index",
+      "sum_roll10_pctfga_2pt"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_151",
+    "columns": [
+      "sum_roll5_game_id",
+      "diff_roll20_defrtg_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_152",
+    "columns": [
+      "sum_roll5_pctpts_3pt_std",
+      "diff_roll10_opp_tovpct_std",
+      "sum_roll5_opp_efgpct_std"
+    ],
+    "operation": "mul_add",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_153",
+    "columns": [
+      "diff_roll20_offrtg",
+      "diff_roll20_pie_std"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_154",
+    "columns": [
+      "sum_roll5_pace",
+      "sum_roll5_fgm_pctast",
+      "sum_roll10_ot3_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_155",
+    "columns": [
+      "sum_roll20_3pa",
+      "diff_roll10_3fgm_pctuast_std",
+      "sum_roll10_3pm"
+    ],
+    "operation": "mul_add",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_156",
+    "columns": [
+      "sum_roll5_offrtg",
+      "diff_is_back_to_back"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_157",
+    "columns": [
+      "diff_roll5_predictor_std",
+      "diff_ot_win_rate"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_158",
+    "columns": [
+      "diff_roll5_ast_to_std",
+      "diff_roll5_pctpts_fbps_std"
+    ],
+    "operation": "div",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_159",
+    "columns": [
+      "diff_roll20_tov_std",
+      "sum_roll10_q3"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_160",
+    "columns": [
+      "diff_roll20_pctpts_ft_std",
+      "sum_roll20_pctpts_2pt_mr_std"
+    ],
+    "operation": "div",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_161",
+    "columns": [
+      "diff_roll20_elo_score",
+      "diff_roll10_opp_pitp"
+    ],
+    "operation": "div",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_162",
+    "columns": [
+      "sum_roll20_tspct",
+      "diff_roll5_2fgm_pctuast"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_163",
+    "columns": [
+      "diff_roll20_ast_ratio_std",
+      "sum_roll5_tov_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_164",
+    "columns": [
+      "sum_roll5_pts_off_to_std",
+      "diff_roll10_ot1"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_165",
+    "columns": [
+      "sum_roll10_opp_pts_off_to",
+      "sum_roll10_oreb"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_166",
+    "columns": [
+      "diff_roll5_astpct",
+      "sum_roll20_pace_std"
+    ],
+    "operation": "mul",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_167",
+    "columns": [
+      "sum_roll20_ot1",
+      "diff_roll5_fta"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_168",
+    "columns": [
+      "diff_roll5_ast_std",
+      "sum_roll10_netrtg_std"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_169",
+    "columns": [
+      "sum_roll20_ast_to_std",
+      "sum_roll10_reb"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_170",
+    "columns": [
+      "diff_crowd_adjusted_massey_q2",
+      "diff_roll10_ftpct",
+      "sum_roll20_pctpts_2pt_mr"
+    ],
+    "operation": "mul_add",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_171",
+    "columns": [
+      "sum_roll20_fgm_pctuast_std",
+      "sum_default_massey_q3"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_172",
+    "columns": [
+      "diff_roll20_fbps",
+      "diff_roll20_plus_minus",
+      "diff_roll10_fgm_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_173",
+    "columns": [
+      "sum_roll5_fgm_pctast_std",
+      "diff_roll10_opp_orebpct"
+    ],
+    "operation": "mul",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_174",
+    "columns": [
+      "diff_roll20_pctpts_ft",
+      "diff_roll5_ftm"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_175",
+    "columns": [
+      "sum_roll10_2nd_pts",
+      "sum_roll20_dreb_std",
+      "diff_roll20_fta_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_176",
+    "columns": [
+      "sum_roll10_fgm_pctast_std",
+      "diff_roll5_recent"
+    ],
+    "operation": "sub",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_177",
+    "columns": [
+      "diff_roll10_ot3_std",
+      "diff_acwr_risk",
+      "diff_golden_mean"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_178",
+    "columns": [
+      "sum_roll5_pace",
+      "sum_roll5_orebpct"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_179",
+    "columns": [
+      "diff_roll10_offrtg",
+      "sum_roll5_3pa_std",
+      "diff_roll10_q4"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_180",
+    "columns": [
+      "sum_location_adjusted_massey_q1",
+      "sum_roll20_pf",
+      "diff_roll20_3pm_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_181",
+    "columns": [
+      "diff_roll10_opp_pitp",
+      "diff_roll10_3fgm_pctast_std",
+      "sum_roll20_plus_minus_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_182",
+    "columns": [
+      "diff_roll20_3fgm_pctuast_std",
+      "sum_roll5_3pm",
+      "sum_roll10_pie"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_183",
+    "columns": [
+      "sum_travel_adjusted_massey_q3",
+      "sum_roll20_ot4"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_184",
+    "columns": [
+      "diff_is_back_to_back",
+      "diff_roll20_q1_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_185",
+    "columns": [
+      "sum_roll10_ftpct_std",
+      "diff_roll10_ftm_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_186",
+    "columns": [
+      "sum_roll10_ftpct",
+      "diff_roll10_tovpct"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_187",
+    "columns": [
+      "diff_roll20_tspct",
+      "diff_experience_adjusted_massey_q1"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_188",
+    "columns": [
+      "diff_looseballsrecoveredtotal_10",
+      "diff_roll20_q4"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_189",
+    "columns": [
+      "diff_cusum_momentum",
+      "sum_roll5_ast_to",
+      "sum_colley_q1"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_190",
+    "columns": [
+      "diff_roll5_pctpts_3pt",
+      "diff_pure_elo",
+      "diff_ff_composite"
+    ],
+    "operation": "mul_add",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_191",
+    "columns": [
+      "sum_location_adjusted_massey_q4",
+      "sum_roll20_pts_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_192",
+    "columns": [
+      "diff_roll20_3fgm_pctuast",
+      "diff_roll20_fta_rate"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_193",
+    "columns": [
+      "sum_roll20_elo_score",
+      "diff_roll20_q1_std",
+      "sum_roll5_drebpct_std"
+    ],
+    "operation": "triple",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_194",
+    "columns": [
+      "diff_roll5_q3",
+      "sum_roll10_2fgm_pctast_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_195",
+    "columns": [
+      "diff_roll5_ftpct_std",
+      "sum_context_adjusted_massey_q3"
+    ],
+    "operation": "div",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_196",
+    "columns": [
+      "diff_roll10_predictor",
+      "sum_roll10_pctfga_2pt_std",
+      "diff_roll20_tspct_std"
+    ],
+    "operation": "triple",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_197",
+    "columns": [
+      "diff_roll10_ot1",
+      "diff_context_adjusted_massey_q4"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_198",
+    "columns": [
+      "diff_roll10_pctpts_ft_std",
+      "sum_roll10_3pa",
+      "sum_roll5_q4"
+    ],
+    "operation": "mul_add",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_199",
+    "columns": [
+      "diff_roll20_3pm_std",
+      "diff_roll20_fta_std",
+      "sum_roll20_pts_off_to"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_200",
+    "columns": [
+      "diff_roll5_opp_fta_rate",
+      "sum_travel_adjusted_massey_q1",
+      "sum_roll5_fta_rate_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_201",
+    "columns": [
+      "sum_roll5_stl",
+      "sum_roll20_3ppct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_202",
+    "columns": [
+      "diff_roll5_fbps",
+      "sum_roll5_ftpct_std"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_203",
+    "columns": [
+      "sum_recent",
+      "sum_roll10_opp_orebpct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_204",
+    "columns": [
+      "sum_roll10_pctpts_fbps",
+      "diff_roll5_2fgm_pctuast"
+    ],
+    "operation": "add",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_205",
+    "columns": [
+      "sum_roll20_golden_mean",
+      "diff_roll10_pctfga_2pt_std"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_206",
+    "columns": [
+      "sum_roll5_q3_std",
+      "sum_roll5_pctpts_2pt_mr",
+      "diff_roll10_plus_minus"
+    ],
+    "operation": "div_sum",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_207",
+    "columns": [
+      "sum_roll5_orebpct_std",
+      "sum_roll10_ast_to",
+      "sum_roll20_opp_orebpct"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_208",
+    "columns": [
+      "diff_roll20_3pa_std",
+      "diff_roll10_pctpts_pitp_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_209",
+    "columns": [
+      "diff_roll20_astpct",
+      "diff_looseballsrecoveredtotal_10",
+      "sum_roll20_opp_2nd_pts_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_210",
+    "columns": [
+      "diff_roll20_fbps",
+      "sum_roll5_3ppct"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_211",
+    "columns": [
+      "sum_context_adjusted_massey_q2",
+      "sum_roll20_blk"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_212",
+    "columns": [
+      "diff_roll10_oreb",
+      "diff_roll10_3fgm_pctast_std"
+    ],
+    "operation": "mul",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_213",
+    "columns": [
+      "sum_roll20_fgm_pctast_std",
+      "sum_contestedshots_10"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_214",
+    "columns": [
+      "sum_roll5_pure_elo_std",
+      "diff_roll20_ot1"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_215",
+    "columns": [
+      "diff_roll20_opp_pitp",
+      "sum_roll20_3ppct_std",
+      "diff_experience_adjusted_massey"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_216",
+    "columns": [
+      "sum_roll20_q4",
+      "diff_roll20_efgpct"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_217",
+    "columns": [
+      "sum_roll5_fgm_pctuast",
+      "sum_roll5_pctpts_fbps_std",
+      "sum_roll10_sag_rating"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_218",
+    "columns": [
+      "diff_venue_switches_3",
+      "diff_predictor",
+      "sum_roll10_pctfga_3pt"
+    ],
+    "operation": "mul_add",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_219",
+    "columns": [
+      "diff_roll5_q2",
+      "sum_roll10_predictor"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_220",
+    "columns": [
+      "diff_roll10_3pm",
+      "sum_roll20_ot3"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_221",
+    "columns": [
+      "diff_roll20_ftpct",
+      "sum_roll5_pure_elo_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_222",
+    "columns": [
+      "diff_roll20_tspct",
+      "sum_roll5_pf",
+      "sum_roll5_pts"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_223",
+    "columns": [
+      "diff_colley_q4",
+      "sum_ff_oliver_index"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_224",
+    "columns": [
+      "sum_roll10_pctfga_2pt",
+      "diff_context_adjusted_massey_q2",
+      "sum_roll5_fgpct_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_225",
+    "columns": [
+      "sum_roll10_2nd_pts",
+      "sum_roll10_opp_tovpct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_226",
+    "columns": [
+      "diff_roll10_h2_pts",
+      "sum_roll5_fta_rate_std",
+      "sum_roll10_pie"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_227",
+    "columns": [
+      "diff_roll20_q1_std",
+      "sum_roll10_pf"
+    ],
+    "operation": "sub",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_228",
+    "columns": [
+      "diff_roll5_opp_pitp_std",
+      "diff_roll5_q3",
+      "sum_roll5_elo_score"
+    ],
+    "operation": "mul_add",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_229",
+    "columns": [
+      "diff_roll10_ftpct",
+      "sum_roll10_fgm_pctuast_std"
+    ],
+    "operation": "sub",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_230",
+    "columns": [
+      "sum_roll20_opp_fta_rate",
+      "sum_roll10_fgm_std"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_231",
+    "columns": [
+      "sum_roll10_pitp",
+      "sum_roll20_2fgm_pctuast",
+      "sum_roll20_3fgm_pctuast"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_232",
+    "columns": [
+      "sum_roll5_opp_pitp",
+      "sum_roll10_opp_2nd_pts",
+      "sum_roll5_efgpct_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_233",
+    "columns": [
+      "diff_screenassists_10",
+      "diff_roll20_ot1",
+      "diff_travel_distance_5"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_234",
+    "columns": [
+      "diff_roll20_pitp",
+      "sum_crowd_weighted_massey",
+      "sum_roll5_opp_pitp"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_235",
+    "columns": [
+      "sum_roll20_rebpct",
+      "sum_roll5_oreb_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_236",
+    "columns": [
+      "diff_roll10_pctpts_ft_std",
+      "sum_roll20_fga"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_237",
+    "columns": [
+      "sum_roll20_sag_rating_std",
+      "sum_location_adjusted_massey_q3",
+      "diff_roll5_fta"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_238",
+    "columns": [
+      "sum_roll5_pctpts_pitp",
+      "diff_crowd_adjusted_massey_q2"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_239",
+    "columns": [
+      "diff_roll10_fgm_pctuast",
+      "diff_roll20_oreb_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_240",
+    "columns": [
+      "sum_roll20_3ppct_std",
+      "sum_roll5_elo_score_std"
+    ],
+    "operation": "div",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_241",
+    "columns": [
+      "diff_roll5_fgm",
+      "diff_crowd_adjusted_massey"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_242",
+    "columns": [
+      "sum_roll5_opp_pts_off_to",
+      "diff_roll5_3fgm_pctuast_std",
+      "diff_roll5_predictor"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_243",
+    "columns": [
+      "diff_roll5_dreb",
+      "diff_roll10_ast_ratio_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_244",
+    "columns": [
+      "sum_roll5_3fgm_pctast_std",
+      "sum_roll20_q4",
+      "diff_roll5_fta_rate_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_245",
+    "columns": [
+      "sum_roll5_recent_std",
+      "diff_roll10_q2_std",
+      "diff_roll10_pitp"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_246",
+    "columns": [
+      "diff_roll10_blk_std",
+      "diff_acwr_risk"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_247",
+    "columns": [
+      "sum_roll10_h2_pts",
+      "diff_elo_score",
+      "sum_roll10_dreb"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_248",
+    "columns": [
+      "diff_roll5_fgm_pctuast",
+      "sum_location_adjusted_massey_q2",
+      "diff_roll5_pctfga_3pt_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_249",
+    "columns": [
+      "diff_roll20_recent_std",
+      "diff_roll20_opp_fbps"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_250",
+    "columns": [
+      "sum_roll20_pctpts_pitp",
+      "sum_roll10_q1",
+      "sum_roll20_ftpct"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_251",
+    "columns": [
+      "diff_wobus",
+      "diff_roll10_dreb_std",
+      "sum_roll10_opp_fbps"
+    ],
+    "operation": "div_sum",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_252",
+    "columns": [
+      "diff_roll10_3pm",
+      "diff_roll20_defrtg_std"
+    ],
+    "operation": "add",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_253",
+    "columns": [
+      "diff_roll5_opp_2nd_pts",
+      "diff_roll5_ast_ratio_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_254",
+    "columns": [
+      "sum_roll20_oreb",
+      "diff_roll5_stl_std",
+      "sum_roll10_opp_2nd_pts"
+    ],
+    "operation": "div_sum",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_255",
+    "columns": [
+      "sum_roll5_ftm_std",
+      "sum_roll5_stl",
+      "diff_crowd_adjusted_massey"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_256",
+    "columns": [
+      "diff_roll10_fgm_pctast_std",
+      "sum_roll5_pie_std",
+      "diff_roll20_netrtg_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_257",
+    "columns": [
+      "diff_roll20_opp_2nd_pts_std",
+      "diff_roll20_reb_std"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_258",
+    "columns": [
+      "sum_roll10_pctpts_3pt_std",
+      "sum_roll10_pctfga_2pt"
+    ],
+    "operation": "mul",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_259",
+    "columns": [
+      "diff_roll5_efgpct",
+      "diff_roll20_fgm_pctuast",
+      "sum_roll10_plus_minus_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_260",
+    "columns": [
+      "diff_roll20_3fgm_pctast_std",
+      "sum_roll20_fgm_pctuast"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_261",
+    "columns": [
+      "diff_roll10_ast_ratio",
+      "sum_roll5_pctpts_2pt_mr",
+      "diff_context_adjusted_massey_q4"
+    ],
+    "operation": "mul_add",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_262",
+    "columns": [
+      "sum_roll10_opp_tovpct_std",
+      "sum_roll10_opp_2nd_pts"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_263",
+    "columns": [
+      "sum_roll5_fgpct",
+      "sum_roll10_ast_to_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_264",
+    "columns": [
+      "diff_roll20_fgm_std",
+      "diff_whitlock"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_265",
+    "columns": [
+      "diff_roll10_3ppct_std",
+      "sum_roll20_dreb_std"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_266",
+    "columns": [
+      "diff_context_adjusted_massey",
+      "sum_roll5_defrtg_std"
+    ],
+    "operation": "div",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_267",
+    "columns": [
+      "diff_elo_score",
+      "sum_roll5_2nd_pts"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_268",
+    "columns": [
+      "diff_roll5_pctfga_3pt_std",
+      "diff_roll10_tov",
+      "diff_experience_adjusted_massey_q1"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_269",
+    "columns": [
+      "diff_roll5_tovpct",
+      "diff_location_adjusted_massey_q1"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_270",
+    "columns": [
+      "diff_roll5_pctpts_2pt_mr_std",
+      "sum_roll20_pctfga_2pt_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_271",
+    "columns": [
+      "diff_roll5_pts_off_to",
+      "diff_roll5_sag_rating"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_272",
+    "columns": [
+      "diff_roll10_pctpts_ft_std",
+      "diff_roll5_drebpct"
+    ],
+    "operation": "sub",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_273",
+    "columns": [
+      "sum_roll5_opp_pitp",
+      "sum_roll10_golden_mean"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_274",
+    "columns": [
+      "diff_roll5_ast_to_std",
+      "diff_roll5_pctpts_3pt"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_275",
+    "columns": [
+      "sum_roll10_pctfga_3pt_std",
+      "sum_crowd_weighted_massey_q1",
+      "diff_roll5_ot2"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_276",
+    "columns": [
+      "diff_roll10_opp_efgpct",
+      "sum_ot_win_rate"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_277",
+    "columns": [
+      "sum_colley_q1",
+      "sum_roll20_fgm_pctast_std"
+    ],
+    "operation": "sub",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_278",
+    "columns": [
+      "diff_wobus_q3",
+      "sum_roll5_fgpct"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_279",
+    "columns": [
+      "sum_roll5_pace_std",
+      "sum_roll10_sag_rating_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_280",
+    "columns": [
+      "sum_travel_adjusted_massey_q2",
+      "diff_roll5_pctpts_ft"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_281",
+    "columns": [
+      "diff_roll20_q2",
+      "sum_roll10_fgm"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_282",
+    "columns": [
+      "sum_roll10_golden_mean",
+      "sum_roll10_opp_fta_rate",
+      "sum_roll20_q4"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_283",
+    "columns": [
+      "diff_crowd_weighted_massey_q2",
+      "diff_roll20_pctpts_ft"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_284",
+    "columns": [
+      "diff_roll20_pace_std",
+      "sum_default_massey_q4"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_285",
+    "columns": [
+      "sum_default_massey_q2",
+      "diff_roll10_dreb",
+      "diff_roll20_2fgm_pctast"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_286",
+    "columns": [
+      "sum_roll10_pctpts_2pt",
+      "sum_roll5_pts_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_287",
+    "columns": [
+      "sum_roll5_pts_off_to",
+      "diff_roll5_ast_ratio_std",
+      "sum_roll10_h1_pts"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_288",
+    "columns": [
+      "sum_travel_adjusted_massey",
+      "sum_roll20_ot3_std"
+    ],
+    "operation": "add",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_289",
+    "columns": [
+      "diff_roll5_dreb",
+      "diff_roll5_pitp"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_290",
+    "columns": [
+      "diff_default_massey_q2",
+      "diff_roll10_tspct"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_291",
+    "columns": [
+      "sum_roll20_fbps",
+      "sum_roll20_2nd_pts_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_292",
+    "columns": [
+      "diff_roll10_fta",
+      "sum_roll10_fgpct_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_293",
+    "columns": [
+      "sum_default_massey",
+      "diff_roll10_pctpts_3pt_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_294",
+    "columns": [
+      "sum_roll20_q3_std",
+      "sum_roll5_opp_tovpct_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_295",
+    "columns": [
+      "diff_roll20_2fgm_pctast_std",
+      "sum_roll20_fgpct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_296",
+    "columns": [
+      "sum_roll10_fta_rate_std",
+      "sum_roll20_2fgm_pctuast_std",
+      "sum_roll5_opp_2nd_pts_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_297",
+    "columns": [
+      "sum_roll10_sag_rating_std",
+      "sum_roll20_fbps"
+    ],
+    "operation": "add",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_298",
+    "columns": [
+      "diff_roll20_ftpct_std",
+      "diff_roll5_pace_std",
+      "diff_roll5_oreb"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_299",
+    "columns": [
+      "sum_roll10_ast_std",
+      "sum_roll5_pctpts_pitp_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_300",
+    "columns": [
+      "sum_roll5_efgpct_std",
+      "sum_roll5_pctpts_2pt_mr_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_301",
+    "columns": [
+      "sum_roll5_drebpct",
+      "diff_roll10_opp_tovpct"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_302",
+    "columns": [
+      "diff_roll20_ot4",
+      "diff_roll10_rebpct_std",
+      "diff_roll5_pctpts_2pt_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_303",
+    "columns": [
+      "diff_roll5_2nd_pts_std",
+      "sum_acwr_netrtg",
+      "sum_roll20_opp_fta_rate_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_304",
+    "columns": [
+      "diff_travel_distance",
+      "diff_roll10_pace"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_305",
+    "columns": [
+      "sum_crowd_adjusted_massey_q2",
+      "diff_roll10_tspct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_306",
+    "columns": [
+      "sum_roll20_pctpts_ft",
+      "diff_roll20_tov"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_307",
+    "columns": [
+      "diff_roll5_fgm_pctast_std",
+      "diff_recent"
+    ],
+    "operation": "add",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_308",
+    "columns": [
+      "sum_roll20_opp_efgpct_std",
+      "sum_roll10_astpct_std",
+      "sum_roll5_astpct"
+    ],
+    "operation": "mul_add",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_309",
+    "columns": [
+      "sum_roll10_q4",
+      "sum_default_massey_q3"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_310",
+    "columns": [
+      "sum_roll20_fta_rate",
+      "sum_roll10_3pm_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_311",
+    "columns": [
+      "sum_roll5_pctpts_2pt_mr_std",
+      "sum_roll20_offrtg",
+      "diff_roll20_fbps_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_312",
+    "columns": [
+      "diff_roll20_pctpts_pitp_std",
+      "sum_roll5_oreb"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_313",
+    "columns": [
+      "sum_roll10_pctpts_ft_std",
+      "diff_crowd_adjusted_massey_q2",
+      "diff_def_default_massey"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_314",
+    "columns": [
+      "diff_roll5_3fgm_pctast_std",
+      "diff_roll5_opp_fbps_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_315",
+    "columns": [
+      "diff_roll10_orebpct",
+      "sum_roll20_q3_std"
+    ],
+    "operation": "div",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_316",
+    "columns": [
+      "diff_roll10_3ppct_std",
+      "diff_roll10_golden_mean_std"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_317",
+    "columns": [
+      "diff_roll5_game_id",
+      "sum_location_adjusted_massey_q2",
+      "sum_roll20_opp_efgpct_std"
+    ],
+    "operation": "div_sum",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_318",
+    "columns": [
+      "diff_roll5_tspct",
+      "diff_roll10_fgm_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_319",
+    "columns": [
+      "sum_roll5_3ppct",
+      "diff_roll10_efgpct_std",
+      "sum_roll10_elo_score"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_320",
+    "columns": [
+      "diff_roll5_q1",
+      "diff_roll20_fta_rate",
+      "sum_roll20_tspct_std"
+    ],
+    "operation": "triple",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_321",
+    "columns": [
+      "diff_roll20_pctpts_2pt_mr",
+      "sum_roll20_astpct_std",
+      "diff_roll20_defrtg_std"
+    ],
+    "operation": "triple",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_322",
+    "columns": [
+      "diff_roll10_stl_std",
+      "sum_roll10_3pm_std",
+      "diff_roll20_plus_minus_std"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_323",
+    "columns": [
+      "sum_roll10_drebpct",
+      "sum_roll20_predictor"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_324",
+    "columns": [
+      "diff_wolfe_q2",
+      "diff_roll5_tov"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_325",
+    "columns": [
+      "diff_margin_autocorr",
+      "sum_close_game_rate_10"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_326",
+    "columns": [
+      "diff_roll10_pctpts_3pt_std",
+      "diff_roll5_pie"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_327",
+    "columns": [
+      "diff_roll5_ast_to_std",
+      "diff_experience_adjusted_massey",
+      "diff_roll5_3ppct"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_328",
+    "columns": [
+      "diff_roll5_tovpct_std",
+      "sum_roll10_tovpct_std",
+      "sum_roll5_q2"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_329",
+    "columns": [
+      "sum_roll10_2fgm_pctuast",
+      "sum_roll5_2fgm_pctuast_std",
+      "sum_roll5_fgm_pctuast"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_330",
+    "columns": [
+      "diff_roll20_opp_pitp_std",
+      "sum_roll10_fgpct",
+      "sum_roll10_defrtg_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_331",
+    "columns": [
+      "diff_crowd_weighted_massey",
+      "diff_acwr_pts",
+      "diff_whitlock_q3"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_332",
+    "columns": [
+      "diff_roll5_q3",
+      "diff_roll20_pctfga_3pt"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_333",
+    "columns": [
+      "sum_roll5_defrtg",
+      "sum_roll20_pctfga_3pt_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_334",
+    "columns": [
+      "diff_roll20_3fgm_pctuast_std",
+      "diff_roll10_3pm_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_335",
+    "columns": [
+      "diff_roll10_ast",
+      "sum_roll20_fbps_std",
+      "sum_roll10_astpct_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_336",
+    "columns": [
+      "diff_roll20_2fgm_pctast",
+      "diff_travel_adjusted_massey"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_337",
+    "columns": [
+      "diff_roll5_q1",
+      "sum_roll20_ast_std"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_338",
+    "columns": [
+      "sum_roll10_opp_fbps",
+      "sum_roll5_efgpct_std",
+      "diff_roll5_2fgm_pctast"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_339",
+    "columns": [
+      "diff_roll20_fbps",
+      "diff_roll20_tovpct"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_340",
+    "columns": [
+      "sum_roll10_tovpct",
+      "diff_roll10_pctpts_3pt_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_341",
+    "columns": [
+      "diff_roll5_q3",
+      "diff_roll20_opp_pts_off_to"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_342",
+    "columns": [
+      "sum_roll20_pctpts_fbps",
+      "diff_roll10_pctpts_2pt"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_343",
+    "columns": [
+      "sum_roll5_ot3",
+      "sum_roll5_2fgm_pctast"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_344",
+    "columns": [
+      "diff_travel_distance_5",
+      "sum_roll20_opp_pitp",
+      "sum_roll20_stl"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_345",
+    "columns": [
+      "sum_roll10_ast_to_std",
+      "diff_roll5_3pa_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_346",
+    "columns": [
+      "diff_context_adjusted_massey_q1",
+      "sum_roll5_astpct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_347",
+    "columns": [
+      "diff_roll10_opp_pts_off_to",
+      "sum_roll10_orebpct"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_348",
+    "columns": [
+      "sum_roll20_opp_fta_rate_std",
+      "sum_roll10_fgm",
+      "diff_roll5_fgm_pctuast"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_349",
+    "columns": [
+      "sum_roll20_ftpct",
+      "sum_roll5_opp_2nd_pts_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_350",
+    "columns": [
+      "diff_roll20_3ppct",
+      "sum_roll5_pctfga_3pt_std"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_351",
+    "columns": [
+      "diff_roll20_ot2_std",
+      "sum_roll10_pctpts_off_to_std",
+      "diff_roll5_rebpct"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_352",
+    "columns": [
+      "diff_roll10_ast_ratio",
+      "diff_roll10_opp_pts_off_to_std"
+    ],
+    "operation": "sub",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_353",
+    "columns": [
+      "diff_roll20_ftm_std",
+      "sum_roll10_ftm"
+    ],
+    "operation": "sub",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_354",
+    "columns": [
+      "sum_roll5_game_id_std",
+      "diff_roll10_ot3_std",
+      "diff_roll10_sag_rating_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_355",
+    "columns": [
+      "sum_roll10_3fgm_pctast_std",
+      "diff_roll10_3fgm_pctast",
+      "sum_roll5_opp_fbps"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_356",
+    "columns": [
+      "diff_roll10_opp_fta_rate_std",
+      "sum_roll5_ast_ratio_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_357",
+    "columns": [
+      "diff_roll5_pf_std",
+      "sum_roll20_pctpts_2pt_mr_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_358",
+    "columns": [
+      "diff_roll5_opp_fbps",
+      "diff_roll20_rebpct_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_359",
+    "columns": [
+      "sum_roll5_defrtg_std",
+      "diff_roll10_astpct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_360",
+    "columns": [
+      "sum_roll10_tov",
+      "sum_roll10_2nd_pts",
+      "sum_roll20_efgpct_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_361",
+    "columns": [
+      "diff_roll20_ot2_std",
+      "diff_roll5_opp_efgpct_std",
+      "diff_roll10_pctpts_off_to_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_362",
+    "columns": [
+      "diff_roll5_q3",
+      "diff_roll5_pctpts_2pt_mr"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_363",
+    "columns": [
+      "sum_roll10_elo_score_std",
+      "diff_roll10_ast_ratio"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_364",
+    "columns": [
+      "diff_roll10_q4_std",
+      "sum_roll5_fbps_std"
+    ],
+    "operation": "mul",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_365",
+    "columns": [
+      "sum_roll20_q3",
+      "sum_roll20_recent"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_366",
+    "columns": [
+      "diff_roll5_opp_pts_off_to",
+      "diff_roll20_fgm_pctuast_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_367",
+    "columns": [
+      "sum_roll10_ot3",
+      "diff_roll20_3fgm_pctast"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_368",
+    "columns": [
+      "sum_golden_mean",
+      "sum_roll20_astpct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_369",
+    "columns": [
+      "sum_roll10_pctpts_fbps",
+      "diff_roll20_oreb_std",
+      "sum_roll5_3ppct_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_370",
+    "columns": [
+      "diff_travel_intensity_3",
+      "sum_location_adjusted_massey",
+      "sum_roll20_predictor"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_371",
+    "columns": [
+      "sum_roll10_opp_pitp",
+      "sum_roll10_opp_pts_off_to",
+      "diff_roll10_fta_std"
+    ],
+    "operation": "mul_add",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_372",
+    "columns": [
+      "sum_roll10_3pm",
+      "diff_acwr_netrtg"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_373",
+    "columns": [
+      "sum_roll10_predictor_std",
+      "sum_roll20_3fgm_pctast_std",
+      "sum_crowd_adjusted_massey_q3"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_374",
+    "columns": [
+      "diff_roll10_astpct",
+      "sum_roll10_elo_score_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_375",
+    "columns": [
+      "sum_roll20_fgm_pctuast",
+      "sum_roll20_3pm_std",
+      "diff_roll10_3ppct"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_376",
+    "columns": [
+      "sum_ff_oliver_index",
+      "diff_roll5_opp_efgpct_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_377",
+    "columns": [
+      "diff_roll5_pctpts_2pt_std",
+      "diff_roll10_recent",
+      "diff_contestedshots_10"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_378",
+    "columns": [
+      "diff_roll20_fta_std",
+      "sum_roll10_ot1",
+      "diff_roll10_2fgm_pctast_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_379",
+    "columns": [
+      "sum_roll20_ast",
+      "sum_colley_q1",
+      "sum_roll20_sag_rating"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_380",
+    "columns": [
+      "diff_wolfe",
+      "sum_roll5_opp_pts_off_to_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_381",
+    "columns": [
+      "sum_roll20_offrtg",
+      "sum_roll10_opp_pitp",
+      "diff_roll5_ast_std"
+    ],
+    "operation": "triple",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_382",
+    "columns": [
+      "sum_roll10_opp_pitp",
+      "sum_roll5_pts"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_383",
+    "columns": [
+      "sum_roll20_opp_pts_off_to_std",
+      "sum_roll5_reb_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_384",
+    "columns": [
+      "diff_roll20_q1_std",
+      "diff_roll10_pctpts_off_to"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_385",
+    "columns": [
+      "sum_roll10_ast_to",
+      "diff_roll20_opp_pitp_std",
+      "sum_roll10_opp_pts_off_to"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_386",
+    "columns": [
+      "diff_roll10_efgpct_std",
+      "diff_roll20_ast_std",
+      "diff_colley_q3"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_387",
+    "columns": [
+      "diff_roll5_q1_std",
+      "diff_roll20_fta_rate_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_388",
+    "columns": [
+      "sum_roll20_dreb_std",
+      "sum_roll20_pctpts_fbps_std",
+      "diff_roll20_ast_ratio_std"
+    ],
+    "operation": "mul_add",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_389",
+    "columns": [
+      "diff_roll5_opp_efgpct_std",
+      "diff_roll20_pctpts_3pt_std"
+    ],
+    "operation": "mul",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_390",
+    "columns": [
+      "sum_roll5_efgpct",
+      "sum_roll10_opp_orebpct",
+      "diff_roll5_q3_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_391",
+    "columns": [
+      "sum_roll20_fbps_std",
+      "diff_travel_distance_3",
+      "sum_pure_elo"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_392",
+    "columns": [
+      "diff_roll5_fta_rate",
+      "diff_roll20_pace_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_393",
+    "columns": [
+      "sum_roll10_pctpts_2pt",
+      "diff_roll10_ot1_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_394",
+    "columns": [
+      "sum_roll5_ot4_std",
+      "diff_roll20_ast_to",
+      "sum_roll20_rebpct"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_395",
+    "columns": [
+      "diff_roll20_reb",
+      "diff_context_adjusted_massey_q2"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_396",
+    "columns": [
+      "diff_roll10_2fgm_pctast",
+      "diff_roll20_3pa"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_397",
+    "columns": [
+      "diff_roll10_3pa",
+      "sum_roll5_pctpts_fbps",
+      "sum_roll5_pctpts_ft_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_398",
+    "columns": [
+      "sum_roll5_opp_fbps_std",
+      "sum_roll10_3pa",
+      "diff_roll5_opp_tovpct"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_399",
+    "columns": [
+      "diff_roll20_ast_to_std",
+      "diff_roll5_opp_2nd_pts"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_400",
+    "columns": [
+      "sum_roll5_dreb_std",
+      "diff_crowd_weighted_massey_q4",
+      "diff_roll10_pctpts_2pt_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_401",
+    "columns": [
+      "sum_roll10_efgpct_std",
+      "diff_wolfe_q3",
+      "sum_roll20_q2"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_402",
+    "columns": [
+      "sum_roll5_fbps_std",
+      "diff_roll5_opp_fta_rate",
+      "diff_roll5_ot1"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_403",
+    "columns": [
+      "sum_roll5_pf_std",
+      "sum_roll20_ot2"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_404",
+    "columns": [
+      "diff_days_rest",
+      "diff_context_adjusted_massey"
+    ],
+    "operation": "mul",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_405",
+    "columns": [
+      "diff_roll20_opp_2nd_pts",
+      "sum_roll10_2fgm_pctuast"
+    ],
+    "operation": "mul",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_406",
+    "columns": [
+      "sum_roll5_ast_to_std",
+      "diff_roll5_pctpts_off_to"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_407",
+    "columns": [
+      "sum_roll5_ot2_std",
+      "diff_roll20_3fgm_pctuast_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_408",
+    "columns": [
+      "diff_roll10_2fgm_pctast_std",
+      "sum_roll20_pctpts_pitp"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_409",
+    "columns": [
+      "sum_roll20_fgm_std",
+      "sum_scoring_gini",
+      "diff_roll20_2nd_pts"
+    ],
+    "operation": "div_sum",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_410",
+    "columns": [
+      "diff_roll10_ot2_std",
+      "sum_roll10_pctfga_2pt"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_411",
+    "columns": [
+      "sum_roll5_pts_std",
+      "sum_roll20_efgpct",
+      "sum_roll10_efgpct_std"
+    ],
+    "operation": "triple",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_412",
+    "columns": [
+      "sum_roll20_pure_elo",
+      "diff_roll10_pitp_std",
+      "diff_roll20_ftpct_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_413",
+    "columns": [
+      "sum_roll10_predictor_std",
+      "sum_crowd_weighted_massey",
+      "sum_roll5_efgpct_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_414",
+    "columns": [
+      "diff_roll10_stl_std",
+      "diff_acwr_netrtg"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_415",
+    "columns": [
+      "diff_roll20_recent",
+      "diff_roll20_orebpct",
+      "sum_roll20_fgm"
+    ],
+    "operation": "triple",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_416",
+    "columns": [
+      "diff_roll5_drebpct_std",
+      "sum_roll20_ast_to_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_417",
+    "columns": [
+      "sum_location_adjusted_massey_q2",
+      "sum_roll5_stl_std"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_418",
+    "columns": [
+      "diff_roll5_pace",
+      "sum_roll10_reb"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_419",
+    "columns": [
+      "sum_roll20_ast_to",
+      "diff_roll5_ftpct"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_420",
+    "columns": [
+      "diff_win_pct_20",
+      "sum_roll10_3pa"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_421",
+    "columns": [
+      "sum_roll5_reb_std",
+      "diff_roll5_fga_std",
+      "diff_roll5_ot4"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_422",
+    "columns": [
+      "sum_roll20_pctpts_2pt_mr",
+      "diff_roll10_tspct"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_423",
+    "columns": [
+      "sum_crowd_adjusted_massey_q3",
+      "sum_context_adjusted_massey_q2"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_424",
+    "columns": [
+      "sum_roll10_2fgm_pctuast_std",
+      "diff_roll20_2nd_pts"
+    ],
+    "operation": "mul",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_425",
+    "columns": [
+      "diff_roll20_pts_off_to_std",
+      "diff_roll5_ftm",
+      "diff_roll20_opp_fta_rate"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_426",
+    "columns": [
+      "sum_roll20_fgpct_std",
+      "sum_predictor",
+      "sum_roll5_opp_pitp"
+    ],
+    "operation": "triple",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_427",
+    "columns": [
+      "diff_roll10_pf_std",
+      "diff_roll10_pctpts_off_to",
+      "sum_roll10_stl_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_428",
+    "columns": [
+      "diff_roll10_pf",
+      "diff_roll5_pitp"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_429",
+    "columns": [
+      "sum_roll5_opp_fbps",
+      "sum_roll20_q3"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_430",
+    "columns": [
+      "diff_roll10_h2_pts",
+      "diff_roll5_fgpct_std",
+      "sum_roll20_opp_tovpct_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_431",
+    "columns": [
+      "sum_roll5_ast_std",
+      "sum_roll10_q3",
+      "diff_roll10_ast_to_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_432",
+    "columns": [
+      "diff_travel_adjusted_massey_q2",
+      "sum_roll5_fgm_pctuast_std",
+      "diff_roll20_elo_score_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_433",
+    "columns": [
+      "sum_roll10_opp_efgpct_std",
+      "sum_roll10_offrtg_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_434",
+    "columns": [
+      "sum_roll5_oreb_std",
+      "diff_roll20_tov_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_435",
+    "columns": [
+      "diff_roll10_blk",
+      "sum_default_massey_q4"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_436",
+    "columns": [
+      "diff_roll5_pctpts_2pt_mr",
+      "sum_roll10_opp_tovpct_std",
+      "sum_elo_score"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_437",
+    "columns": [
+      "sum_roll5_opp_efgpct_std",
+      "sum_roll10_ot4",
+      "diff_roll10_pctpts_fbps"
+    ],
+    "operation": "mul_add",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_438",
+    "columns": [
+      "diff_roll10_fga_std",
+      "sum_roll10_tov_std",
+      "sum_roll5_ftpct"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_439",
+    "columns": [
+      "diff_roll20_sag_rating_std",
+      "diff_roll20_tovpct"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_440",
+    "columns": [
+      "diff_roll10_recent_std",
+      "diff_roll5_oreb_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_441",
+    "columns": [
+      "sum_roll20_offrtg_std",
+      "sum_roll10_golden_mean"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_442",
+    "columns": [
+      "sum_roll10_ast",
+      "diff_whitlock_q3",
+      "diff_roll5_3fgm_pctuast_std"
+    ],
+    "operation": "div_sum",
+    "unary": "abs",
+    "arity": 3
+  },
+  {
+    "name": "sf_443",
+    "columns": [
+      "diff_roll20_pts_std",
+      "sum_roll5_ftpct"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_444",
+    "columns": [
+      "sum_pure_elo",
+      "sum_roll5_ftpct"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_445",
+    "columns": [
+      "sum_roll5_pctfga_3pt_std",
+      "diff_roll20_astpct_std"
+    ],
+    "operation": "mul",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_446",
+    "columns": [
+      "diff_crowd_adjusted_massey_q2",
+      "diff_roll20_drebpct"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_447",
+    "columns": [
+      "sum_roll5_fgpct",
+      "sum_roll20_netrtg_std"
+    ],
+    "operation": "add",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_448",
+    "columns": [
+      "sum_roll20_drebpct",
+      "diff_scoring_gini"
+    ],
+    "operation": "sub",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_449",
+    "columns": [
+      "sum_travel_adjusted_massey_q1",
+      "diff_roll20_defrtg",
+      "diff_roll5_ftpct"
+    ],
+    "operation": "div_sum",
+    "unary": "sqrt",
+    "arity": 3
+  },
+  {
+    "name": "sf_450",
+    "columns": [
+      "sum_roll10_q1",
+      "diff_roll10_q2",
+      "sum_roll20_q2_std"
+    ],
+    "operation": "triple",
+    "unary": "sq",
+    "arity": 3
+  },
+  {
+    "name": "sf_451",
+    "columns": [
+      "sum_roll5_3ppct",
+      "diff_roll10_pts_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_452",
+    "columns": [
+      "diff_context_adjusted_massey_q2",
+      "diff_roll5_pts_off_to"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_453",
+    "columns": [
+      "sum_location_adjusted_massey_q4",
+      "diff_roll10_fgpct"
+    ],
+    "operation": "mul",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_454",
+    "columns": [
+      "diff_roll5_ast_ratio",
+      "sum_pyth_residual",
+      "diff_roll10_ot4"
+    ],
+    "operation": "triple",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_455",
+    "columns": [
+      "sum_roll10_opp_efgpct",
+      "diff_ff_composite",
+      "sum_ff_oliver_index"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_456",
+    "columns": [
+      "diff_colley_q2",
+      "diff_roll5_q2",
+      "diff_roll10_ftpct_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_457",
+    "columns": [
+      "sum_location_adjusted_massey_q2",
+      "sum_roll20_3fgm_pctast"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_458",
+    "columns": [
+      "diff_roll20_ot2_std",
+      "diff_roll20_2fgm_pctuast_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_459",
+    "columns": [
+      "sum_roll10_3pa_std",
+      "diff_acwr_risk"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_460",
+    "columns": [
+      "sum_roll10_rebpct_std",
+      "diff_roll20_ftpct_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_461",
+    "columns": [
+      "sum_roll5_ast_ratio_std",
+      "diff_roll10_ot4",
+      "diff_roll5_drebpct"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_462",
+    "columns": [
+      "sum_roll5_defrtg_std",
+      "diff_wobus_q4"
+    ],
+    "operation": "add",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_463",
+    "columns": [
+      "sum_roll10_opp_2nd_pts_std",
+      "diff_roll20_3ppct"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_464",
+    "columns": [
+      "sum_roll5_opp_2nd_pts",
+      "diff_roll20_sag_rating_std",
+      "sum_roll10_orebpct_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_465",
+    "columns": [
+      "diff_roll10_ftpct",
+      "sum_roll20_dreb_std"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_466",
+    "columns": [
+      "diff_roll5_opp_fta_rate_std",
+      "sum_roll20_q2"
+    ],
+    "operation": "sub",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_467",
+    "columns": [
+      "diff_roll20_drebpct",
+      "diff_roll5_pctpts_pitp_std"
+    ],
+    "operation": "div",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_468",
+    "columns": [
+      "diff_roll20_pctpts_2pt_mr_std",
+      "sum_roll20_3fgm_pctast"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_469",
+    "columns": [
+      "diff_roll20_netrtg_std",
+      "diff_roll5_opp_fbps_std"
+    ],
+    "operation": "div",
+    "unary": "abs",
+    "arity": 2
+  },
+  {
+    "name": "sf_470",
+    "columns": [
+      "sum_roll20_q2_std",
+      "diff_roll20_opp_efgpct_std",
+      "sum_roll10_pctpts_2pt"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_471",
+    "columns": [
+      "diff_roll20_stl_std",
+      "diff_roll5_pie_std",
+      "sum_roll10_pctpts_off_to_std"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_472",
+    "columns": [
+      "sum_roll10_orebpct_std",
+      "diff_days_span_3",
+      "sum_roll20_fgm"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_473",
+    "columns": [
+      "diff_cusum_momentum",
+      "sum_roll10_2fgm_pctuast_std",
+      "diff_roll5_pctfga_3pt"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_474",
+    "columns": [
+      "diff_roll5_stl_std",
+      "sum_roll10_2nd_pts",
+      "sum_roll10_pure_elo"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_475",
+    "columns": [
+      "sum_travel_adjusted_massey",
+      "diff_roll5_pctpts_2pt_mr"
+    ],
+    "operation": "div",
+    "unary": "log1p",
+    "arity": 2
+  },
+  {
+    "name": "sf_476",
+    "columns": [
+      "sum_experience_adjusted_massey",
+      "diff_roll20_3fgm_pctast"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_477",
+    "columns": [
+      "sum_roll20_efgpct_std",
+      "sum_roll20_pctfga_3pt_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_478",
+    "columns": [
+      "diff_roll20_predictor",
+      "diff_roll5_ast_ratio"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_479",
+    "columns": [
+      "sum_roll10_pctpts_pitp",
+      "diff_roll20_opp_fta_rate"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_480",
+    "columns": [
+      "diff_roll10_fgm_pctast",
+      "sum_crowd_weighted_massey_q3",
+      "sum_roll10_fga_std"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_481",
+    "columns": [
+      "diff_roll10_dreb",
+      "sum_roll20_q1_std",
+      "diff_roll5_golden_mean"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_482",
+    "columns": [
+      "diff_roll10_ot3",
+      "diff_roll20_blk_std"
+    ],
+    "operation": "div",
+    "unary": "sqrt",
+    "arity": 2
+  },
+  {
+    "name": "sf_483",
+    "columns": [
+      "sum_roll5_offrtg_std",
+      "diff_roll5_rebpct_std",
+      "diff_roll10_ot1"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_484",
+    "columns": [
+      "diff_roll20_3pa",
+      "diff_roll5_pie_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_485",
+    "columns": [
+      "diff_roll10_ot1_std",
+      "sum_roll20_pctpts_2pt",
+      "diff_roll5_fgm_pctuast"
+    ],
+    "operation": "mul_add",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_486",
+    "columns": [
+      "diff_win_pct_20",
+      "sum_roll5_pie_std",
+      "diff_wobus"
+    ],
+    "operation": "div_sum",
+    "unary": "log1p",
+    "arity": 3
+  },
+  {
+    "name": "sf_487",
+    "columns": [
+      "sum_roll20_opp_tovpct",
+      "diff_roll20_stl_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_488",
+    "columns": [
+      "sum_roll20_pctpts_2pt_mr_std",
+      "diff_roll5_3fgm_pctast_std"
+    ],
+    "operation": "sub",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_489",
+    "columns": [
+      "diff_roll20_netrtg",
+      "diff_roll20_opp_orebpct"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_490",
+    "columns": [
+      "sum_roll5_tov",
+      "sum_roll20_pctpts_3pt"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_491",
+    "columns": [
+      "diff_roll5_plus_minus",
+      "sum_roll5_opp_efgpct_std"
+    ],
+    "operation": "add",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_492",
+    "columns": [
+      "diff_cusum_momentum",
+      "diff_roll5_pctfga_3pt",
+      "sum_roll10_pure_elo"
+    ],
+    "operation": "div_sum",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_493",
+    "columns": [
+      "sum_roll20_ast_to_std",
+      "diff_roll20_game_id"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_494",
+    "columns": [
+      "diff_roll5_tovpct_std",
+      "sum_roll20_blk_std"
+    ],
+    "operation": "add",
+    "unary": "sq",
+    "arity": 2
+  },
+  {
+    "name": "sf_495",
+    "columns": [
+      "sum_roll10_pf_std",
+      "diff_roll20_pctpts_off_to_std"
+    ],
+    "operation": "div",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_496",
+    "columns": [
+      "diff_roll20_pctpts_pitp_std",
+      "sum_roll10_stl_std"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_497",
+    "columns": [
+      "diff_roll20_pctpts_2pt_mr_std",
+      "diff_roll10_ot4"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  },
+  {
+    "name": "sf_498",
+    "columns": [
+      "diff_roll20_opp_efgpct_std",
+      "sum_roll20_2fgm_pctast_std",
+      "diff_roll5_rebpct_std"
+    ],
+    "operation": "triple",
+    "unary": null,
+    "arity": 3
+  },
+  {
+    "name": "sf_499",
+    "columns": [
+      "diff_roll5_ftm",
+      "sum_ff_composite"
+    ],
+    "operation": "mul",
+    "unary": null,
+    "arity": 2
+  }
+]

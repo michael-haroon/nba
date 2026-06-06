@@ -9,6 +9,27 @@
 The strategy module builds supervised ML models that predict:
 - **Classification:** `target_winner` (binary: home win or away win)
 - **Regression:** `target_spread` (continuous: home_pts - away_pts)
+- **Regression:** `target_total` (continuous: home_pts + away_pts)
+
+---
+
+## 📊 Ensemble Val Metrics (as of 2026-06-05, data through 2026-06-03)
+
+| Target  | Task           | Metric        | Flat-weights val | Best single val | # specialists |
+|---------|----------------|---------------|-----------------|-----------------|---------------|
+| winner  | classification | log-loss      | 0.6054          | 0.6080          | 16            |
+| spread  | regression     | MAE (pts)     | 9.72            | 9.73            | 8             |
+| total   | regression     | MAE (pts)     | 14.49           | 14.58           | 4             |
+
+**Notes:**
+- Null log-loss for winner ≈ 0.677 (random baseline); ensemble is ~10% better.
+- Spread MAE of 9.7 pts is competitive with public lines (~9.0–9.5 pts for sharp books).
+- Total MAE of 14.5 pts is elevated — only RF, MLP×2, KNN survived; XGBoost blew up (see known issues).
+
+### Known issue: XGBoost explodes on `total` target
+`reg:pseudohubererror` defaults to `huber_slope=1.0`. For spread (residuals ~10 pts) this is fine.
+For total (values ~220 pts), initial residuals are ~220, causing near-zero hessians and exploding leaf values (MAE ~7.7M).
+**Fix:** add `"huber_slope": 10.0` to XGB regression params (matching CatBoost's `delta=10.0`), or switch to `reg:absoluteerror`.
 
 Models are trained using **PurgedYearKFold** cross-validation to prevent temporal leakage:
 - Train on prior seasons/years

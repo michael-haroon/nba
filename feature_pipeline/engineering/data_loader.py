@@ -7,10 +7,13 @@ team identity mapping across NBA/ESPN systems, and merging box score categories.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import pandas as pd
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data_curation" / "data"
@@ -75,7 +78,9 @@ def load_box_scores(
             if not path.exists():
                 continue
             cat_df = pd.read_parquet(path)
-            cat_df["GAME DATE"] = pd.to_datetime(cat_df["GAME DATE"])
+            cat_df.columns = [c.replace("\xa0", " ") for c in cat_df.columns]
+            cat_df["GAME DATE"] = pd.to_datetime(cat_df["GAME DATE"], errors="coerce")
+            cat_df = cat_df.dropna(subset=["GAME DATE"])
 
             if cat == "Trad":
                 cat_df = cat_df.rename(columns={"MIN": "MIN_TRAD"})
@@ -101,12 +106,20 @@ def load_box_scores(
 
     df = pd.concat(frames, ignore_index=True)
     df = _coerce_numeric(df, exclude=set(JOIN_COLS) | {"season_type", "MIN_TRAD"})
+    logger.info("[load_box_scores] loaded %d rows, %d cols | season_types=%s",
+                df.shape[0], df.shape[1], list(season_types))
+    top_null = df.select_dtypes(include="number").isna().mean().nlargest(5)
+    logger.debug("[load_box_scores] top-5 null-rate cols: %s", top_null.round(3).to_dict())
     return df
 
 
 def load_ratings_bpi(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
-    df = pd.read_parquet(data_dir / "BPI.parquet")
+    path = data_dir / "BPI.parquet"
+    if not path.exists():
+        logger.warning("[load_ratings_bpi] %s not found — returning empty DataFrame", path)
+        return pd.DataFrame()
+    df = pd.read_parquet(path)
     df["snapshot_timestamp"] = pd.to_datetime(df["snapshot_timestamp"])
     return df
 
@@ -122,6 +135,7 @@ def load_game_summaries(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
     path = data_dir / "GameSummaries.parquet"
     if not path.exists():
+        logger.warning("[load_game_summaries] %s not found — returning empty DataFrame", path)
         return pd.DataFrame()
     return pd.read_parquet(path)
 
@@ -130,6 +144,7 @@ def load_officials(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
     path = data_dir / "GameOfficials.parquet"
     if not path.exists():
+        logger.warning("[load_officials] %s not found — returning empty DataFrame", path)
         return pd.DataFrame(columns=["game_id", "official_id", "official_name"])
     return pd.read_parquet(path)
 
@@ -138,6 +153,7 @@ def load_quarter_scores(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
     path = data_dir / "TeamQuarterScores.parquet"
     if not path.exists():
+        logger.warning("[load_quarter_scores] %s not found — returning empty DataFrame", path)
         return pd.DataFrame(columns=["game_id", "team_id", "period_label", "period_score"])
     return pd.read_parquet(path)
 
@@ -146,7 +162,26 @@ def load_player_box_scores(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
     path = data_dir / "PlayerStatus.parquet"
     if not path.exists():
+        logger.warning("[load_player_box_scores] %s not found — returning empty DataFrame", path)
         return pd.DataFrame(columns=["game_id", "team_id", "player_id", "player_name", "roster_status", "dnp_comment"])
+    return pd.read_parquet(path)
+
+
+def load_play_by_play(data_dir: Path | None = None) -> pd.DataFrame:
+    data_dir = data_dir or DATA_DIR
+    path = data_dir / "PlayByPlay.parquet"
+    if not path.exists():
+        logger.warning("[load_play_by_play] %s not found — returning empty DataFrame", path)
+        return pd.DataFrame()
+    return pd.read_parquet(path)
+
+
+def load_hustle_stats(data_dir: Path | None = None) -> pd.DataFrame:
+    data_dir = data_dir or DATA_DIR
+    path = data_dir / "HustlePlayerStats.parquet"
+    if not path.exists():
+        logger.warning("[load_hustle_stats] %s not found — returning empty DataFrame", path)
+        return pd.DataFrame()
     return pd.read_parquet(path)
 
 
@@ -154,6 +189,7 @@ def load_massey_ratings(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
     path = data_dir / "MasseyRatings.parquet"
     if not path.exists():
+        logger.warning("[load_massey_ratings] %s not found — returning empty DataFrame", path)
         return pd.DataFrame()
     df = pd.read_parquet(path)
     df["game_date"] = pd.to_datetime(df["game_date"])
@@ -163,7 +199,7 @@ def load_massey_ratings(data_dir: Path | None = None) -> pd.DataFrame:
 def load_all(data_dir: Path | None = None, season_types=("Regular", "Playoffs")) -> dict:
     """Load all data sources into a dict for the pipeline."""
     data_dir = Path(data_dir) if data_dir else DATA_DIR
-    return {
+    data = {
         "box_scores": load_box_scores(data_dir, season_types),
         "game_ids": load_game_ids(data_dir),
         "team_map": load_team_map(data_dir),
@@ -175,4 +211,17 @@ def load_all(data_dir: Path | None = None, season_types=("Regular", "Playoffs"))
         "officials": load_officials(data_dir),
         "quarter_scores": load_quarter_scores(data_dir),
         "player_box_scores": load_player_box_scores(data_dir),
+        "hustle": load_hustle_stats(data_dir),
+        "play_by_play": load_play_by_play(data_dir),
     }
+    logger.info(
+        "[load_all] box_scores=%s  game_ids=%s  bpi=%s  sagarin=%s  massey=%s",
+        data["box_scores"].shape, data["game_ids"].shape,
+        data["bpi"].shape, data["sagarin"].shape, data["massey"].shape,
+    )
+    logger.info(
+        "[load_all] quarter_scores=%s  officials=%s  player_box=%s  hustle=%s  pbp=%s",
+        data["quarter_scores"].shape, data["officials"].shape,
+        data["player_box_scores"].shape, data["hustle"].shape, data["play_by_play"].shape,
+    )
+    return data

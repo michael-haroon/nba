@@ -1,10 +1,19 @@
 """
 Compute configuration for the feature pipeline. CPU-only.
+
+BLAS/LAPACK thread env vars are set below BEFORE numpy is imported anywhere.
+Import this module early (before numpy) to ensure threads are configured.
 """
 
 from __future__ import annotations
 
 import os
+
+_N_CPUS = os.cpu_count() or 1
+os.environ.setdefault("OPENBLAS_NUM_THREADS", str(_N_CPUS))
+os.environ.setdefault("OMP_NUM_THREADS", str(_N_CPUS))
+os.environ.setdefault("MKL_NUM_THREADS", str(_N_CPUS))
+os.environ.setdefault("NUMEXPR_MAX_THREADS", str(_N_CPUS))
 
 
 def get_n_jobs() -> int:
@@ -34,3 +43,15 @@ def get_rf_params() -> dict:
         "n_jobs": -1,
         "random_state": 42,
     }
+
+
+def blas_limit(n_threads: int = 1):
+    """Limit BLAS threads during joblib parallel sections to prevent oversubscription."""
+    from threadpoolctl import threadpool_limits
+    return threadpool_limits(limits=n_threads, user_api="blas")
+
+
+def blas_full():
+    """Expand BLAS threads to all available cores for single-process linear algebra."""
+    from threadpoolctl import threadpool_limits
+    return threadpool_limits(limits=_N_CPUS, user_api="blas")

@@ -1,78 +1,117 @@
-THis repo (/nba) is the system for building and automating trades for nba on kalshi bets. It follows de Prado's framework using the following steps.. All packages are in the conda environment 'pred'
+# CLAUDE.md
 
-1. data curator
-data is curated from nba and espn for now, and will be expanded as needed
-the current data needed includes crowd density (audience count over venue capacity), box score data, game location, and roster. For example, at the current phase, we should be getting audience density from the following endpoints:
+## Repository & Project Overview
+*   **Path:** `/Users/michaelharoon/Projects/prediction_markets/nba`
+*   **Objective:** Automated trade execution system for NBA markets on Kalshi.
+*   **Methodology:** Machine learning techniques such as Marcos López de Prado's Financial Machine Learning framework. Note that we are working on sports, so we are only transferring skills since some are not directly applicable.
+*   **Project Architecture:** 6 step architecture: data curation, feature analysis, strategy development, backtesting, deployment, and portfolio oversight/risk managment.
+*   **Environment:** All execution and development takes place in the Conda environment: `pred`.
+* **Claude Requirements:** 
+    1) Maintain rigorous documentation after implementing significant structural or logic updates to ensure codebase transparency. The repository currently contains the following core tracking records:
+        * `FEATURES.md` – Comprehensive directory of all engineered features.
+        * `TARGETS.md` – Detailed definitions and logic for all prediction targets.
+        * `README.md` – High-level overview and architectural blueprint of the entire project.
+        * `TODOS.md` – Prioritized list of actionable next steps (intended for human writers and review).
+        * `data_curation/data/SCHEMA.md` – Complete schema definitions and structural descriptions of all data artifacts.
+        * `feature_pipeline/README.md` – Dedicated documentation detailing the data ingestion and transformation pipeline.
+        * `strategy/README.md` – Technical specifications and execution details for the strategy module.
+    2) Ensure that scripts write to logs for later review.
+    3) Always visualize data before making modeling decisions. Every new analysis, assumption, or distributional claim must produce plots (QQ, distribution, calibration, etc.) for human review before code changes are made. The human cannot validate what they cannot see.
 
-https://sports.core.api.espn.com/v2/{season}/types/{type}/teams/{team}/attendance
+Note that we are using a MacBook M1, 8core 16gb ram computer, but we can use AWS EC2 when needed.
 
-ESPN also documents per-game attendance and venue capacity in its response schemas, which means you can compute a density proxy like attendance / capacity:
+---
 
-scoreboard schema includes attendance and venue capacity in [response_schemas.md](/Users/michaelharoon/Projects/Prediction markets/nba/api_docs/espn_api_docs/docs/response_schemas.md:52)
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-And possible predictive rating (power or BPI) from ESPN: So ESPN definitely exposes a predictive rating surface in basketball, but the documented example is college BPI, not a dedicated NBA BPI standings/rating endpoint.
+## 1. Think Before Coding
 
-For NBA specifically, the strongest documented predictive signal is in game summaries. In response_schemas.md (line 326), the summary?event={id} response includes a predictor object with:
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+- Prove your assumptions and propositions by diving into the code, reasoning thoroughly, and discussing with the human user.
 
-header: "ESPN BPI Win Probability"
+## 2. Simplicity First
 
-homeTeam.gameProjection
+**Minimum code that solves the problem. Nothing speculative.**
 
-homeTeam.teamChanceLoss.
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-2. feature analysis
-features are engineered to mimic the following:
-    diff_massey_SAG
-    diff_massey_POM
-    diff_massey_WLK
-    diff_seed_num
-    diff_massey_DOL
-    diff_massey_PMW
-    diff_consensus_rank
-    diff_massey_MOR
-    diff_massey_RPI
-    diff_massey_COL
-    diff_kg_scoring_margin
-    diff_kg_wins
-    diff_kg_margin_last10_delta
-    diff_kg_win_pct
-    diff_massey_BPI
-    diff_kg_losses
-    diff_path_best_opp_seed
-    diff_kg_net_strong_margin
-    diff_path_games_played
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-there are playoff specific features as you can note. Such features are only important during playoffs
+## 3. Surgical Changes
 
-In this step, we need to of course run mdi, mda, and sfi on features, clustering them when needed, and most importantly we need to run pca cross checking to derive orthogonal features using principal component analysis (unsupervised) so that if the features PCA identifies as "principal" (structural) match those identified as "important" (predictive) by MDI/MDA/SFI, it provides confirmatory evidence that the pattern is not overfit. Our sanity check will be in the final training where we compare cal loss to training loss. And of course, Compute a weighted Kendall’s tau between the supervised importance ranks and the unsupervised PCA ranks. A value close to 1 justifies the selection of those features.
+**Touch only what you must. Clean up only your own mess. Do NOT overwrite existing data or files without asking first.**
 
-This step is key! It determines everything.
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-3. strategy
-this step yields our trading strategy. We must choose the right model. we make a model that spits an output like the probability of a team winning given its data, then from there we need to account for risk, confidence interval of model, kalshi's api (eg. speed and basic infra), and accuracy of our bets to learn from it
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
-4. Backtesting
-this step evaluates probability of backtest overfitting
+The test: Every changed line should trace directly to the user's request.
 
-5. Oversight
-the life cycle is to test on out of sample data, paper trade, re-allocation based on performance, decommission when theory ends.
+## 4. Goal-Driven Execution
 
+**Define success criteria. Loop until verified.**
 
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
 
-CRITICAL: DATA LEAKAGE PREVENTION
-___
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+## 5. Records and Documentation
+
+**Keep and regularly update logs of every significant change, input, and output**
+
+Make the project as easy to digest for current and future human review:
+- "Add logging" → Send outputs of scripts into a log file. Log the most important information (e.g. timestamp, specific errors, progress bars)
+- Record features, targets, schemas, formulas, math logic, and other important architectural, infrastructural, or analytical decisions
+- Plot data granularly to show all perspectives and stories to human reviewers
+
+This allows human authors to easily fix Claude mistakes that might go unseen otherwise.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, clarifying questions come before implementation rather than after mistakes, and detailed, non-bloating, human-readable logs and records are made frequently.
+
+---
+ 
+## Feature-specific instructions: LEAKAGE PREVENTION
+
 All features used for prediction MUST come from BEFORE the game date. Never use same-game or post-game data as features.
-- Temporal embargo: ratings/stats from day T can only predict games on day T+1 or later
+- Temporal embargo: ratings/stats from day T can only predict the next nearest game
 - Purging: cross-validation folds must be purged so that no training data overlaps temporally with test data (PurgedYearKFold handles this)
 - Same-game box scores (pts, fgm, offrtg, etc.) are OUTCOMES, not features. Only rolling averages of PRIOR games are valid features.
 - When in doubt, ask: "could I know this value BEFORE tipoff?" If no, it's leakage.
 
-Short comings of this approach
-___
-This is a frequentist approach that might lack the power at the start of a season since rosters might have changed.
+---
+
+## Data
+Arguably the most important part is to NOT go based off heuristics, guesses, or "best practices" when working with data. Quantify everything rigorously, using proofs and real data. That is, don't guess what the story might be. query the data and see what it says.
 
 ---
-Always make sure the CLAUDE.md (this file) is always up to date. Also, be sure to add a list of added/engineered features to FEATURES.md
----
-team_mappings.parquet is the best maping we have between espn and nba right now
+
+## Kalshi markets
+We are only takers for now. That means we can only post bids and aggress the lowest ask.

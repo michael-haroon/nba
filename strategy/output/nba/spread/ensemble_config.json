@@ -1,0 +1,44 @@
+{
+  "target": "spread",
+  "task": "regression",
+  "combination_method": "flat_weights",
+  "n_candidates": 26,
+  "n_successful": 26,
+  "n_ensemble": 8,
+  "final_metric": 9.719401324329993,
+  "best_single_metric": 9.734274257209687,
+  "models": [
+    {
+      "uid": "catboost_deep__trees",
+      "weight": 0.3169658275639437,
+      "metric": 9.734274257209687,
+      "family": "catboost",
+      "feature_group": "trees",
+      "n_features": 97
+    },
+    {
+      "uid": "knn_50__diversity",
+      "weight": 0.011350473735432973,
+      "metric": 9.897233745588846,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 230
+    },
+    {
+      "uid": "ridge_01__linear",
+      "weight": 0.2571536517541778,
+      "metric": 9.756000249876125,
+      "family": "ridge",
+      "feature_group": "linear",
+      "n_features": 97
+    },
+    {
+      "uid": "xgb_deep__trees",
+      "weight": 0.4141173966293294,
+      "metric": 9.743334243960868,
+      "family": "xgb",
+      "feature_group": "trees",
+      "n_features": 97
+    }
+  ]
+}
