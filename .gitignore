@@ -2,6 +2,8 @@
 __pycache__
 *cache*
 
+# Whatever this is 
+.DS_Store
 
 # Data
 *.csv
