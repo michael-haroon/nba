@@ -164,12 +164,9 @@ def scan_all_markets(
     if signals:
         logger.info(f"  Signals: {len(yes_sigs)} YES, {len(no_sigs)} NO | "
                     f"Types: {', '.join(sorted(set(s.market_type for s in signals)))}")
-        for s in signals[:5]:
+        for s in signals:
             logger.info(f"    {s.ticker} {s.side.upper()} model={s.model_prob:.3f} "
                         f"mkt={s.market_price:.3f} edge={s.edge*100:.1f}%")
-        if len(signals) > 5:
-            logger.info(f"    ... and {len(signals)-5} more")
-
     return signals
 
 
