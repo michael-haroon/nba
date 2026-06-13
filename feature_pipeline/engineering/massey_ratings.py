@@ -457,7 +457,7 @@ def _zermelo_vectorized(
     for _ in range(n_iter):
         pair_denoms = 1.0 / (pi[all_team_ids] + pi[all_opponent_ids])
         denom_per_team = np.bincount(all_team_ids, weights=pair_denoms, minlength=n_teams)
-        pi = np.where(denom_per_team > 0, frac_wins / denom_per_team, 1.0)
+        pi = np.divide(frac_wins, denom_per_team, out=np.ones_like(frac_wins, dtype=np.float64), where=(denom_per_team > 0))
         pi /= pi.mean()
 
     final_delta = float(np.abs(pi - np.ones_like(pi)).max())
@@ -573,6 +573,13 @@ def fit_massey(
             matrix_rank,
             n_cols,
         )
+        if unconstrained_cond > 1e12:
+            lambda_reg = 0.01
+            np.fill_diagonal(normal, normal.diagonal() + lambda_reg)
+            logger.info(
+                "[fit_massey] design=%s season=%s applied ridge λ=%.4f (cond was %.2e)",
+                design.name, season, lambda_reg, unconstrained_cond,
+            )
 
     constrained = normal.copy()
     constrained_target = target.copy()

@@ -371,6 +371,18 @@ def main(output_dir: str = "output/features",
             feat_cols.append(c)
 
     X = games[feat_cols].copy()
+
+    # Drop BPI and Sagarin columns — coverage is 10.6% and 44.5% respectively, all
+    # concentrated in 2022+ (BPI) and 2013+ (SAG). Global median imputation would stamp
+    # a single modern-era constant into 89%/55% of rows, destroying importance scores
+    # and poisoning ONC clustering for all other features.
+    # Skipping BPI and SAG — must get more data to implement them.
+    bpi_sag_cols = [c for c in X.columns if any(x in c for x in ("bpi", "sag_", "sagarin"))]
+    if bpi_sag_cols:
+        logger.info("[step4] dropping %d BPI/SAG cols (insufficient coverage): %s ... ",
+                    len(bpi_sag_cols), bpi_sag_cols[:5])
+        X = X.drop(columns=bpi_sag_cols)
+
     y = games[target].copy()
 
     REGRESSION_TARGETS = {"target_spread", "target_total", "target_home_score", "target_away_score",

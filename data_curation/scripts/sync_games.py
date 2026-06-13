@@ -188,6 +188,14 @@ _PCT_COLS = {"FG%", "3P%", "FT%", "EFG%", "TS%", "FTA RATE",
              "2FGM %AST", "2FGM %UAST", "3FGM %AST", "3FGM %UAST",
              "FGM %AST", "FGM %UAST", "PIE"}
 
+# BoxScoreAdvancedV3 returns turnoverRatio already as a percentage (17.4, not 0.174).
+# Exclude TOV% from scaling for that endpoint only.
+_ADV_SKIP_PCT = {"TOV%"}
+
+# BoxScoreFourFactorsV3: FTA RATE and OPP FTA RATE are returned as decimals (0.364)
+# and historical parquets store them as decimals too. Do NOT scale these.
+_FF_SKIP_PCT = {"FTA RATE", "OPP FTA RATE"}
+
 
 # ---------------------------------------------------------------------------
 # Game ID refresh
@@ -278,7 +286,7 @@ def find_missing_games(data_dir: Path) -> list[str]:
     today = pd.Timestamp(date.today())
     v3_cutoff = pd.Timestamp("2014-10-01")
     past = ids_df[
-        (ids_df["GAME_DATE"].dt.normalize() < today) &
+        (ids_df["GAME_DATE"].dt.normalize() <= today) &
         (ids_df["GAME_DATE"] >= v3_cutoff)
     ]
     all_ids_df = past[["GAME_ID", "GAME_DATE"]].copy()
@@ -373,7 +381,7 @@ def fetch_game(game_id: str) -> dict[str, pd.DataFrame | None]:
     from nba_api.stats.endpoints import (
         boxscoreadvancedv3,
         boxscorefourfactorsv3,
-        boxscorehustlev2,
+        hustlestatsboxscore,
         boxscoremiscv3,
         boxscorescoringv3,
         boxscoresummaryv3,
@@ -486,15 +494,36 @@ def fetch_game(game_id: str) -> dict[str, pd.DataFrame | None]:
         return result
 
     # --- Hustle (only for games after 2016-10-01) ---
+    # Uses HustleStatsBoxScore: df[2]=team stats, df[1]=player stats (BoxScoreHustleV2 deprecated)
     if game_date_str >= "2016-10-01":
         time.sleep(random.uniform(0.6, 1.2))
         for attempt in range(3):
             try:
-                logger.info("[%s] attempt %d: BoxScoreHustleV2", gid, attempt + 1)
-                hustle = boxscorehustlev2.BoxScoreHustleV2(game_id=gid)
-                df_hustle = hustle.team_stats.get_data_frame()
-                if not df_hustle.empty:
-                    df_hustle = df_hustle.copy()
+                logger.info("[%s] attempt %d: HustleStatsBoxScore", gid, attempt + 1)
+                hustle_ep = hustlestatsboxscore.HustleStatsBoxScore(game_id=gid)
+                hustle_dfs = hustle_ep.get_data_frames()
+                df_hustle_raw = hustle_dfs[2]  # team stats
+                df_player_raw = hustle_dfs[1]  # player stats
+
+                if not df_hustle_raw.empty:
+                    # Rename SCREAMING_SNAKE_CASE → camelCase to match existing parquet schema
+                    team_rename = {
+                        "GAME_ID": "gameId", "TEAM_ID": "teamId", "TEAM_NAME": "teamName",
+                        "TEAM_ABBREVIATION": "teamTricode", "TEAM_CITY": "teamCity",
+                        "MINUTES": "minutes", "PTS": "points",
+                        "CONTESTED_SHOTS": "contestedShots", "CONTESTED_SHOTS_2PT": "contestedShots2pt",
+                        "CONTESTED_SHOTS_3PT": "contestedShots3pt", "DEFLECTIONS": "deflections",
+                        "CHARGES_DRAWN": "chargesDrawn", "SCREEN_ASSISTS": "screenAssists",
+                        "SCREEN_AST_PTS": "screenAssistPoints",
+                        "OFF_LOOSE_BALLS_RECOVERED": "looseBallsRecoveredOffensive",
+                        "DEF_LOOSE_BALLS_RECOVERED": "looseBallsRecoveredDefensive",
+                        "LOOSE_BALLS_RECOVERED": "looseBallsRecoveredTotal",
+                        "OFF_BOXOUTS": "offensiveBoxOuts", "DEF_BOXOUTS": "defensiveBoxOuts",
+                        "BOX_OUT_PLAYER_TEAM_REBS": "boxOutPlayerTeamRebounds",
+                        "BOX_OUT_PLAYER_REBS": "boxOutPlayerRebounds", "BOX_OUTS": "boxOuts",
+                    }
+                    df_hustle = df_hustle_raw.rename(columns=team_rename).copy()
+                    df_hustle["teamSlug"] = None  # not provided by this endpoint
                     df_hustle["game_id"] = gid
                     result["BoxScoresHustleTeam"] = df_hustle
 
@@ -503,27 +532,45 @@ def fetch_game(game_id: str) -> dict[str, pd.DataFrame | None]:
                     if home_id is not None and len(df_hustle) == 2:
                         hustle_row = {"gameId": gid}
                         for _, hr in df_hustle.iterrows():
-                            tid = hr.get("teamId") or hr.get("TEAM_ID")
+                            tid = hr.get("teamId")
                             prefix = "homeTeam" if int(tid) == home_id else "awayTeam"
                             hustle_row[f"{prefix}Id"] = tid
                             for col in df_hustle.columns:
-                                if col not in ("game_id", "teamId", "TEAM_ID"):
+                                if col not in ("game_id", "teamId"):
                                     hustle_row[f"{prefix}_{col}"] = hr[col]
                         result["HustleGames"] = pd.DataFrame([hustle_row])
 
-                # HustlePlayerStats
-                df_player_hustle = hustle.player_stats.get_data_frame()
-                if not df_player_hustle.empty:
-                    df_player_hustle = df_player_hustle.copy()
-                    df_player_hustle["gameId"] = gid
-                    result["HustlePlayerStats"] = df_player_hustle
+                if not df_player_raw.empty:
+                    player_rename = {
+                        "GAME_ID": "gameId", "TEAM_ID": "teamId", "TEAM_CITY": "teamCity",
+                        "TEAM_NAME": "teamName", "TEAM_ABBREVIATION": "teamTricode",
+                        "PLAYER_ID": "personId", "PLAYER_NAME": "nameI",
+                        "START_POSITION": "position", "COMMENT": "comment",
+                        "MINUTES": "minutes", "PTS": "points",
+                        "CONTESTED_SHOTS": "contestedShots", "CONTESTED_SHOTS_2PT": "contestedShots2pt",
+                        "CONTESTED_SHOTS_3PT": "contestedShots3pt", "DEFLECTIONS": "deflections",
+                        "CHARGES_DRAWN": "chargesDrawn", "SCREEN_ASSISTS": "screenAssists",
+                        "SCREEN_AST_PTS": "screenAssistPoints",
+                        "OFF_LOOSE_BALLS_RECOVERED": "looseBallsRecoveredOffensive",
+                        "DEF_LOOSE_BALLS_RECOVERED": "looseBallsRecoveredDefensive",
+                        "LOOSE_BALLS_RECOVERED": "looseBallsRecoveredTotal",
+                        "OFF_BOXOUTS": "offensiveBoxOuts", "DEF_BOXOUTS": "defensiveBoxOuts",
+                        "BOX_OUT_PLAYER_TEAM_REBS": "boxOutPlayerTeamRebounds",
+                        "BOX_OUT_PLAYER_REBS": "boxOutPlayerRebounds", "BOX_OUTS": "boxOuts",
+                    }
+                    df_player = df_player_raw.rename(columns=player_rename).copy()
+                    # Fill columns present in existing parquet but absent from this endpoint
+                    for col in ("firstName", "familyName", "playerSlug", "teamSlug", "jerseyNum", "side", "slot"):
+                        df_player[col] = None
+                    df_player["gameId"] = gid
+                    result["HustlePlayerStats"] = df_player
 
-                logger.info("[%s] BoxScoreHustleV2 OK (team=%d, player=%d rows)",
-                            gid, len(df_hustle), len(df_player_hustle) if not df_player_hustle.empty else 0)
+                logger.info("[%s] HustleStatsBoxScore OK (team=%d, player=%d rows)",
+                            gid, len(df_hustle_raw), len(df_player_raw))
                 break
             except Exception as exc:
                 wait = (2 ** attempt) + random.uniform(0.5, 1.5)
-                logger.warning("[%s] BoxScoreHustleV2 attempt %d failed (%s: %s) — retrying in %.1fs",
+                logger.warning("[%s] HustleStatsBoxScore attempt %d failed (%s: %s) — retrying in %.1fs",
                                gid, attempt + 1, type(exc).__name__, exc, wait)
                 time.sleep(wait)
 
@@ -551,8 +598,10 @@ def fetch_game(game_id: str) -> dict[str, pd.DataFrame | None]:
                 keep = [c for c in rename_map.values() if c in team_df.columns]
                 team_df = team_df[keep].copy()
                 # Scale percentage columns from decimal (0.473) to whole number (47.3)
+                skip = _ADV_SKIP_PCT if key == "AdvBoxScoresAdv" else (
+                    _FF_SKIP_PCT if key == "AdvBoxScoresFourFactors" else set())
                 for col in team_df.columns:
-                    if col in _PCT_COLS:
+                    if col in _PCT_COLS and col not in skip:
                         team_df[col] = pd.to_numeric(team_df[col], errors="coerce") * 100
                         team_df[col] = team_df[col].round(1)
                 # Convert MIN from "240:00" total team minutes to game minutes (48)
@@ -780,6 +829,91 @@ def upsert_parquet(path: Path, new_df: pd.DataFrame, dedup_keys: list[str]) -> i
 
 
 # ---------------------------------------------------------------------------
+# Partial sync tracking
+# ---------------------------------------------------------------------------
+
+def _write_syncpartial(data_dir: Path, partial_games: dict[str, list[str]]) -> None:
+    """Upsert partial_games into syncpartial.parquet (game_id, missing_tables)."""
+    partial_path = data_dir / "syncpartial.parquet"
+    new_rows = pd.DataFrame([
+        {"game_id": gid, "missing_tables": ",".join(tables)}
+        for gid, tables in partial_games.items()
+    ])
+    upsert_parquet(partial_path, new_rows, ["game_id"])
+    logger.info("syncpartial.parquet: %d games recorded with missing tables", len(partial_games))
+
+
+def _remove_from_syncpartial(data_dir: Path, resolved_ids: list[str]) -> None:
+    """Remove resolved game IDs from syncpartial.parquet."""
+    partial_path = data_dir / "syncpartial.parquet"
+    if not partial_path.exists() or not resolved_ids:
+        return
+    df = pd.read_parquet(partial_path)
+    df = df[~df["game_id"].astype(str).isin(set(resolved_ids))]
+    df.to_parquet(partial_path, index=False)
+
+
+def retry_partial(data_dir: Path, workers: int) -> int:
+    """Re-fetch games listed in syncpartial.parquet that had missing tables.
+
+    Returns the number of new rows written across all parquets.
+    """
+    partial_path = data_dir / "syncpartial.parquet"
+    if not partial_path.exists():
+        logger.info("syncpartial.parquet not found — nothing to retry")
+        return 0
+
+    partial_df = pd.read_parquet(partial_path)
+    if partial_df.empty:
+        logger.info("syncpartial.parquet is empty — nothing to retry")
+        return 0
+
+    ids_df = pd.read_parquet(data_dir / "NBAGameIDs.parquet")
+    game_ids = partial_df["game_id"].astype(str).str.zfill(10).tolist()
+    logger.info("Retrying %d partially synced games: %s", len(game_ids), game_ids)
+
+    total_added = 0
+    resolved: list[str] = []
+    still_partial: dict[str, list[str]] = {}
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        future_to_gid = {ex.submit(fetch_game, gid): gid for gid in game_ids}
+        for future in as_completed(future_to_gid):
+            gid = future_to_gid[future]
+            try:
+                game_data = future.result()
+                suffix = _season_type_suffix(gid, ids_df)
+                missing_tables = [k for k, v in game_data.items() if v is None]
+                for key, df in game_data.items():
+                    if df is None:
+                        continue
+                    full_key = f"{key}{suffix}" if key.startswith("AdvBoxScores") else key
+                    path = data_dir / f"{full_key}.parquet"
+                    dedup_keys = PARQUET_DEDUP_KEYS.get(f"{full_key}.parquet", ["game_id"])
+                    added = upsert_parquet(path, df, dedup_keys)
+                    if added > 0:
+                        total_added += added
+                        logger.info("  [retry] %s.parquet +%d rows for %s", full_key, added, gid)
+                if missing_tables:
+                    still_partial[gid] = missing_tables
+                    logger.warning("  [retry] %s still missing: %s", gid, ", ".join(missing_tables))
+                else:
+                    resolved.append(gid)
+                    logger.info("  [retry] %s fully resolved", gid)
+            except Exception as err:
+                logger.error("  [retry] Failed game %s: %s", gid, err)
+                still_partial[gid] = ["FETCH_ERROR"]
+            time.sleep(random.uniform(0.4, 0.9))
+
+    _remove_from_syncpartial(data_dir, resolved)
+    if still_partial:
+        _write_syncpartial(data_dir, still_partial)
+    logger.info("Retry complete: %d resolved, %d still partial, %d rows added",
+                len(resolved), len(still_partial), total_added)
+    return total_added
+
+
+# ---------------------------------------------------------------------------
 # Main pipeline
 # ---------------------------------------------------------------------------
 
@@ -894,16 +1028,27 @@ def run(season: str, workers: int, dry_run: bool) -> None:
                 logger.warning("  NO_DATA %s: API returned nothing — likely postponed/cancelled game", gid)
             else:
                 logger.warning("  PARTIAL %s: missing %s", gid, ", ".join(tables))
+        _write_syncpartial(DATA_DIR, partial_games)
 
-    # Step 5: rebuild Massey if we wrote new game data
+    # Step 5: rebuild Massey + game_features if we wrote new game data
     if total_added > 0:
+        repo_root = Path(__file__).resolve().parents[2]
+
         logger.info("Rebuilding MasseyRatings for %s...", season)
         subprocess.run(
             [sys.executable, "-m", "data_curation.scripts.build_massey_ratings", "--min-season", season],
-            cwd=Path(__file__).resolve().parents[2],
+            cwd=repo_root,
             check=True,
         )
         logger.info("MasseyRatings rebuild complete.")
+
+        logger.info("Rebuilding game_features.parquet...")
+        subprocess.run(
+            [sys.executable, "-m", "feature_pipeline.build_features_only"],
+            cwd=repo_root,
+            check=True,
+        )
+        logger.info("game_features.parquet rebuild complete.")
 
 
 def main(argv=None) -> int:
@@ -911,9 +1056,28 @@ def main(argv=None) -> int:
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--season", default=None, help="e.g. 2025-26 (default: current)")
     p.add_argument("--workers", type=int, default=2)
+    p.add_argument("--retry-partial", action="store_true",
+                   help="Re-fetch games in syncpartial.parquet that had missing tables")
     args = p.parse_args(argv)
 
     season = args.season or _current_season()
+
+    if args.retry_partial:
+        added = retry_partial(DATA_DIR, args.workers)
+        if added > 0:
+            repo_root = Path(__file__).resolve().parents[2]
+            logger.info("Rebuilding MasseyRatings after partial retry...")
+            subprocess.run(
+                [sys.executable, "-m", "data_curation.scripts.build_massey_ratings", "--min-season", season],
+                cwd=repo_root, check=True,
+            )
+            logger.info("Rebuilding game_features.parquet after partial retry...")
+            subprocess.run(
+                [sys.executable, "-m", "feature_pipeline.build_features_only"],
+                cwd=repo_root, check=True,
+            )
+        return 0
+
     run(season=season, workers=args.workers, dry_run=args.dry_run)
     return 0
 

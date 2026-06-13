@@ -114,4 +114,4 @@ Arguably the most important part is to NOT go based off heuristics, guesses, or 
 ---
 
 ## Kalshi markets
-We are only takers for now. That means we can only post bids and aggress the lowest ask.
+You can buy YES and NO for a market in an event, and an event can have many markets. Each side (YES and NO) has its own independent orderbook, so in a fair market yes can be `p` and NO should be `1-p`, but in an unfair or empty market the prices are both usually high and sum to greater than 1.

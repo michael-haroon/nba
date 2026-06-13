@@ -13,9 +13,9 @@
   {
     "name": "sf_001",
     "columns": [
-      "sum_roll10_q1",
-      "sum_experience_adjusted_massey_q4",
-      "sum_roll10_rebpct_std"
+      "sum_roll10_playoffbpi",
+      "sum_travel_adjusted_massey_q3",
+      "sum_roll10_pace"
     ],
     "operation": "triple",
     "unary": null,
@@ -24,9 +24,9 @@
   {
     "name": "sf_002",
     "columns": [
-      "diff_roll20_opp_pitp",
-      "sum_roll5_ot3_std",
-      "sum_roll10_ot2"
+      "diff_roll20_pctpts_2pt",
+      "sum_roll5_bpirank_std",
+      "sum_roll10_bpi_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -35,8 +35,8 @@
   {
     "name": "sf_003",
     "columns": [
-      "sum_roll20_opp_fbps_std",
-      "diff_roll10_opp_2nd_pts"
+      "sum_roll20_pctpts_fbps",
+      "diff_roll10_opp_pitp"
     ],
     "operation": "div",
     "unary": null,
@@ -45,9 +45,9 @@
   {
     "name": "sf_004",
     "columns": [
-      "diff_roll20_opp_tovpct_std",
-      "sum_roll10_game_id",
-      "sum_roll5_2fgm_pctuast_std"
+      "diff_roll20_pts_off_to_std",
+      "sum_roll10_netrtg",
+      "sum_roll5_ot2_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -56,8 +56,8 @@
   {
     "name": "sf_005",
     "columns": [
-      "diff_roll20_pitp_std",
-      "sum_roll10_fgm_pctuast_std"
+      "diff_roll20_opp_fbps_std",
+      "sum_roll10_q4"
     ],
     "operation": "mul",
     "unary": "log1p",
@@ -66,9 +66,9 @@
   {
     "name": "sf_006",
     "columns": [
-      "sum_roll10_opp_pts_off_to",
-      "sum_roll20_ot2",
-      "diff_roll20_opp_2nd_pts"
+      "sum_roll10_pctfga_3pt_std",
+      "sum_roll20_bpioffense",
+      "diff_roll20_pctfga_2pt"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -78,7 +78,7 @@
     "name": "sf_007",
     "columns": [
       "diff_roll10_astpct_std",
-      "sum_roll10_elo_score"
+      "sum_roll10_predictor"
     ],
     "operation": "mul",
     "unary": null,
@@ -87,8 +87,8 @@
   {
     "name": "sf_008",
     "columns": [
-      "sum_roll5_defrtg_std",
-      "sum_roll10_fgpct"
+      "sum_roll5_astpct_std",
+      "sum_roll10_3pm"
     ],
     "operation": "div",
     "unary": null,
@@ -97,9 +97,9 @@
   {
     "name": "sf_009",
     "columns": [
-      "diff_roll20_tov_std",
-      "diff_roll5_pctpts_2pt_std",
-      "sum_roll10_2fgm_pctast"
+      "diff_roll20_tov",
+      "diff_roll5_pctpts_3pt",
+      "sum_roll10_ot2"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -108,8 +108,8 @@
   {
     "name": "sf_010",
     "columns": [
-      "diff_roll10_pctpts_3pt",
-      "sum_roll10_ftpct_std"
+      "diff_roll10_pctpts_ft_std",
+      "sum_roll10_dreb_std"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -118,9 +118,9 @@
   {
     "name": "sf_011",
     "columns": [
-      "diff_roll5_pts_std",
-      "sum_roll10_pts",
-      "sum_roll10_ot1_std"
+      "diff_sag_rating",
+      "sum_roll10_fgm",
+      "sum_roll10_bpi"
     ],
     "operation": "triple",
     "unary": null,
@@ -129,8 +129,8 @@
   {
     "name": "sf_012",
     "columns": [
-      "diff_roll5_pf",
-      "diff_crowd_adjusted_massey_q4"
+      "diff_roll5_stl",
+      "diff_crowd_adjusted_massey"
     ],
     "operation": "add",
     "unary": "sq",
@@ -139,8 +139,8 @@
   {
     "name": "sf_013",
     "columns": [
-      "sum_roll5_netrtg",
-      "sum_roll20_drebpct"
+      "sum_roll5_ast_to",
+      "sum_roll20_pace"
     ],
     "operation": "sub",
     "unary": null,
@@ -149,8 +149,8 @@
   {
     "name": "sf_014",
     "columns": [
-      "diff_roll5_opp_pitp",
-      "sum_roll5_plus_minus_std"
+      "diff_roll5_pctfga_2pt",
+      "sum_roll5_offrtg_std"
     ],
     "operation": "div",
     "unary": "sq",
@@ -159,7 +159,7 @@
   {
     "name": "sf_015",
     "columns": [
-      "diff_roll10_elo_score",
+      "diff_roll10_deftalent",
       "diff_games_per_week_5"
     ],
     "operation": "mul",
@@ -169,8 +169,8 @@
   {
     "name": "sf_016",
     "columns": [
-      "sum_roll20_rebpct",
-      "diff_roll10_pctfga_3pt"
+      "sum_roll20_pace_std",
+      "diff_roll10_pctpts_2pt_mr"
     ],
     "operation": "add",
     "unary": "sq",
@@ -179,8 +179,8 @@
   {
     "name": "sf_017",
     "columns": [
-      "diff_acwr_pts",
-      "sum_roll10_ot4"
+      "diff_acwr_risk",
+      "sum_roll10_bpioffense_std"
     ],
     "operation": "add",
     "unary": null,
@@ -189,9 +189,9 @@
   {
     "name": "sf_018",
     "columns": [
-      "diff_roll10_dreb_std",
-      "diff_roll20_orebpct_std",
-      "diff_roll20_game_id"
+      "diff_roll10_oreb",
+      "diff_roll20_drebpct_std",
+      "diff_roll20_game_id_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -200,8 +200,8 @@
   {
     "name": "sf_019",
     "columns": [
-      "sum_roll10_rebpct",
-      "diff_roll10_fta_std"
+      "sum_roll10_pace",
+      "diff_roll10_3ppct_std"
     ],
     "operation": "div",
     "unary": "log1p",
@@ -210,8 +210,8 @@
   {
     "name": "sf_020",
     "columns": [
-      "diff_roll10_dreb",
-      "sum_roll10_pf"
+      "diff_roll10_ftpct_std",
+      "sum_roll10_game_id_std"
     ],
     "operation": "add",
     "unary": null,
@@ -220,8 +220,8 @@
   {
     "name": "sf_021",
     "columns": [
-      "sum_crowd_adjusted_massey_q4",
-      "sum_roll5_2fgm_pctuast"
+      "sum_default_massey_q1",
+      "sum_roll5_ot2"
     ],
     "operation": "sub",
     "unary": "sq",
@@ -230,8 +230,8 @@
   {
     "name": "sf_022",
     "columns": [
-      "diff_crowd_adjusted_massey_q3",
-      "sum_roll10_plus_minus_std",
+      "diff_context_adjusted_massey_q4",
+      "sum_roll10_defrtg_std",
       "diff_wobus_q4"
     ],
     "operation": "div_sum",
@@ -241,9 +241,9 @@
   {
     "name": "sf_023",
     "columns": [
-      "diff_colley_q4",
-      "sum_roll10_pts_off_to_std",
-      "sum_roll10_q2"
+      "diff_cusum_momentum",
+      "sum_roll10_opp_2nd_pts_std",
+      "sum_roll10_offtalent"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -252,8 +252,8 @@
   {
     "name": "sf_024",
     "columns": [
-      "sum_roll10_defrtg",
-      "diff_roll10_efgpct_std"
+      "sum_roll10_ast_to",
+      "diff_roll10_tspct_std"
     ],
     "operation": "div",
     "unary": null,
@@ -262,8 +262,8 @@
   {
     "name": "sf_025",
     "columns": [
-      "sum_roll20_rebpct_std",
-      "diff_crowd_weighted_massey_q4"
+      "sum_roll20_pie",
+      "diff_crowd_weighted_massey"
     ],
     "operation": "sub",
     "unary": null,
@@ -272,8 +272,8 @@
   {
     "name": "sf_026",
     "columns": [
-      "sum_roll5_pctpts_pitp_std",
-      "diff_roll20_reb_std"
+      "sum_roll5_fgm_pctuast_std",
+      "diff_roll20_reb"
     ],
     "operation": "add",
     "unary": null,
@@ -282,8 +282,8 @@
   {
     "name": "sf_027",
     "columns": [
-      "sum_roll10_pctpts_2pt_mr",
-      "diff_roll20_sag_rating_std"
+      "sum_roll10_2fgm_pctast",
+      "diff_roll20_deftalent_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -292,8 +292,8 @@
   {
     "name": "sf_028",
     "columns": [
-      "sum_roll5_pure_elo_std",
-      "diff_roll5_recent_std"
+      "sum_roll5_golden_mean",
+      "diff_roll5_predictor_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -302,8 +302,8 @@
   {
     "name": "sf_029",
     "columns": [
-      "diff_roll20_ftm_std",
-      "sum_roll20_ot4_std"
+      "diff_roll20_3ppct_std",
+      "sum_roll20_playoffbpi_std"
     ],
     "operation": "add",
     "unary": null,
@@ -312,8 +312,8 @@
   {
     "name": "sf_030",
     "columns": [
-      "diff_roll5_ftpct",
-      "diff_roll20_3pa"
+      "diff_roll5_3ppct_std",
+      "diff_roll20_fgpct_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -322,9 +322,9 @@
   {
     "name": "sf_031",
     "columns": [
-      "diff_roll5_pace",
-      "diff_roll10_sag_rating_std",
-      "diff_roll5_fbps_std"
+      "diff_roll5_tspct_std",
+      "diff_roll10_offtalent_std",
+      "diff_roll5_pitp_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -333,8 +333,8 @@
   {
     "name": "sf_032",
     "columns": [
-      "sum_roll5_ftpct",
-      "diff_location_adjusted_massey"
+      "sum_roll5_oreb",
+      "diff_experience_adjusted_massey_q1"
     ],
     "operation": "div",
     "unary": null,
@@ -344,7 +344,7 @@
     "name": "sf_033",
     "columns": [
       "diff_travel_distance_3",
-      "sum_roll20_ast_to"
+      "sum_roll20_rebpct_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -353,9 +353,9 @@
   {
     "name": "sf_034",
     "columns": [
-      "diff_roll20_ftpct",
-      "sum_roll5_ftpct",
-      "diff_roll5_pure_elo"
+      "diff_roll20_fta",
+      "sum_roll5_oreb",
+      "diff_roll5_sag_rating"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -364,8 +364,8 @@
   {
     "name": "sf_035",
     "columns": [
-      "diff_roll10_pctpts_ft",
-      "sum_roll5_pure_elo"
+      "diff_roll10_2fgm_pctast",
+      "sum_roll5_pure_elo_std"
     ],
     "operation": "add",
     "unary": null,
@@ -374,8 +374,8 @@
   {
     "name": "sf_036",
     "columns": [
-      "sum_roll5_pctfga_3pt_std",
-      "sum_roll20_fgm_pctast_std"
+      "sum_roll5_pctpts_ft_std",
+      "sum_roll20_q4"
     ],
     "operation": "mul",
     "unary": "abs",
@@ -384,7 +384,7 @@
   {
     "name": "sf_037",
     "columns": [
-      "sum_roll5_blk",
+      "sum_roll5_pf_std",
       "diff_roll20_ast"
     ],
     "operation": "sub",
@@ -395,8 +395,8 @@
     "name": "sf_038",
     "columns": [
       "diff_roll20_pf",
-      "diff_roll20_fgpct",
-      "sum_roll5_3fgm_pctuast_std"
+      "diff_roll20_fgm_std",
+      "sum_roll5_ot4_std"
     ],
     "operation": "div_sum",
     "unary": "sqrt",
@@ -405,7 +405,7 @@
   {
     "name": "sf_039",
     "columns": [
-      "diff_roll5_defrtg",
+      "diff_roll5_game_id_std",
       "sum_roll5_3pm_std"
     ],
     "operation": "div",
@@ -415,9 +415,9 @@
   {
     "name": "sf_040",
     "columns": [
-      "sum_roll10_opp_fbps",
-      "diff_roll5_opp_pitp",
-      "sum_roll20_netrtg_std"
+      "sum_roll10_pctpts_3pt",
+      "diff_roll5_pctfga_2pt_std",
+      "sum_roll20_orebpct_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -426,8 +426,8 @@
   {
     "name": "sf_041",
     "columns": [
-      "sum_roll10_3fgm_pctast_std",
-      "diff_roll5_ftpct"
+      "sum_roll10_ot4_std",
+      "diff_roll5_3ppct"
     ],
     "operation": "add",
     "unary": null,
@@ -436,8 +436,8 @@
   {
     "name": "sf_042",
     "columns": [
-      "sum_roll10_opp_2nd_pts_std",
-      "sum_roll10_opp_orebpct_std"
+      "sum_roll10_pctpts_2pt_mr",
+      "sum_roll10_opp_pts_off_to_std"
     ],
     "operation": "div",
     "unary": null,
@@ -446,8 +446,8 @@
   {
     "name": "sf_043",
     "columns": [
-      "diff_roll5_ot2_std",
-      "diff_roll5_tov"
+      "diff_roll5_q1_std",
+      "diff_roll5_reb"
     ],
     "operation": "add",
     "unary": "sqrt",
@@ -456,8 +456,8 @@
   {
     "name": "sf_044",
     "columns": [
-      "diff_roll10_plus_minus",
-      "sum_roll10_efgpct"
+      "diff_roll10_pf_std",
+      "sum_roll10_fta_rate"
     ],
     "operation": "div",
     "unary": "sq",
@@ -466,9 +466,9 @@
   {
     "name": "sf_045",
     "columns": [
-      "diff_wolfe_q4",
-      "diff_roll20_plus_minus_std",
-      "sum_experience_adjusted_massey_q1"
+      "diff_pyth_exp_winpct",
+      "diff_roll20_game_id",
+      "sum_travel_adjusted_massey"
     ],
     "operation": "mul_add",
     "unary": "abs",
@@ -477,8 +477,8 @@
   {
     "name": "sf_046",
     "columns": [
-      "diff_roll10_opp_fbps_std",
-      "diff_roll5_3ppct_std"
+      "diff_roll10_pctfga_2pt_std",
+      "diff_roll5_fgpct_std"
     ],
     "operation": "add",
     "unary": "sq",
@@ -487,9 +487,9 @@
   {
     "name": "sf_047",
     "columns": [
-      "diff_roll20_elo_score_std",
-      "sum_roll5_efgpct_std",
-      "sum_roll10_pctpts_off_to_std"
+      "diff_roll20_sag_rating",
+      "sum_roll5_pie_std",
+      "sum_roll10_fgm_pctuast"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -499,8 +499,8 @@
     "name": "sf_048",
     "columns": [
       "diff_days_span_3",
-      "diff_roll5_q3",
-      "sum_roll20_dreb"
+      "diff_roll5_bpirank_std",
+      "sum_roll20_tov"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -509,8 +509,8 @@
   {
     "name": "sf_049",
     "columns": [
-      "diff_roll5_q3_std",
-      "diff_whitlock_q3"
+      "diff_roll5_bpioffense",
+      "diff_whitlock_q2"
     ],
     "operation": "add",
     "unary": null,
@@ -519,8 +519,8 @@
   {
     "name": "sf_050",
     "columns": [
-      "sum_roll20_ot4_std",
-      "sum_crowd_adjusted_massey_q3"
+      "sum_roll20_playoffbpi",
+      "sum_default_massey_q1"
     ],
     "operation": "mul",
     "unary": null,
@@ -529,9 +529,9 @@
   {
     "name": "sf_051",
     "columns": [
-      "sum_roll10_pace",
-      "diff_roll5_pctpts_off_to_std",
-      "sum_roll20_game_id"
+      "sum_roll10_opp_fta_rate",
+      "diff_roll5_2fgm_pctast_std",
+      "sum_roll20_astpct"
     ],
     "operation": "triple",
     "unary": null,
@@ -540,8 +540,8 @@
   {
     "name": "sf_052",
     "columns": [
-      "diff_roll10_game_id_std",
-      "sum_roll20_sag_rating"
+      "diff_roll10_plus_minus_std",
+      "sum_roll20_predictor"
     ],
     "operation": "sub",
     "unary": null,
@@ -550,9 +550,9 @@
   {
     "name": "sf_053",
     "columns": [
-      "diff_roll5_3ppct_std",
-      "sum_roll5_recent_std",
-      "sum_roll20_netrtg"
+      "diff_roll5_fgpct_std",
+      "sum_roll10_pts",
+      "sum_roll20_orebpct_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -561,8 +561,8 @@
   {
     "name": "sf_054",
     "columns": [
-      "diff_roll20_orebpct",
-      "sum_roll5_fgpct"
+      "diff_roll20_drebpct_std",
+      "sum_roll5_fgpct_std"
     ],
     "operation": "add",
     "unary": null,
@@ -571,9 +571,9 @@
   {
     "name": "sf_055",
     "columns": [
-      "diff_roll20_fga",
-      "diff_roll5_fgm_pctuast_std",
-      "diff_roll20_q4"
+      "diff_roll20_pts_std",
+      "diff_roll5_ot3",
+      "diff_roll20_playoffbpi_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -582,9 +582,9 @@
   {
     "name": "sf_056",
     "columns": [
-      "diff_context_adjusted_massey_q3",
+      "diff_colley_q4",
       "sum_roll5_fgpct_std",
-      "diff_roll10_q4_std"
+      "diff_roll10_playoffbpi"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -593,9 +593,9 @@
   {
     "name": "sf_057",
     "columns": [
-      "diff_roll5_pctpts_off_to",
-      "sum_roll20_pitp",
-      "sum_crowd_adjusted_massey_q1"
+      "diff_roll5_2fgm_pctast",
+      "sum_roll20_pctfga_3pt",
+      "sum_crowd_weighted_massey_q4"
     ],
     "operation": "mul_add",
     "unary": "log1p",
@@ -604,8 +604,8 @@
   {
     "name": "sf_058",
     "columns": [
-      "sum_roll20_ot3_std",
-      "sum_roll20_oreb_std"
+      "sum_roll20_bpidefense",
+      "sum_roll20_ast_std"
     ],
     "operation": "add",
     "unary": null,
@@ -614,8 +614,8 @@
   {
     "name": "sf_059",
     "columns": [
-      "sum_roll5_rebpct_std",
-      "diff_roll10_oreb_std"
+      "sum_roll5_tspct_std",
+      "diff_roll10_ftpct"
     ],
     "operation": "mul",
     "unary": "log1p",
@@ -625,7 +625,7 @@
     "name": "sf_060",
     "columns": [
       "diff_roll10_orebpct_std",
-      "diff_roll10_stl_std"
+      "diff_roll10_tov_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -634,9 +634,9 @@
   {
     "name": "sf_061",
     "columns": [
-      "sum_roll20_ast",
-      "diff_roll20_3fgm_pctast_std",
-      "sum_roll10_golden_mean_std"
+      "sum_roll20_blk",
+      "diff_roll20_ot2",
+      "sum_roll20_pts"
     ],
     "operation": "triple",
     "unary": null,
@@ -645,9 +645,9 @@
   {
     "name": "sf_062",
     "columns": [
-      "diff_wobus_q2",
-      "diff_roll5_offrtg_std",
-      "sum_roll5_3ppct"
+      "diff_wobus_q3",
+      "diff_roll5_game_id",
+      "sum_roll5_3ppct_std"
     ],
     "operation": "triple",
     "unary": "abs",
@@ -656,8 +656,8 @@
   {
     "name": "sf_063",
     "columns": [
-      "diff_roll10_golden_mean",
-      "sum_roll5_ast_ratio"
+      "diff_roll10_predictor_std",
+      "sum_roll5_drebpct_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -667,7 +667,7 @@
     "name": "sf_064",
     "columns": [
       "sum_golden_mean",
-      "diff_roll5_pctfga_2pt_std"
+      "diff_roll5_pctpts_2pt"
     ],
     "operation": "sub",
     "unary": "sq",
@@ -676,8 +676,8 @@
   {
     "name": "sf_065",
     "columns": [
-      "sum_roll20_pf_std",
-      "sum_roll20_defrtg"
+      "sum_roll20_defrtg",
+      "sum_roll20_ast_ratio_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -686,9 +686,9 @@
   {
     "name": "sf_066",
     "columns": [
-      "sum_roll5_tovpct",
-      "sum_roll5_2fgm_pctast",
-      "sum_roll10_ot1"
+      "sum_roll5_pace",
+      "sum_roll5_ot1",
+      "sum_roll10_q4_std"
     ],
     "operation": "div_sum",
     "unary": "sqrt",
@@ -697,8 +697,8 @@
   {
     "name": "sf_067",
     "columns": [
-      "sum_roll5_3ppct",
-      "sum_default_massey_q2"
+      "sum_roll5_3ppct_std",
+      "sum_location_adjusted_massey"
     ],
     "operation": "sub",
     "unary": null,
@@ -707,9 +707,9 @@
   {
     "name": "sf_068",
     "columns": [
-      "diff_roll10_2fgm_pctast_std",
-      "diff_roll10_ot4_std",
-      "diff_roll20_pctpts_ft_std"
+      "diff_roll10_3fgm_pctuast_std",
+      "diff_roll10_bpi",
+      "diff_roll20_2fgm_pctuast_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -718,8 +718,8 @@
   {
     "name": "sf_069",
     "columns": [
-      "diff_roll20_rebpct_std",
-      "diff_roll20_elo_score"
+      "diff_roll20_efgpct",
+      "diff_roll20_sag_rating"
     ],
     "operation": "add",
     "unary": null,
@@ -728,8 +728,8 @@
   {
     "name": "sf_070",
     "columns": [
-      "diff_roll20_netrtg_std",
-      "diff_roll10_offrtg"
+      "diff_roll20_astpct",
+      "diff_roll10_game_id_std"
     ],
     "operation": "sub",
     "unary": "sqrt",
@@ -738,9 +738,9 @@
   {
     "name": "sf_071",
     "columns": [
-      "diff_travel_adjusted_massey_q3",
-      "sum_roll10_2fgm_pctuast_std",
-      "sum_roll20_orebpct"
+      "diff_off_default_massey",
+      "sum_roll10_ot3_std",
+      "sum_roll20_tspct"
     ],
     "operation": "triple",
     "unary": null,
@@ -749,9 +749,9 @@
   {
     "name": "sf_072",
     "columns": [
-      "diff_roll10_efgpct_std",
-      "sum_roll5_stl_std",
-      "sum_roll10_recent_std"
+      "diff_roll10_tspct",
+      "sum_roll5_pf",
+      "sum_roll20_fgm_std"
     ],
     "operation": "mul_add",
     "unary": "log1p",
@@ -760,8 +760,8 @@
   {
     "name": "sf_073",
     "columns": [
-      "sum_roll10_opp_orebpct",
-      "sum_roll5_pts_off_to_std"
+      "sum_roll10_pitp_std",
+      "sum_roll5_opp_pts_off_to_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -770,9 +770,9 @@
   {
     "name": "sf_074",
     "columns": [
-      "diff_roll5_q3_std",
-      "diff_roll5_pctfga_3pt_std",
-      "sum_roll5_fgm_pctast"
+      "diff_roll5_bpioffense",
+      "diff_roll5_pctpts_2pt_mr",
+      "sum_roll5_q1_std"
     ],
     "operation": "div_sum",
     "unary": "log1p",
@@ -781,8 +781,8 @@
   {
     "name": "sf_075",
     "columns": [
-      "sum_contestedshots_10",
-      "sum_crowd_adjusted_massey_q3"
+      "diff_roll20_efgpct_venue",
+      "sum_default_massey"
     ],
     "operation": "sub",
     "unary": null,
@@ -791,9 +791,9 @@
   {
     "name": "sf_076",
     "columns": [
-      "sum_roll10_sag_rating_std",
-      "sum_ot_frequency",
-      "sum_roll20_q4"
+      "sum_roll10_predictor",
+      "diff_roll10_efgpct_venue",
+      "sum_roll20_elo_score"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -802,8 +802,8 @@
   {
     "name": "sf_077",
     "columns": [
-      "sum_roll5_pctpts_2pt_std",
-      "sum_elo_score"
+      "sum_roll5_pctpts_pitp",
+      "sum_sag_rating"
     ],
     "operation": "mul",
     "unary": null,
@@ -812,8 +812,8 @@
   {
     "name": "sf_078",
     "columns": [
-      "diff_location_adjusted_massey_q2",
-      "diff_default_massey_q2"
+      "diff_experience_adjusted_massey_q4",
+      "diff_crowd_weighted_massey_q4"
     ],
     "operation": "add",
     "unary": null,
@@ -822,8 +822,8 @@
   {
     "name": "sf_079",
     "columns": [
-      "diff_roll10_pctpts_2pt",
-      "diff_contestedshots_10",
+      "diff_roll10_pctpts_3pt_std",
+      "sum_bpi",
       "diff_wobus_q1"
     ],
     "operation": "div_sum",
@@ -833,7 +833,7 @@
   {
     "name": "sf_080",
     "columns": [
-      "diff_roll5_fgm_pctast_std",
+      "diff_roll5_ot2",
       "diff_whitlock_q2"
     ],
     "operation": "sub",
@@ -843,9 +843,9 @@
   {
     "name": "sf_081",
     "columns": [
-      "sum_roll10_3fgm_pctuast",
-      "sum_roll10_opp_efgpct_std",
-      "diff_roll20_orebpct"
+      "sum_roll10_q1",
+      "sum_roll10_2nd_pts",
+      "diff_roll20_drebpct"
     ],
     "operation": "triple",
     "unary": null,
@@ -854,8 +854,8 @@
   {
     "name": "sf_082",
     "columns": [
-      "sum_roll5_3pm",
-      "diff_roll10_q2_std"
+      "sum_roll5_3pm_std",
+      "diff_roll10_bpioffense"
     ],
     "operation": "mul",
     "unary": "sqrt",
@@ -864,8 +864,8 @@
   {
     "name": "sf_083",
     "columns": [
-      "sum_roll10_pts_off_to_std",
-      "sum_roll5_blk",
+      "sum_roll10_opp_2nd_pts_std",
+      "sum_roll5_pf_std",
       "diff_venue_switches_3"
     ],
     "operation": "div_sum",
@@ -875,9 +875,9 @@
   {
     "name": "sf_084",
     "columns": [
-      "sum_roll5_pctfga_2pt_std",
-      "diff_roll20_2nd_pts_std",
-      "sum_roll10_ot1_std"
+      "sum_roll5_pctpts_fbps_std",
+      "diff_roll20_opp_pts_off_to",
+      "sum_roll10_bpi"
     ],
     "operation": "triple",
     "unary": null,
@@ -886,9 +886,9 @@
   {
     "name": "sf_085",
     "columns": [
-      "sum_colley_q3",
-      "diff_roll20_recent",
-      "sum_roll20_netrtg"
+      "sum_crowd_adjusted_massey",
+      "diff_roll20_golden_mean",
+      "sum_roll20_orebpct"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -897,8 +897,8 @@
   {
     "name": "sf_086",
     "columns": [
-      "sum_roll5_fta_rate_std",
-      "diff_travel_adjusted_massey"
+      "sum_roll5_opp_orebpct",
+      "diff_location_adjusted_massey_q1"
     ],
     "operation": "mul",
     "unary": "log1p",
@@ -907,9 +907,9 @@
   {
     "name": "sf_087",
     "columns": [
-      "diff_travel_distance",
-      "diff_context_adjusted_massey_q3",
-      "diff_roll20_3pa_std"
+      "diff_margin_last5",
+      "diff_colley_q4",
+      "diff_roll20_3pm"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -918,9 +918,9 @@
   {
     "name": "sf_088",
     "columns": [
-      "sum_roll10_ot2_std",
-      "diff_roll20_fta_std",
-      "sum_roll10_pts_off_to_std"
+      "sum_roll10_bpirank",
+      "diff_roll20_fta",
+      "sum_roll10_opp_2nd_pts_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -929,8 +929,8 @@
   {
     "name": "sf_089",
     "columns": [
-      "sum_roll20_2nd_pts",
-      "sum_roll10_fgm_pctuast_std"
+      "sum_roll20_opp_pitp_std",
+      "sum_roll10_q4"
     ],
     "operation": "sub",
     "unary": "log1p",
@@ -939,9 +939,9 @@
   {
     "name": "sf_090",
     "columns": [
-      "sum_roll5_pctpts_ft_std",
-      "sum_roll5_q3",
-      "diff_roll5_elo_score"
+      "sum_roll5_3fgm_pctuast",
+      "sum_roll5_offtalent",
+      "diff_roll5_playoffbpi_std"
     ],
     "operation": "mul_add",
     "unary": "sqrt",
@@ -950,8 +950,8 @@
   {
     "name": "sf_091",
     "columns": [
-      "diff_roll10_pctpts_3pt_std",
-      "sum_roll20_drebpct"
+      "diff_roll10_pctpts_off_to",
+      "sum_roll20_pace"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -960,9 +960,9 @@
   {
     "name": "sf_092",
     "columns": [
-      "diff_roll5_blk_std",
-      "diff_recent",
-      "sum_roll20_2fgm_pctast"
+      "diff_roll5_tov_std",
+      "diff_offtalent",
+      "sum_roll20_ot3"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -971,9 +971,9 @@
   {
     "name": "sf_093",
     "columns": [
-      "diff_roll10_pctpts_2pt_mr_std",
-      "sum_crowd_weighted_massey_q1",
-      "diff_roll20_fgm"
+      "diff_roll10_pctpts_ft",
+      "sum_default_massey_q3",
+      "diff_roll10_recent_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -982,9 +982,9 @@
   {
     "name": "sf_094",
     "columns": [
-      "diff_roll5_ot1",
-      "sum_roll10_3fgm_pctast",
-      "sum_roll20_netrtg_std"
+      "diff_roll5_ot4",
+      "sum_roll10_ot4",
+      "sum_roll20_drebpct"
     ],
     "operation": "triple",
     "unary": "sqrt",
@@ -993,8 +993,8 @@
   {
     "name": "sf_095",
     "columns": [
-      "diff_roll10_efgpct_std",
-      "sum_roll10_plus_minus"
+      "diff_roll10_tspct",
+      "sum_roll10_offrtg_std"
     ],
     "operation": "add",
     "unary": null,
@@ -1003,9 +1003,9 @@
   {
     "name": "sf_096",
     "columns": [
-      "sum_roll5_2fgm_pctast_std",
-      "diff_colley_q3",
-      "diff_roll10_3pa"
+      "sum_roll5_ot1_std",
+      "diff_win_entropy",
+      "diff_roll10_fgpct"
     ],
     "operation": "mul_add",
     "unary": "abs",
@@ -1015,8 +1015,8 @@
     "name": "sf_097",
     "columns": [
       "sum_predictor",
-      "sum_roll10_opp_pitp",
-      "sum_travel_adjusted_massey"
+      "sum_roll10_pctpts_fbps",
+      "sum_acwr_pts"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1025,8 +1025,8 @@
   {
     "name": "sf_098",
     "columns": [
-      "sum_roll20_opp_pts_off_to_std",
-      "diff_roll10_pts_off_to_std"
+      "sum_roll20_pctpts_2pt_std",
+      "diff_roll10_fbps"
     ],
     "operation": "div",
     "unary": "log1p",
@@ -1035,8 +1035,8 @@
   {
     "name": "sf_099",
     "columns": [
-      "diff_roll5_opp_pitp_std",
-      "diff_roll20_pctpts_2pt_std"
+      "diff_roll5_pctfga_3pt",
+      "diff_roll20_pctpts_ft"
     ],
     "operation": "add",
     "unary": null,
@@ -1045,9 +1045,9 @@
   {
     "name": "sf_100",
     "columns": [
-      "sum_roll5_orebpct",
-      "sum_roll10_ot3",
-      "sum_roll20_opp_fta_rate_std"
+      "sum_roll5_rebpct_std",
+      "sum_roll10_bpioffense",
+      "sum_roll20_pitp_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -1056,8 +1056,8 @@
   {
     "name": "sf_101",
     "columns": [
-      "diff_roll20_fta_std",
-      "sum_roll5_ftm"
+      "diff_roll20_ftm_std",
+      "sum_roll5_ftm_std"
     ],
     "operation": "div",
     "unary": null,
@@ -1066,8 +1066,8 @@
   {
     "name": "sf_102",
     "columns": [
-      "sum_roll20_pure_elo_std",
-      "diff_crowd_weighted_massey_q2"
+      "sum_win_streak",
+      "diff_crowd_adjusted_massey_q4"
     ],
     "operation": "sub",
     "unary": null,
@@ -1076,8 +1076,8 @@
   {
     "name": "sf_103",
     "columns": [
-      "sum_experience_adjusted_massey_q4",
-      "diff_location_adjusted_massey"
+      "sum_travel_adjusted_massey_q3",
+      "diff_experience_adjusted_massey_q2"
     ],
     "operation": "div",
     "unary": "abs",
@@ -1086,8 +1086,8 @@
   {
     "name": "sf_104",
     "columns": [
-      "sum_roll5_pctfga_2pt",
-      "sum_roll10_ot4_std"
+      "sum_roll5_pctpts_3pt_std",
+      "sum_roll10_bpidefense"
     ],
     "operation": "add",
     "unary": null,
@@ -1096,8 +1096,8 @@
   {
     "name": "sf_105",
     "columns": [
-      "sum_roll20_game_id",
-      "diff_roll10_pts_off_to"
+      "sum_roll20_astpct",
+      "diff_roll10_2nd_pts_std"
     ],
     "operation": "add",
     "unary": null,
@@ -1106,8 +1106,8 @@
   {
     "name": "sf_106",
     "columns": [
-      "diff_roll20_predictor",
-      "diff_roll20_ftm"
+      "diff_roll20_elo_score",
+      "diff_roll20_3ppct"
     ],
     "operation": "mul",
     "unary": "sq",
@@ -1116,8 +1116,8 @@
   {
     "name": "sf_107",
     "columns": [
-      "sum_roll5_ast_ratio_std",
-      "sum_roll5_opp_efgpct_std"
+      "sum_roll5_rebpct",
+      "sum_roll5_pts_off_to"
     ],
     "operation": "add",
     "unary": null,
@@ -1126,8 +1126,8 @@
   {
     "name": "sf_108",
     "columns": [
-      "sum_roll5_q4",
-      "diff_roll10_pctpts_off_to_std"
+      "sum_roll5_deftalent",
+      "diff_roll10_2fgm_pctuast_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -1136,9 +1136,9 @@
   {
     "name": "sf_109",
     "columns": [
-      "diff_travel_distance",
+      "diff_margin_last5",
       "sum_roll5_pts_std",
-      "diff_roll20_fbps"
+      "diff_roll20_opp_pts_off_to_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -1147,9 +1147,9 @@
   {
     "name": "sf_110",
     "columns": [
-      "sum_roll20_opp_pts_off_to_std",
-      "sum_roll20_ast_to_std",
-      "diff_scoring_entropy"
+      "sum_roll20_pctpts_2pt_mr",
+      "sum_roll20_tovpct",
+      "diff_acwr_pts"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1158,7 +1158,7 @@
   {
     "name": "sf_111",
     "columns": [
-      "diff_roll20_pctpts_ft",
+      "diff_roll20_2fgm_pctuast",
       "diff_wobus_q4",
       "diff_roll20_stl_std"
     ],
@@ -1169,8 +1169,8 @@
   {
     "name": "sf_112",
     "columns": [
-      "diff_roll5_pts_off_to",
-      "diff_roll10_pure_elo_std"
+      "diff_roll5_pts_off_to_std",
+      "diff_roll10_elo_score_std"
     ],
     "operation": "add",
     "unary": "sq",
@@ -1180,8 +1180,8 @@
     "name": "sf_113",
     "columns": [
       "diff_roll20_stl",
-      "diff_roll5_3pm_std",
-      "sum_roll20_pctpts_ft"
+      "diff_roll5_fgm_std",
+      "sum_roll20_fgm_pctast_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -1190,8 +1190,8 @@
   {
     "name": "sf_114",
     "columns": [
-      "diff_roll20_pctfga_2pt",
-      "diff_roll10_pctpts_3pt"
+      "diff_roll20_pctpts_2pt_mr",
+      "diff_roll10_pctpts_ft_std"
     ],
     "operation": "div",
     "unary": "log1p",
@@ -1200,9 +1200,9 @@
   {
     "name": "sf_115",
     "columns": [
-      "sum_ot_frequency",
+      "diff_roll10_efgpct_venue",
       "diff_roll5_opp_orebpct_std",
-      "diff_colley_q4"
+      "diff_cusum_momentum"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1211,9 +1211,9 @@
   {
     "name": "sf_116",
     "columns": [
-      "sum_roll20_q1",
-      "sum_roll10_pctfga_2pt_std",
-      "diff_roll20_pctpts_pitp_std"
+      "sum_roll20_playoffbpi_std",
+      "sum_roll10_pctpts_ft",
+      "diff_roll20_3fgm_pctuast_std"
     ],
     "operation": "div_sum",
     "unary": "abs",
@@ -1222,7 +1222,7 @@
   {
     "name": "sf_117",
     "columns": [
-      "sum_roll10_ast_ratio_std",
+      "sum_roll10_tovpct",
       "sum_roll5_pts"
     ],
     "operation": "sub",
@@ -1232,8 +1232,8 @@
   {
     "name": "sf_118",
     "columns": [
-      "sum_acwr_pts",
-      "diff_roll10_tovpct_std"
+      "sum_scoring_gini",
+      "diff_roll10_efgpct"
     ],
     "operation": "add",
     "unary": null,
@@ -1242,8 +1242,8 @@
   {
     "name": "sf_119",
     "columns": [
-      "sum_roll20_defrtg",
-      "diff_roll5_pure_elo_std"
+      "sum_roll20_ast_ratio",
+      "diff_roll5_sag_rating_std"
     ],
     "operation": "sub",
     "unary": "sqrt",
@@ -1252,8 +1252,8 @@
   {
     "name": "sf_120",
     "columns": [
-      "diff_travel_adjusted_massey_q1",
-      "diff_experience_adjusted_massey_q1"
+      "diff_location_adjusted_massey_q3",
+      "diff_default_massey_q1"
     ],
     "operation": "mul",
     "unary": "abs",
@@ -1262,8 +1262,8 @@
   {
     "name": "sf_121",
     "columns": [
-      "sum_roll5_3fgm_pctast_std",
-      "sum_roll20_pctpts_pitp_std"
+      "sum_roll5_ot3_std",
+      "sum_roll20_ot2"
     ],
     "operation": "div",
     "unary": "abs",
@@ -1273,7 +1273,7 @@
     "name": "sf_122",
     "columns": [
       "diff_wobus_q3",
-      "sum_roll10_tspct_std"
+      "sum_roll10_opp_efgpct_std"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -1282,9 +1282,9 @@
   {
     "name": "sf_123",
     "columns": [
-      "sum_roll20_offrtg_std",
-      "sum_roll5_q2_std",
-      "sum_roll5_pf"
+      "sum_roll20_ast_to_std",
+      "sum_roll5_playoffbpi_std",
+      "sum_roll5_plus_minus_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -1293,8 +1293,8 @@
   {
     "name": "sf_124",
     "columns": [
-      "diff_roll5_rebpct_std",
-      "sum_roll10_opp_pts_off_to"
+      "diff_roll5_drebpct_std",
+      "sum_roll10_pctfga_3pt_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -1303,8 +1303,8 @@
   {
     "name": "sf_125",
     "columns": [
-      "sum_roll20_defrtg_std",
-      "sum_roll5_fgpct_std"
+      "sum_roll20_ast_ratio_std",
+      "sum_roll5_3pm"
     ],
     "operation": "div",
     "unary": null,
@@ -1313,9 +1313,9 @@
   {
     "name": "sf_126",
     "columns": [
-      "sum_roll5_fta_rate",
-      "diff_roll20_oreb_std",
-      "diff_scoring_entropy"
+      "sum_roll5_opp_tovpct_std",
+      "diff_roll20_ftpct_std",
+      "diff_acwr_netrtg"
     ],
     "operation": "triple",
     "unary": null,
@@ -1324,8 +1324,8 @@
   {
     "name": "sf_127",
     "columns": [
-      "diff_contestedshots_10",
-      "diff_wolfe_q3"
+      "sum_bpi",
+      "diff_wolfe_q4"
     ],
     "operation": "sub",
     "unary": null,
@@ -1334,9 +1334,9 @@
   {
     "name": "sf_128",
     "columns": [
-      "diff_roll20_2fgm_pctuast_std",
-      "diff_roll10_pf",
-      "sum_roll20_fgm_pctast_std"
+      "diff_roll20_fgm_pctuast_std",
+      "diff_roll10_blk_std",
+      "sum_roll20_q3_std"
     ],
     "operation": "mul_add",
     "unary": "sq",
@@ -1345,9 +1345,9 @@
   {
     "name": "sf_129",
     "columns": [
-      "diff_colley_q2",
-      "diff_roll20_pure_elo",
-      "sum_roll10_ast_std"
+      "diff_win_pct_20",
+      "diff_roll20_predictor",
+      "sum_roll10_blk"
     ],
     "operation": "triple",
     "unary": "log1p",
@@ -1356,9 +1356,9 @@
   {
     "name": "sf_130",
     "columns": [
-      "diff_roll10_elo_score_std",
-      "sum_roll5_pts_std",
-      "sum_roll5_3fgm_pctuast"
+      "diff_roll10_deftalent_std",
+      "sum_roll5_pts",
+      "sum_roll5_ot4_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -1367,9 +1367,9 @@
   {
     "name": "sf_131",
     "columns": [
-      "diff_location_adjusted_massey_q4",
-      "sum_roll20_pctpts_ft_std",
-      "sum_roll5_q3"
+      "diff_location_adjusted_massey",
+      "sum_roll20_fgm_pctuast",
+      "sum_roll5_offtalent_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -1378,9 +1378,9 @@
   {
     "name": "sf_132",
     "columns": [
-      "sum_roll10_ot2",
-      "diff_roll5_3fgm_pctuast",
-      "diff_roll5_opp_tovpct"
+      "sum_roll10_bpi_std",
+      "diff_roll5_fgm_pctuast_std",
+      "diff_roll5_opp_tovpct_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -1389,9 +1389,9 @@
   {
     "name": "sf_133",
     "columns": [
-      "sum_experience_adjusted_massey",
-      "diff_roll20_elo_score",
-      "sum_roll5_stl"
+      "sum_location_adjusted_massey_q3",
+      "diff_roll20_sag_rating",
+      "sum_roll5_blk_std"
     ],
     "operation": "div_sum",
     "unary": "sqrt",
@@ -1400,9 +1400,9 @@
   {
     "name": "sf_134",
     "columns": [
-      "diff_roll20_pie",
-      "diff_recent",
-      "sum_roll5_fgm_pctast_std"
+      "diff_roll20_fta_rate_std",
+      "diff_playoffbpi",
+      "sum_roll5_q1_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1411,8 +1411,8 @@
   {
     "name": "sf_135",
     "columns": [
-      "sum_roll20_opp_orebpct",
-      "sum_ff_composite"
+      "sum_roll20_opp_2nd_pts",
+      "sum_ot_frequency"
     ],
     "operation": "div",
     "unary": null,
@@ -1422,7 +1422,7 @@
     "name": "sf_136",
     "columns": [
       "diff_roll5_opp_tovpct",
-      "sum_roll10_sag_rating"
+      "sum_roll10_elo_score_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -1431,9 +1431,9 @@
   {
     "name": "sf_137",
     "columns": [
-      "sum_roll20_ot4",
-      "diff_roll10_ot4",
-      "diff_cusum_momentum"
+      "sum_roll20_bpidefense_std",
+      "diff_roll10_q4_std",
+      "diff_h2h_win_rate"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1442,8 +1442,8 @@
   {
     "name": "sf_138",
     "columns": [
-      "diff_roll20_opp_fbps",
-      "diff_roll5_2fgm_pctast"
+      "diff_roll20_pctfga_3pt",
+      "diff_roll5_3fgm_pctast_std"
     ],
     "operation": "add",
     "unary": null,
@@ -1452,9 +1452,9 @@
   {
     "name": "sf_139",
     "columns": [
-      "sum_roll20_pace_std",
-      "diff_roll5_fgm",
-      "sum_roll10_fbps"
+      "sum_roll20_opp_orebpct",
+      "diff_elo_score",
+      "sum_roll10_opp_pitp"
     ],
     "operation": "div_sum",
     "unary": "sqrt",
@@ -1463,9 +1463,9 @@
   {
     "name": "sf_140",
     "columns": [
-      "sum_roll20_tovpct",
-      "diff_roll10_pctfga_3pt",
-      "diff_roll10_pctfga_2pt_std"
+      "sum_roll20_fta_rate",
+      "diff_roll10_pctpts_2pt_mr_std",
+      "diff_roll10_pctpts_2pt_mr"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1474,8 +1474,8 @@
   {
     "name": "sf_141",
     "columns": [
-      "sum_roll10_pctpts_3pt_std",
-      "sum_roll10_3ppct_std"
+      "sum_roll10_3fgm_pctast",
+      "sum_roll10_fta"
     ],
     "operation": "add",
     "unary": null,
@@ -1484,8 +1484,8 @@
   {
     "name": "sf_142",
     "columns": [
-      "sum_roll10_fgpct_std",
-      "diff_roll20_sag_rating_std"
+      "sum_roll10_3pm_std",
+      "diff_roll20_deftalent"
     ],
     "operation": "sub",
     "unary": null,
@@ -1494,8 +1494,8 @@
   {
     "name": "sf_143",
     "columns": [
-      "sum_roll20_orebpct",
-      "sum_roll10_ast_to_std"
+      "sum_roll20_tspct",
+      "sum_roll10_rebpct"
     ],
     "operation": "mul",
     "unary": null,
@@ -1504,8 +1504,8 @@
   {
     "name": "sf_144",
     "columns": [
-      "sum_roll20_pie",
-      "diff_roll10_sag_rating",
+      "sum_roll20_opp_orebpct_std",
+      "diff_roll10_playoffbpi_std",
       "diff_roll10_netrtg_std"
     ],
     "operation": "triple",
@@ -1515,9 +1515,9 @@
   {
     "name": "sf_145",
     "columns": [
-      "sum_deflections_10",
-      "sum_roll10_rebpct",
-      "sum_roll5_3pm_std"
+      "diff_roll20_pace_venue",
+      "sum_roll10_pace",
+      "sum_roll5_3pa"
     ],
     "operation": "triple",
     "unary": null,
@@ -1526,7 +1526,7 @@
   {
     "name": "sf_146",
     "columns": [
-      "diff_roll5_elo_score",
+      "diff_roll5_offtalent",
       "diff_roll10_netrtg"
     ],
     "operation": "add",
@@ -1536,8 +1536,8 @@
   {
     "name": "sf_147",
     "columns": [
-      "sum_roll5_opp_orebpct",
-      "diff_wolfe"
+      "sum_roll5_pitp",
+      "diff_wolfe_q1"
     ],
     "operation": "div",
     "unary": null,
@@ -1546,8 +1546,8 @@
   {
     "name": "sf_148",
     "columns": [
-      "diff_roll5_fbps_std",
-      "diff_roll5_q4_std"
+      "diff_roll5_pitp",
+      "diff_roll5_bpidefense_std"
     ],
     "operation": "mul",
     "unary": "log1p",
@@ -1556,8 +1556,8 @@
   {
     "name": "sf_149",
     "columns": [
-      "sum_crowd_weighted_massey_q1",
-      "sum_roll5_3fgm_pctuast_std"
+      "sum_default_massey_q4",
+      "sum_roll5_q1"
     ],
     "operation": "div",
     "unary": null,
@@ -1566,9 +1566,9 @@
   {
     "name": "sf_150",
     "columns": [
-      "sum_crowd_weighted_massey",
-      "diff_ff_oliver_index",
-      "sum_roll10_pctfga_2pt"
+      "sum_default_massey_q2",
+      "diff_acwr_pts",
+      "sum_roll10_pctpts_ft"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1577,8 +1577,8 @@
   {
     "name": "sf_151",
     "columns": [
-      "sum_roll5_game_id",
-      "diff_roll20_defrtg_std"
+      "sum_roll5_defrtg",
+      "diff_roll20_netrtg"
     ],
     "operation": "sub",
     "unary": null,
@@ -1587,9 +1587,9 @@
   {
     "name": "sf_152",
     "columns": [
-      "sum_roll5_pctpts_3pt_std",
-      "diff_roll10_opp_tovpct_std",
-      "sum_roll5_opp_efgpct_std"
+      "sum_roll5_2fgm_pctuast",
+      "diff_roll10_pts_off_to",
+      "sum_roll5_pts_off_to"
     ],
     "operation": "mul_add",
     "unary": "sq",
@@ -1599,7 +1599,7 @@
     "name": "sf_153",
     "columns": [
       "diff_roll20_offrtg",
-      "diff_roll20_pie_std"
+      "diff_roll20_opp_efgpct"
     ],
     "operation": "add",
     "unary": "abs",
@@ -1608,9 +1608,9 @@
   {
     "name": "sf_154",
     "columns": [
-      "sum_roll5_pace",
-      "sum_roll5_fgm_pctast",
-      "sum_roll10_ot3_std"
+      "sum_roll5_opp_efgpct_std",
+      "sum_roll5_q1",
+      "sum_roll10_bpioffense"
     ],
     "operation": "triple",
     "unary": null,
@@ -1619,9 +1619,9 @@
   {
     "name": "sf_155",
     "columns": [
-      "sum_roll20_3pa",
-      "diff_roll10_3fgm_pctuast_std",
-      "sum_roll10_3pm"
+      "sum_roll20_ftm_std",
+      "diff_roll10_ot2",
+      "sum_roll10_3pa"
     ],
     "operation": "mul_add",
     "unary": "sqrt",
@@ -1630,8 +1630,8 @@
   {
     "name": "sf_156",
     "columns": [
-      "sum_roll5_offrtg",
-      "diff_is_back_to_back"
+      "sum_roll5_netrtg",
+      "diff_days_rest"
     ],
     "operation": "sub",
     "unary": null,
@@ -1640,8 +1640,8 @@
   {
     "name": "sf_157",
     "columns": [
-      "diff_roll5_predictor_std",
-      "diff_ot_win_rate"
+      "diff_roll5_deftalent_std",
+      "diff_scoring_gini"
     ],
     "operation": "add",
     "unary": null,
@@ -1650,8 +1650,8 @@
   {
     "name": "sf_158",
     "columns": [
-      "diff_roll5_ast_to_std",
-      "diff_roll5_pctpts_fbps_std"
+      "diff_roll5_astpct_std",
+      "diff_roll5_pctpts_off_to_std"
     ],
     "operation": "div",
     "unary": "sqrt",
@@ -1661,7 +1661,7 @@
     "name": "sf_159",
     "columns": [
       "diff_roll20_tov_std",
-      "sum_roll10_q3"
+      "sum_roll10_deftalent"
     ],
     "operation": "add",
     "unary": "abs",
@@ -1670,8 +1670,8 @@
   {
     "name": "sf_160",
     "columns": [
-      "diff_roll20_pctpts_ft_std",
-      "sum_roll20_pctpts_2pt_mr_std"
+      "diff_roll20_2fgm_pctuast_std",
+      "sum_roll20_3fgm_pctast"
     ],
     "operation": "div",
     "unary": "sqrt",
@@ -1680,8 +1680,8 @@
   {
     "name": "sf_161",
     "columns": [
-      "diff_roll20_elo_score",
-      "diff_roll10_opp_pitp"
+      "diff_roll20_sag_rating",
+      "diff_roll10_pctfga_3pt"
     ],
     "operation": "div",
     "unary": "abs",
@@ -1690,8 +1690,8 @@
   {
     "name": "sf_162",
     "columns": [
-      "sum_roll20_tspct",
-      "diff_roll5_2fgm_pctuast"
+      "sum_roll20_opp_fta_rate_std",
+      "diff_roll5_3fgm_pctuast_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -1700,8 +1700,8 @@
   {
     "name": "sf_163",
     "columns": [
-      "diff_roll20_ast_ratio_std",
-      "sum_roll5_tov_std"
+      "diff_roll20_orebpct_std",
+      "sum_roll5_stl_std"
     ],
     "operation": "add",
     "unary": null,
@@ -1710,8 +1710,8 @@
   {
     "name": "sf_164",
     "columns": [
-      "sum_roll5_pts_off_to_std",
-      "diff_roll10_ot1"
+      "sum_roll5_opp_pts_off_to_std",
+      "diff_roll10_q1"
     ],
     "operation": "sub",
     "unary": null,
@@ -1720,8 +1720,8 @@
   {
     "name": "sf_165",
     "columns": [
-      "sum_roll10_opp_pts_off_to",
-      "sum_roll10_oreb"
+      "sum_roll10_pctfga_3pt_std",
+      "sum_roll10_dreb_std"
     ],
     "operation": "div",
     "unary": null,
@@ -1730,8 +1730,8 @@
   {
     "name": "sf_166",
     "columns": [
-      "diff_roll5_astpct",
-      "sum_roll20_pace_std"
+      "diff_roll5_netrtg",
+      "sum_roll20_opp_tovpct_std"
     ],
     "operation": "mul",
     "unary": "log1p",
@@ -1740,8 +1740,8 @@
   {
     "name": "sf_167",
     "columns": [
-      "sum_roll20_ot1",
-      "diff_roll5_fta"
+      "sum_roll20_bpi_std",
+      "diff_roll5_3pa"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -1750,8 +1750,8 @@
   {
     "name": "sf_168",
     "columns": [
-      "diff_roll5_ast_std",
-      "sum_roll10_netrtg_std"
+      "diff_roll5_dreb_std",
+      "sum_roll10_orebpct"
     ],
     "operation": "add",
     "unary": "abs",
@@ -1760,8 +1760,8 @@
   {
     "name": "sf_169",
     "columns": [
-      "sum_roll20_ast_to_std",
-      "sum_roll10_reb"
+      "sum_roll20_tovpct",
+      "sum_roll10_tov"
     ],
     "operation": "mul",
     "unary": null,
@@ -1770,9 +1770,9 @@
   {
     "name": "sf_170",
     "columns": [
-      "diff_crowd_adjusted_massey_q2",
-      "diff_roll10_ftpct",
-      "sum_roll20_pctpts_2pt_mr"
+      "diff_context_adjusted_massey_q3",
+      "diff_roll10_ftm_std",
+      "sum_roll20_2fgm_pctuast"
     ],
     "operation": "mul_add",
     "unary": "sqrt",
@@ -1781,8 +1781,8 @@
   {
     "name": "sf_171",
     "columns": [
-      "sum_roll20_fgm_pctuast_std",
-      "sum_default_massey_q3"
+      "sum_roll20_bpi",
+      "sum_location_adjusted_massey_q1"
     ],
     "operation": "mul",
     "unary": null,
@@ -1791,9 +1791,9 @@
   {
     "name": "sf_172",
     "columns": [
-      "diff_roll20_fbps",
+      "diff_roll20_opp_pts_off_to_std",
       "diff_roll20_plus_minus",
-      "diff_roll10_fgm_std"
+      "diff_roll5_recent"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1802,8 +1802,8 @@
   {
     "name": "sf_173",
     "columns": [
-      "sum_roll5_fgm_pctast_std",
-      "diff_roll10_opp_orebpct"
+      "sum_roll5_q1_std",
+      "diff_roll10_pts_off_to_std"
     ],
     "operation": "mul",
     "unary": "sqrt",
@@ -1812,8 +1812,8 @@
   {
     "name": "sf_174",
     "columns": [
-      "diff_roll20_pctpts_ft",
-      "diff_roll5_ftm"
+      "diff_roll20_2fgm_pctuast",
+      "diff_roll5_3pm"
     ],
     "operation": "mul",
     "unary": null,
@@ -1822,9 +1822,9 @@
   {
     "name": "sf_175",
     "columns": [
-      "sum_roll10_2nd_pts",
-      "sum_roll20_dreb_std",
-      "diff_roll20_fta_std"
+      "sum_roll10_opp_fbps",
+      "sum_roll20_tov_std",
+      "diff_roll20_ftm_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -1833,8 +1833,8 @@
   {
     "name": "sf_176",
     "columns": [
-      "sum_roll10_fgm_pctast_std",
-      "diff_roll5_recent"
+      "sum_roll10_q2_std",
+      "diff_roll5_predictor"
     ],
     "operation": "sub",
     "unary": "log1p",
@@ -1843,9 +1843,9 @@
   {
     "name": "sf_177",
     "columns": [
-      "diff_roll10_ot3_std",
-      "diff_acwr_risk",
-      "diff_golden_mean"
+      "diff_roll10_q3_std",
+      "diff_roll10_h2_pts",
+      "diff_bpidefense"
     ],
     "operation": "triple",
     "unary": null,
@@ -1854,8 +1854,8 @@
   {
     "name": "sf_178",
     "columns": [
-      "sum_roll5_pace",
-      "sum_roll5_orebpct"
+      "sum_roll5_opp_efgpct_std",
+      "sum_roll5_rebpct_std"
     ],
     "operation": "div",
     "unary": null,
@@ -1864,9 +1864,9 @@
   {
     "name": "sf_179",
     "columns": [
-      "diff_roll10_offrtg",
-      "sum_roll5_3pa_std",
-      "diff_roll10_q4"
+      "diff_roll10_game_id",
+      "sum_roll5_3ppct",
+      "diff_roll10_playoffbpi"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1875,9 +1875,9 @@
   {
     "name": "sf_180",
     "columns": [
-      "sum_location_adjusted_massey_q1",
-      "sum_roll20_pf",
-      "diff_roll20_3pm_std"
+      "sum_pyth_residual",
+      "sum_roll20_defrtg",
+      "diff_roll20_fgpct_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -1886,9 +1886,9 @@
   {
     "name": "sf_181",
     "columns": [
-      "diff_roll10_opp_pitp",
-      "diff_roll10_3fgm_pctast_std",
-      "sum_roll20_plus_minus_std"
+      "diff_roll10_pctfga_3pt_std",
+      "diff_roll10_ot1",
+      "sum_roll20_netrtg"
     ],
     "operation": "triple",
     "unary": null,
@@ -1897,9 +1897,9 @@
   {
     "name": "sf_182",
     "columns": [
-      "diff_roll20_3fgm_pctuast_std",
-      "sum_roll5_3pm",
-      "sum_roll10_pie"
+      "diff_roll20_ot3_std",
+      "sum_roll5_3pm_std",
+      "sum_roll10_opp_tovpct_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -1908,8 +1908,8 @@
   {
     "name": "sf_183",
     "columns": [
-      "sum_travel_adjusted_massey_q3",
-      "sum_roll20_ot4"
+      "sum_roll10_h2_pts",
+      "sum_roll20_bpidefense_std"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -1918,8 +1918,8 @@
   {
     "name": "sf_184",
     "columns": [
-      "diff_is_back_to_back",
-      "diff_roll20_q1_std"
+      "diff_days_rest",
+      "diff_roll20_bpirank_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -1928,8 +1928,8 @@
   {
     "name": "sf_185",
     "columns": [
-      "sum_roll10_ftpct_std",
-      "diff_roll10_ftm_std"
+      "sum_roll10_dreb_std",
+      "diff_roll10_3ppct"
     ],
     "operation": "mul",
     "unary": null,
@@ -1938,8 +1938,8 @@
   {
     "name": "sf_186",
     "columns": [
-      "sum_roll10_ftpct",
-      "diff_roll10_tovpct"
+      "sum_roll10_dreb",
+      "diff_roll10_tovpct_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -1948,8 +1948,8 @@
   {
     "name": "sf_187",
     "columns": [
-      "diff_roll20_tspct",
-      "diff_experience_adjusted_massey_q1"
+      "diff_roll20_pace_std",
+      "diff_default_massey_q2"
     ],
     "operation": "add",
     "unary": null,
@@ -1958,8 +1958,8 @@
   {
     "name": "sf_188",
     "columns": [
-      "diff_looseballsrecoveredtotal_10",
-      "diff_roll20_q4"
+      "sum_bpi",
+      "diff_roll20_playoffbpi_std"
     ],
     "operation": "add",
     "unary": null,
@@ -1968,9 +1968,9 @@
   {
     "name": "sf_189",
     "columns": [
-      "diff_cusum_momentum",
-      "sum_roll5_ast_to",
-      "sum_colley_q1"
+      "diff_h2h_win_rate",
+      "sum_roll5_orebpct_std",
+      "sum_context_adjusted_massey_q2"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -1979,9 +1979,9 @@
   {
     "name": "sf_190",
     "columns": [
-      "diff_roll5_pctpts_3pt",
-      "diff_pure_elo",
-      "diff_ff_composite"
+      "diff_roll5_pctpts_fbps_std",
+      "diff_bpioffense",
+      "diff_ff_oliver_index"
     ],
     "operation": "mul_add",
     "unary": "log1p",
@@ -1990,8 +1990,8 @@
   {
     "name": "sf_191",
     "columns": [
-      "sum_location_adjusted_massey_q4",
-      "sum_roll20_pts_std"
+      "sum_scoring_entropy",
+      "sum_roll20_fga"
     ],
     "operation": "add",
     "unary": null,
@@ -2000,8 +2000,8 @@
   {
     "name": "sf_192",
     "columns": [
-      "diff_roll20_3fgm_pctuast",
-      "diff_roll20_fta_rate"
+      "diff_roll20_ot2_std",
+      "diff_roll20_opp_fta_rate"
     ],
     "operation": "div",
     "unary": null,
@@ -2010,9 +2010,9 @@
   {
     "name": "sf_193",
     "columns": [
-      "sum_roll20_elo_score",
-      "diff_roll20_q1_std",
-      "sum_roll5_drebpct_std"
+      "sum_roll20_pure_elo_std",
+      "diff_roll20_bpioffense",
+      "sum_roll5_efgpct"
     ],
     "operation": "triple",
     "unary": "sq",
@@ -2021,8 +2021,8 @@
   {
     "name": "sf_194",
     "columns": [
-      "diff_roll5_q3",
-      "sum_roll10_2fgm_pctast_std"
+      "diff_roll5_bpirank_std",
+      "sum_roll10_ot2"
     ],
     "operation": "mul",
     "unary": null,
@@ -2031,8 +2031,8 @@
   {
     "name": "sf_195",
     "columns": [
-      "diff_roll5_ftpct_std",
-      "sum_context_adjusted_massey_q3"
+      "diff_roll5_ftm",
+      "sum_crowd_weighted_massey"
     ],
     "operation": "div",
     "unary": "abs",
@@ -2041,9 +2041,9 @@
   {
     "name": "sf_196",
     "columns": [
-      "diff_roll10_predictor",
-      "sum_roll10_pctfga_2pt_std",
-      "diff_roll20_tspct_std"
+      "diff_roll10_sag_rating",
+      "sum_roll10_pctpts_ft_std",
+      "diff_roll20_pie"
     ],
     "operation": "triple",
     "unary": "sq",
@@ -2052,8 +2052,8 @@
   {
     "name": "sf_197",
     "columns": [
-      "diff_roll10_ot1",
-      "diff_context_adjusted_massey_q4"
+      "diff_roll10_ot4_std",
+      "diff_context_adjusted_massey"
     ],
     "operation": "mul",
     "unary": null,
@@ -2062,9 +2062,9 @@
   {
     "name": "sf_198",
     "columns": [
-      "diff_roll10_pctpts_ft_std",
-      "sum_roll10_3pa",
-      "sum_roll5_q4"
+      "diff_roll10_2fgm_pctast_std",
+      "sum_roll10_3ppct",
+      "sum_roll5_deftalent_std"
     ],
     "operation": "mul_add",
     "unary": "abs",
@@ -2073,9 +2073,9 @@
   {
     "name": "sf_199",
     "columns": [
-      "diff_roll20_3pm_std",
-      "diff_roll20_fta_std",
-      "sum_roll20_pts_off_to"
+      "diff_roll20_fgpct_std",
+      "diff_roll20_ftm_std",
+      "sum_roll20_opp_fbps"
     ],
     "operation": "triple",
     "unary": null,
@@ -2085,8 +2085,8 @@
     "name": "sf_200",
     "columns": [
       "diff_roll5_opp_fta_rate",
-      "sum_travel_adjusted_massey_q1",
-      "sum_roll5_fta_rate_std"
+      "sum_acwr_netrtg",
+      "sum_roll5_opp_orebpct"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2095,8 +2095,8 @@
   {
     "name": "sf_201",
     "columns": [
-      "sum_roll5_stl",
-      "sum_roll20_3ppct_std"
+      "sum_roll5_blk_std",
+      "sum_roll20_ftpct"
     ],
     "operation": "div",
     "unary": null,
@@ -2105,8 +2105,8 @@
   {
     "name": "sf_202",
     "columns": [
-      "diff_roll5_fbps",
-      "sum_roll5_ftpct_std"
+      "diff_roll5_pitp",
+      "sum_roll5_oreb"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -2115,8 +2115,8 @@
   {
     "name": "sf_203",
     "columns": [
-      "sum_recent",
-      "sum_roll10_opp_orebpct_std"
+      "sum_golden_mean",
+      "sum_roll10_opp_pts_off_to"
     ],
     "operation": "div",
     "unary": null,
@@ -2125,8 +2125,8 @@
   {
     "name": "sf_204",
     "columns": [
-      "sum_roll10_pctpts_fbps",
-      "diff_roll5_2fgm_pctuast"
+      "sum_roll10_3fgm_pctast",
+      "diff_roll5_3fgm_pctuast_std"
     ],
     "operation": "add",
     "unary": "sqrt",
@@ -2135,8 +2135,8 @@
   {
     "name": "sf_205",
     "columns": [
-      "sum_roll20_golden_mean",
-      "diff_roll10_pctfga_2pt_std"
+      "sum_days_rest",
+      "diff_roll10_pctpts_2pt_std"
     ],
     "operation": "div",
     "unary": "sq",
@@ -2145,9 +2145,9 @@
   {
     "name": "sf_206",
     "columns": [
-      "sum_roll5_q3_std",
-      "sum_roll5_pctpts_2pt_mr",
-      "diff_roll10_plus_minus"
+      "sum_roll5_offtalent_std",
+      "sum_roll5_pctpts_pitp",
+      "diff_roll10_pf_std"
     ],
     "operation": "div_sum",
     "unary": "sq",
@@ -2156,9 +2156,9 @@
   {
     "name": "sf_207",
     "columns": [
-      "sum_roll5_orebpct_std",
-      "sum_roll10_ast_to",
-      "sum_roll20_opp_orebpct"
+      "sum_roll5_tovpct_std",
+      "sum_roll10_drebpct_std",
+      "sum_roll20_opp_2nd_pts"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -2167,8 +2167,8 @@
   {
     "name": "sf_208",
     "columns": [
-      "diff_roll20_3pa_std",
-      "diff_roll10_pctpts_pitp_std"
+      "diff_roll20_3pm_std",
+      "diff_roll10_3fgm_pctuast"
     ],
     "operation": "mul",
     "unary": null,
@@ -2177,9 +2177,9 @@
   {
     "name": "sf_209",
     "columns": [
-      "diff_roll20_astpct",
-      "diff_looseballsrecoveredtotal_10",
-      "sum_roll20_opp_2nd_pts_std"
+      "diff_roll20_ast_to",
+      "sum_bpirank",
+      "sum_roll20_pctpts_3pt"
     ],
     "operation": "triple",
     "unary": null,
@@ -2188,8 +2188,8 @@
   {
     "name": "sf_210",
     "columns": [
-      "diff_roll20_fbps",
-      "sum_roll5_3ppct"
+      "diff_roll20_opp_2nd_pts",
+      "sum_roll5_3ppct_std"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -2198,8 +2198,8 @@
   {
     "name": "sf_211",
     "columns": [
-      "sum_context_adjusted_massey_q2",
-      "sum_roll20_blk"
+      "sum_crowd_adjusted_massey_q3",
+      "sum_roll20_game_id_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -2208,8 +2208,8 @@
   {
     "name": "sf_212",
     "columns": [
-      "diff_roll10_oreb",
-      "diff_roll10_3fgm_pctast_std"
+      "diff_roll10_fta_std",
+      "diff_roll10_ot1"
     ],
     "operation": "mul",
     "unary": "abs",
@@ -2218,8 +2218,8 @@
   {
     "name": "sf_213",
     "columns": [
-      "sum_roll20_fgm_pctast_std",
-      "sum_contestedshots_10"
+      "sum_roll20_q4",
+      "sum_roll20_q3_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -2228,8 +2228,8 @@
   {
     "name": "sf_214",
     "columns": [
-      "sum_roll5_pure_elo_std",
-      "diff_roll20_ot1"
+      "sum_roll5_golden_mean_std",
+      "diff_roll20_q2"
     ],
     "operation": "mul",
     "unary": null,
@@ -2238,9 +2238,9 @@
   {
     "name": "sf_215",
     "columns": [
-      "diff_roll20_opp_pitp",
-      "sum_roll20_3ppct_std",
-      "diff_experience_adjusted_massey"
+      "diff_roll20_pctpts_2pt_std",
+      "sum_roll20_ftpct_std",
+      "diff_default_massey"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -2249,8 +2249,8 @@
   {
     "name": "sf_216",
     "columns": [
-      "sum_roll20_q4",
-      "diff_roll20_efgpct"
+      "sum_roll20_elo_score_std",
+      "diff_roll20_tspct_std"
     ],
     "operation": "add",
     "unary": null,
@@ -2259,9 +2259,9 @@
   {
     "name": "sf_217",
     "columns": [
-      "sum_roll5_fgm_pctuast",
-      "sum_roll5_pctpts_fbps_std",
-      "sum_roll10_sag_rating"
+      "sum_roll5_q2",
+      "sum_roll5_3fgm_pctast",
+      "sum_roll10_elo_score_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -2271,8 +2271,8 @@
     "name": "sf_218",
     "columns": [
       "diff_venue_switches_3",
-      "diff_predictor",
-      "sum_roll10_pctfga_3pt"
+      "diff_bpirank",
+      "sum_roll10_pctpts_off_to"
     ],
     "operation": "mul_add",
     "unary": "sqrt",
@@ -2281,8 +2281,8 @@
   {
     "name": "sf_219",
     "columns": [
-      "diff_roll5_q2",
-      "sum_roll10_predictor"
+      "diff_roll5_bpi",
+      "sum_roll10_pure_elo_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -2291,8 +2291,8 @@
   {
     "name": "sf_220",
     "columns": [
-      "diff_roll10_3pm",
-      "sum_roll20_ot3"
+      "diff_roll10_fgm_std",
+      "sum_roll20_bpioffense_std"
     ],
     "operation": "div",
     "unary": null,
@@ -2301,8 +2301,8 @@
   {
     "name": "sf_221",
     "columns": [
-      "diff_roll20_ftpct",
-      "sum_roll5_pure_elo_std"
+      "diff_roll20_fta_std",
+      "sum_roll5_golden_mean"
     ],
     "operation": "add",
     "unary": null,
@@ -2311,8 +2311,8 @@
   {
     "name": "sf_222",
     "columns": [
-      "diff_roll20_tspct",
-      "sum_roll5_pf",
+      "diff_roll20_pace_std",
+      "sum_roll5_plus_minus_std",
       "sum_roll5_pts"
     ],
     "operation": "div_sum",
@@ -2322,8 +2322,8 @@
   {
     "name": "sf_223",
     "columns": [
-      "diff_colley_q4",
-      "sum_ff_oliver_index"
+      "diff_colley",
+      "sum_def_consistency"
     ],
     "operation": "sub",
     "unary": null,
@@ -2332,8 +2332,8 @@
   {
     "name": "sf_224",
     "columns": [
-      "sum_roll10_pctfga_2pt",
-      "diff_context_adjusted_massey_q2",
+      "sum_roll10_pctpts_fbps_std",
+      "diff_colley_q2",
       "sum_roll5_fgpct_std"
     ],
     "operation": "mul_add",
@@ -2343,8 +2343,8 @@
   {
     "name": "sf_225",
     "columns": [
-      "sum_roll10_2nd_pts",
-      "sum_roll10_opp_tovpct_std"
+      "sum_roll10_opp_fbps",
+      "sum_roll10_pitp_std"
     ],
     "operation": "div",
     "unary": null,
@@ -2353,9 +2353,9 @@
   {
     "name": "sf_226",
     "columns": [
-      "diff_roll10_h2_pts",
-      "sum_roll5_fta_rate_std",
-      "sum_roll10_pie"
+      "diff_close_game_rate_10",
+      "sum_roll5_opp_orebpct",
+      "sum_roll10_opp_tovpct"
     ],
     "operation": "triple",
     "unary": null,
@@ -2364,8 +2364,8 @@
   {
     "name": "sf_227",
     "columns": [
-      "diff_roll20_q1_std",
-      "sum_roll10_pf"
+      "diff_roll20_bpioffense",
+      "sum_roll10_game_id_std"
     ],
     "operation": "sub",
     "unary": "sq",
@@ -2374,9 +2374,9 @@
   {
     "name": "sf_228",
     "columns": [
-      "diff_roll5_opp_pitp_std",
-      "diff_roll5_q3",
-      "sum_roll5_elo_score"
+      "diff_roll5_pctfga_2pt_std",
+      "diff_roll5_bpirank_std",
+      "sum_roll5_elo_score_std"
     ],
     "operation": "mul_add",
     "unary": "sqrt",
@@ -2385,8 +2385,8 @@
   {
     "name": "sf_229",
     "columns": [
-      "diff_roll10_ftpct",
-      "sum_roll10_fgm_pctuast_std"
+      "diff_roll10_ftm",
+      "sum_roll10_q4"
     ],
     "operation": "sub",
     "unary": "sqrt",
@@ -2395,8 +2395,8 @@
   {
     "name": "sf_230",
     "columns": [
-      "sum_roll20_opp_fta_rate",
-      "sum_roll10_fgm_std"
+      "sum_roll20_pitp",
+      "sum_roll10_fga_std"
     ],
     "operation": "div",
     "unary": "sq",
@@ -2405,9 +2405,9 @@
   {
     "name": "sf_231",
     "columns": [
-      "sum_roll10_pitp",
-      "sum_roll20_2fgm_pctuast",
-      "sum_roll20_3fgm_pctuast"
+      "sum_roll10_pctfga_2pt",
+      "sum_roll20_ot4",
+      "sum_roll20_q2"
     ],
     "operation": "triple",
     "unary": null,
@@ -2416,9 +2416,9 @@
   {
     "name": "sf_232",
     "columns": [
-      "sum_roll5_opp_pitp",
-      "sum_roll10_opp_2nd_pts",
-      "sum_roll5_efgpct_std"
+      "sum_roll5_pctpts_3pt",
+      "sum_roll10_pctpts_2pt_std",
+      "sum_roll5_fta_rate"
     ],
     "operation": "triple",
     "unary": null,
@@ -2427,8 +2427,8 @@
   {
     "name": "sf_233",
     "columns": [
-      "diff_screenassists_10",
-      "diff_roll20_ot1",
+      "sum_bpioffense",
+      "diff_roll20_q1_std",
       "diff_travel_distance_5"
     ],
     "operation": "mul_add",
@@ -2438,9 +2438,9 @@
   {
     "name": "sf_234",
     "columns": [
-      "diff_roll20_pitp",
-      "sum_crowd_weighted_massey",
-      "sum_roll5_opp_pitp"
+      "diff_roll20_opp_2nd_pts_std",
+      "sum_default_massey_q2",
+      "sum_roll5_pctpts_3pt"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -2449,8 +2449,8 @@
   {
     "name": "sf_235",
     "columns": [
-      "sum_roll20_rebpct",
-      "sum_roll5_oreb_std"
+      "sum_roll20_pace_std",
+      "sum_roll5_reb"
     ],
     "operation": "div",
     "unary": null,
@@ -2459,8 +2459,8 @@
   {
     "name": "sf_236",
     "columns": [
-      "diff_roll10_pctpts_ft_std",
-      "sum_roll20_fga"
+      "diff_roll10_2fgm_pctast_std",
+      "sum_roll20_3pm"
     ],
     "operation": "sub",
     "unary": null,
@@ -2469,9 +2469,9 @@
   {
     "name": "sf_237",
     "columns": [
-      "sum_roll20_sag_rating_std",
-      "sum_location_adjusted_massey_q3",
-      "diff_roll5_fta"
+      "sum_roll20_pure_elo",
+      "sum_ff_composite",
+      "diff_roll5_3pa_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -2480,8 +2480,8 @@
   {
     "name": "sf_238",
     "columns": [
-      "sum_roll5_pctpts_pitp",
-      "diff_crowd_adjusted_massey_q2"
+      "sum_roll5_fgm_pctast_std",
+      "diff_context_adjusted_massey_q3"
     ],
     "operation": "mul",
     "unary": null,
@@ -2490,8 +2490,8 @@
   {
     "name": "sf_239",
     "columns": [
-      "diff_roll10_fgm_pctuast",
-      "diff_roll20_oreb_std"
+      "diff_roll10_ot3_std",
+      "diff_roll20_oreb"
     ],
     "operation": "add",
     "unary": null,
@@ -2500,8 +2500,8 @@
   {
     "name": "sf_240",
     "columns": [
-      "sum_roll20_3ppct_std",
-      "sum_roll5_elo_score_std"
+      "sum_roll20_ftpct",
+      "sum_roll5_predictor"
     ],
     "operation": "div",
     "unary": "sqrt",
@@ -2510,8 +2510,8 @@
   {
     "name": "sf_241",
     "columns": [
-      "diff_roll5_fgm",
-      "diff_crowd_adjusted_massey"
+      "diff_elo_score",
+      "diff_context_adjusted_massey"
     ],
     "operation": "mul",
     "unary": null,
@@ -2520,9 +2520,9 @@
   {
     "name": "sf_242",
     "columns": [
-      "sum_roll5_opp_pts_off_to",
-      "diff_roll5_3fgm_pctuast_std",
-      "diff_roll5_predictor"
+      "sum_roll5_pctfga_2pt_std",
+      "diff_roll5_ot1",
+      "diff_roll5_offtalent_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2531,7 +2531,7 @@
   {
     "name": "sf_243",
     "columns": [
-      "diff_roll5_dreb",
+      "diff_roll5_fta_std",
       "diff_roll10_ast_ratio_std"
     ],
     "operation": "sub",
@@ -2541,8 +2541,8 @@
   {
     "name": "sf_244",
     "columns": [
-      "sum_roll5_3fgm_pctast_std",
-      "sum_roll20_q4",
+      "sum_roll5_ot3_std",
+      "sum_roll20_elo_score",
       "diff_roll5_fta_rate_std"
     ],
     "operation": "mul_add",
@@ -2552,9 +2552,9 @@
   {
     "name": "sf_245",
     "columns": [
-      "sum_roll5_recent_std",
-      "diff_roll10_q2_std",
-      "diff_roll10_pitp"
+      "sum_roll10_pts",
+      "diff_roll10_bpioffense",
+      "diff_roll10_opp_2nd_pts"
     ],
     "operation": "triple",
     "unary": null,
@@ -2563,8 +2563,8 @@
   {
     "name": "sf_246",
     "columns": [
-      "diff_roll10_blk_std",
-      "diff_acwr_risk"
+      "diff_roll10_stl_std",
+      "diff_roll10_h2_pts"
     ],
     "operation": "div",
     "unary": null,
@@ -2573,9 +2573,9 @@
   {
     "name": "sf_247",
     "columns": [
-      "sum_roll10_h2_pts",
-      "diff_elo_score",
-      "sum_roll10_dreb"
+      "diff_roll10_defrtg_venue",
+      "diff_bpi",
+      "sum_roll10_ast"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2584,9 +2584,9 @@
   {
     "name": "sf_248",
     "columns": [
-      "diff_roll5_fgm_pctuast",
-      "sum_location_adjusted_massey_q2",
-      "diff_roll5_pctfga_3pt_std"
+      "diff_roll5_ot2_std",
+      "sum_pyth_residual",
+      "diff_roll5_pctpts_2pt_mr"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2595,8 +2595,8 @@
   {
     "name": "sf_249",
     "columns": [
-      "diff_roll20_recent_std",
-      "diff_roll20_opp_fbps"
+      "diff_roll20_golden_mean_std",
+      "diff_roll20_pctfga_3pt"
     ],
     "operation": "div",
     "unary": null,
@@ -2605,9 +2605,9 @@
   {
     "name": "sf_250",
     "columns": [
-      "sum_roll20_pctpts_pitp",
-      "sum_roll10_q1",
-      "sum_roll20_ftpct"
+      "sum_roll20_ot1_std",
+      "sum_roll10_playoffbpi",
+      "sum_roll20_reb"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2616,9 +2616,9 @@
   {
     "name": "sf_251",
     "columns": [
-      "diff_wobus",
-      "diff_roll10_dreb_std",
-      "sum_roll10_opp_fbps"
+      "diff_wobus_q1",
+      "diff_roll10_oreb",
+      "sum_roll10_pctpts_2pt_mr_std"
     ],
     "operation": "div_sum",
     "unary": "log1p",
@@ -2627,8 +2627,8 @@
   {
     "name": "sf_252",
     "columns": [
-      "diff_roll10_3pm",
-      "diff_roll20_defrtg_std"
+      "diff_roll10_fga",
+      "diff_roll20_netrtg_std"
     ],
     "operation": "add",
     "unary": "log1p",
@@ -2637,8 +2637,8 @@
   {
     "name": "sf_253",
     "columns": [
-      "diff_roll5_opp_2nd_pts",
-      "diff_roll5_ast_ratio_std"
+      "diff_roll5_opp_fbps",
+      "diff_roll5_ast_to_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -2647,9 +2647,9 @@
   {
     "name": "sf_254",
     "columns": [
-      "sum_roll20_oreb",
-      "diff_roll5_stl_std",
-      "sum_roll10_opp_2nd_pts"
+      "sum_roll20_ast",
+      "diff_roll5_ast_std",
+      "sum_roll10_pctpts_2pt_mr"
     ],
     "operation": "div_sum",
     "unary": "abs",
@@ -2658,9 +2658,9 @@
   {
     "name": "sf_255",
     "columns": [
-      "sum_roll5_ftm_std",
-      "sum_roll5_stl",
-      "diff_crowd_adjusted_massey"
+      "sum_roll5_fta",
+      "sum_roll5_blk_std",
+      "diff_context_adjusted_massey_q1"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2669,9 +2669,9 @@
   {
     "name": "sf_256",
     "columns": [
-      "diff_roll10_fgm_pctast_std",
-      "sum_roll5_pie_std",
-      "diff_roll20_netrtg_std"
+      "diff_roll10_ot3",
+      "sum_roll5_opp_tovpct",
+      "diff_roll20_astpct_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -2680,8 +2680,8 @@
   {
     "name": "sf_257",
     "columns": [
-      "diff_roll20_opp_2nd_pts_std",
-      "diff_roll20_reb_std"
+      "diff_roll20_pctfga_2pt_std",
+      "diff_roll20_reb"
     ],
     "operation": "add",
     "unary": "abs",
@@ -2690,8 +2690,8 @@
   {
     "name": "sf_258",
     "columns": [
-      "sum_roll10_pctpts_3pt_std",
-      "sum_roll10_pctfga_2pt"
+      "sum_roll10_3fgm_pctast",
+      "sum_roll10_pctpts_fbps_std"
     ],
     "operation": "mul",
     "unary": "abs",
@@ -2700,9 +2700,9 @@
   {
     "name": "sf_259",
     "columns": [
-      "diff_roll5_efgpct",
-      "diff_roll20_fgm_pctuast",
-      "sum_roll10_plus_minus_std"
+      "diff_roll5_tovpct_std",
+      "diff_roll20_q1",
+      "sum_roll10_defrtg_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2711,8 +2711,8 @@
   {
     "name": "sf_260",
     "columns": [
-      "diff_roll20_3fgm_pctast_std",
-      "sum_roll20_fgm_pctuast"
+      "diff_roll20_ot1_std",
+      "sum_roll20_q4_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -2722,8 +2722,8 @@
     "name": "sf_261",
     "columns": [
       "diff_roll10_ast_ratio",
-      "sum_roll5_pctpts_2pt_mr",
-      "diff_context_adjusted_massey_q4"
+      "sum_roll5_pctpts_pitp_std",
+      "diff_colley_q4"
     ],
     "operation": "mul_add",
     "unary": "log1p",
@@ -2732,8 +2732,8 @@
   {
     "name": "sf_262",
     "columns": [
-      "sum_roll10_opp_tovpct_std",
-      "sum_roll10_opp_2nd_pts"
+      "sum_roll10_pitp_std",
+      "sum_roll10_pctpts_2pt_std"
     ],
     "operation": "div",
     "unary": null,
@@ -2742,8 +2742,8 @@
   {
     "name": "sf_263",
     "columns": [
-      "sum_roll5_fgpct",
-      "sum_roll10_ast_to_std"
+      "sum_roll5_fgpct_std",
+      "sum_roll10_rebpct"
     ],
     "operation": "div",
     "unary": null,
@@ -2752,8 +2752,8 @@
   {
     "name": "sf_264",
     "columns": [
-      "diff_roll20_fgm_std",
-      "diff_whitlock"
+      "diff_roll20_pts",
+      "diff_travel_adjusted_massey_q4"
     ],
     "operation": "mul",
     "unary": null,
@@ -2762,8 +2762,8 @@
   {
     "name": "sf_265",
     "columns": [
-      "diff_roll10_3ppct_std",
-      "sum_roll20_dreb_std"
+      "diff_roll10_3pm_std",
+      "sum_roll20_tov_std"
     ],
     "operation": "add",
     "unary": "abs",
@@ -2772,8 +2772,8 @@
   {
     "name": "sf_266",
     "columns": [
-      "diff_context_adjusted_massey",
-      "sum_roll5_defrtg_std"
+      "diff_colley",
+      "sum_roll5_astpct_std"
     ],
     "operation": "div",
     "unary": "log1p",
@@ -2782,8 +2782,8 @@
   {
     "name": "sf_267",
     "columns": [
-      "diff_elo_score",
-      "sum_roll5_2nd_pts"
+      "diff_bpi",
+      "sum_roll5_opp_2nd_pts"
     ],
     "operation": "sub",
     "unary": null,
@@ -2792,9 +2792,9 @@
   {
     "name": "sf_268",
     "columns": [
-      "diff_roll5_pctfga_3pt_std",
-      "diff_roll10_tov",
-      "diff_experience_adjusted_massey_q1"
+      "diff_roll5_pctpts_2pt_mr",
+      "diff_roll10_ast",
+      "diff_default_massey_q2"
     ],
     "operation": "triple",
     "unary": null,
@@ -2803,8 +2803,8 @@
   {
     "name": "sf_269",
     "columns": [
-      "diff_roll5_tovpct",
-      "diff_location_adjusted_massey_q1"
+      "diff_roll5_rebpct_std",
+      "diff_experience_adjusted_massey_q2"
     ],
     "operation": "add",
     "unary": "sq",
@@ -2813,8 +2813,8 @@
   {
     "name": "sf_270",
     "columns": [
-      "diff_roll5_pctpts_2pt_mr_std",
-      "sum_roll20_pctfga_2pt_std"
+      "diff_roll5_pctpts_fbps_std",
+      "sum_roll20_pctpts_off_to"
     ],
     "operation": "mul",
     "unary": null,
@@ -2823,8 +2823,8 @@
   {
     "name": "sf_271",
     "columns": [
-      "diff_roll5_pts_off_to",
-      "diff_roll5_sag_rating"
+      "diff_roll5_pts_off_to_std",
+      "diff_roll5_bpidefense_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -2833,8 +2833,8 @@
   {
     "name": "sf_272",
     "columns": [
-      "diff_roll10_pctpts_ft_std",
-      "diff_roll5_drebpct"
+      "diff_roll10_2fgm_pctast_std",
+      "diff_roll5_orebpct"
     ],
     "operation": "sub",
     "unary": "sq",
@@ -2843,8 +2843,8 @@
   {
     "name": "sf_273",
     "columns": [
-      "sum_roll5_opp_pitp",
-      "sum_roll10_golden_mean"
+      "sum_roll5_pctpts_3pt",
+      "sum_roll20_pts"
     ],
     "operation": "add",
     "unary": null,
@@ -2853,8 +2853,8 @@
   {
     "name": "sf_274",
     "columns": [
-      "diff_roll5_ast_to_std",
-      "diff_roll5_pctpts_3pt"
+      "diff_roll5_astpct_std",
+      "diff_roll5_pctpts_fbps_std"
     ],
     "operation": "div",
     "unary": null,
@@ -2863,9 +2863,9 @@
   {
     "name": "sf_275",
     "columns": [
-      "sum_roll10_pctfga_3pt_std",
-      "sum_crowd_weighted_massey_q1",
-      "diff_roll5_ot2"
+      "sum_roll10_pctpts_off_to_std",
+      "sum_default_massey_q4",
+      "diff_roll5_q1"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2874,8 +2874,8 @@
   {
     "name": "sf_276",
     "columns": [
-      "diff_roll10_opp_efgpct",
-      "sum_ot_win_rate"
+      "diff_roll10_opp_fta_rate",
+      "diff_roll20_offrtg_venue"
     ],
     "operation": "div",
     "unary": null,
@@ -2884,8 +2884,8 @@
   {
     "name": "sf_277",
     "columns": [
-      "sum_colley_q1",
-      "sum_roll20_fgm_pctast_std"
+      "sum_context_adjusted_massey_q2",
+      "sum_roll20_q3_std"
     ],
     "operation": "sub",
     "unary": "sqrt",
@@ -2895,7 +2895,7 @@
     "name": "sf_278",
     "columns": [
       "diff_wobus_q3",
-      "sum_roll5_fgpct"
+      "sum_roll5_fgpct_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -2904,8 +2904,8 @@
   {
     "name": "sf_279",
     "columns": [
-      "sum_roll5_pace_std",
-      "sum_roll10_sag_rating_std"
+      "sum_roll5_opp_fta_rate",
+      "sum_roll10_elo_score_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -2914,8 +2914,8 @@
   {
     "name": "sf_280",
     "columns": [
-      "sum_travel_adjusted_massey_q2",
-      "diff_roll5_pctpts_ft"
+      "sum_acwr_risk",
+      "diff_roll5_pctpts_pitp"
     ],
     "operation": "sub",
     "unary": null,
@@ -2924,8 +2924,8 @@
   {
     "name": "sf_281",
     "columns": [
-      "diff_roll20_q2",
-      "sum_roll10_fgm"
+      "diff_roll20_bpioffense",
+      "sum_roll10_fga"
     ],
     "operation": "div",
     "unary": null,
@@ -2934,9 +2934,9 @@
   {
     "name": "sf_282",
     "columns": [
-      "sum_roll10_golden_mean",
-      "sum_roll10_opp_fta_rate",
-      "sum_roll20_q4"
+      "sum_roll10_recent_std",
+      "sum_roll10_2nd_pts_std",
+      "sum_roll20_elo_score_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2945,8 +2945,8 @@
   {
     "name": "sf_283",
     "columns": [
-      "diff_crowd_weighted_massey_q2",
-      "diff_roll20_pctpts_ft"
+      "diff_crowd_adjusted_massey_q4",
+      "diff_roll20_2fgm_pctuast"
     ],
     "operation": "add",
     "unary": null,
@@ -2955,8 +2955,8 @@
   {
     "name": "sf_284",
     "columns": [
-      "diff_roll20_pace_std",
-      "sum_default_massey_q4"
+      "diff_roll20_fta_rate_std",
+      "sum_location_adjusted_massey_q3"
     ],
     "operation": "div",
     "unary": "sq",
@@ -2965,9 +2965,9 @@
   {
     "name": "sf_285",
     "columns": [
-      "sum_default_massey_q2",
-      "diff_roll10_dreb",
-      "diff_roll20_2fgm_pctast"
+      "sum_location_adjusted_massey_q1",
+      "diff_roll10_ftpct_std",
+      "diff_roll20_fgm_pctast_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -2976,7 +2976,7 @@
   {
     "name": "sf_286",
     "columns": [
-      "sum_roll10_pctpts_2pt",
+      "sum_roll10_pctpts_pitp",
       "sum_roll5_pts_std"
     ],
     "operation": "mul",
@@ -2986,9 +2986,9 @@
   {
     "name": "sf_287",
     "columns": [
-      "sum_roll5_pts_off_to",
-      "diff_roll5_ast_ratio_std",
-      "sum_roll10_h1_pts"
+      "sum_roll5_opp_pts_off_to",
+      "diff_roll5_ast_to_std",
+      "diff_roll10_offrtg_venue"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -2997,8 +2997,8 @@
   {
     "name": "sf_288",
     "columns": [
-      "sum_travel_adjusted_massey",
-      "sum_roll20_ot3_std"
+      "sum_scoring_entropy",
+      "sum_roll20_bpidefense"
     ],
     "operation": "add",
     "unary": "sqrt",
@@ -3007,8 +3007,8 @@
   {
     "name": "sf_289",
     "columns": [
-      "diff_roll5_dreb",
-      "diff_roll5_pitp"
+      "diff_roll5_fta_std",
+      "diff_roll5_pitp_std"
     ],
     "operation": "add",
     "unary": null,
@@ -3017,8 +3017,8 @@
   {
     "name": "sf_290",
     "columns": [
-      "diff_default_massey_q2",
-      "diff_roll10_tspct"
+      "diff_crowd_weighted_massey_q4",
+      "diff_roll10_tspct_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -3027,8 +3027,8 @@
   {
     "name": "sf_291",
     "columns": [
-      "sum_roll20_fbps",
-      "sum_roll20_2nd_pts_std"
+      "sum_roll20_pctfga_2pt",
+      "sum_roll20_opp_pitp_std"
     ],
     "operation": "div",
     "unary": null,
@@ -3037,8 +3037,8 @@
   {
     "name": "sf_292",
     "columns": [
-      "diff_roll10_fta",
-      "sum_roll10_fgpct_std"
+      "diff_roll10_3ppct",
+      "sum_roll10_3pa"
     ],
     "operation": "sub",
     "unary": null,
@@ -3047,8 +3047,8 @@
   {
     "name": "sf_293",
     "columns": [
-      "sum_default_massey",
-      "diff_roll10_pctpts_3pt_std"
+      "sum_experience_adjusted_massey_q3",
+      "diff_roll10_pctpts_off_to"
     ],
     "operation": "sub",
     "unary": null,
@@ -3057,8 +3057,8 @@
   {
     "name": "sf_294",
     "columns": [
-      "sum_roll20_q3_std",
-      "sum_roll5_opp_tovpct_std"
+      "sum_roll20_sag_rating_std",
+      "sum_roll5_fbps_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3067,8 +3067,8 @@
   {
     "name": "sf_295",
     "columns": [
-      "diff_roll20_2fgm_pctast_std",
-      "sum_roll20_fgpct_std"
+      "diff_roll20_fgm_pctast_std",
+      "sum_roll20_3pa_std"
     ],
     "operation": "div",
     "unary": null,
@@ -3077,9 +3077,9 @@
   {
     "name": "sf_296",
     "columns": [
-      "sum_roll10_fta_rate_std",
-      "sum_roll20_2fgm_pctuast_std",
-      "sum_roll5_opp_2nd_pts_std"
+      "sum_roll10_pts_off_to",
+      "sum_roll20_ot4_std",
+      "sum_roll5_pctpts_2pt"
     ],
     "operation": "triple",
     "unary": null,
@@ -3088,8 +3088,8 @@
   {
     "name": "sf_297",
     "columns": [
-      "sum_roll10_sag_rating_std",
-      "sum_roll20_fbps"
+      "sum_roll10_predictor",
+      "sum_roll20_pctfga_2pt_std"
     ],
     "operation": "add",
     "unary": "sqrt",
@@ -3098,9 +3098,9 @@
   {
     "name": "sf_298",
     "columns": [
-      "diff_roll20_ftpct_std",
+      "diff_roll20_ftpct",
       "diff_roll5_pace_std",
-      "diff_roll5_oreb"
+      "diff_roll5_ftm"
     ],
     "operation": "triple",
     "unary": null,
@@ -3109,8 +3109,8 @@
   {
     "name": "sf_299",
     "columns": [
-      "sum_roll10_ast_std",
-      "sum_roll5_pctpts_pitp_std"
+      "sum_roll10_blk",
+      "sum_roll5_fgm_pctuast"
     ],
     "operation": "sub",
     "unary": null,
@@ -3119,8 +3119,8 @@
   {
     "name": "sf_300",
     "columns": [
-      "sum_roll5_efgpct_std",
-      "sum_roll5_pctpts_2pt_mr_std"
+      "sum_roll5_fta_rate",
+      "sum_roll5_2fgm_pctast"
     ],
     "operation": "sub",
     "unary": null,
@@ -3129,8 +3129,8 @@
   {
     "name": "sf_301",
     "columns": [
-      "sum_roll5_drebpct",
-      "diff_roll10_opp_tovpct"
+      "sum_roll5_tovpct_std",
+      "diff_roll10_opp_orebpct_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -3139,9 +3139,9 @@
   {
     "name": "sf_302",
     "columns": [
-      "diff_roll20_ot4",
-      "diff_roll10_rebpct_std",
-      "diff_roll5_pctpts_2pt_std"
+      "diff_roll20_bpi",
+      "diff_roll10_tovpct",
+      "diff_roll5_pctpts_3pt"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -3150,9 +3150,9 @@
   {
     "name": "sf_303",
     "columns": [
-      "diff_roll5_2nd_pts_std",
-      "sum_acwr_netrtg",
-      "sum_roll20_opp_fta_rate_std"
+      "diff_roll5_fbps",
+      "sum_contestedshots_10",
+      "sum_roll20_pitp"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -3161,8 +3161,8 @@
   {
     "name": "sf_304",
     "columns": [
-      "diff_travel_distance",
-      "diff_roll10_pace"
+      "diff_margin_last5",
+      "diff_roll10_pace_std"
     ],
     "operation": "div",
     "unary": null,
@@ -3171,8 +3171,8 @@
   {
     "name": "sf_305",
     "columns": [
-      "sum_crowd_adjusted_massey_q2",
-      "diff_roll10_tspct_std"
+      "sum_crowd_weighted_massey_q4",
+      "diff_roll10_pace"
     ],
     "operation": "add",
     "unary": null,
@@ -3181,8 +3181,8 @@
   {
     "name": "sf_306",
     "columns": [
-      "sum_roll20_pctpts_ft",
-      "diff_roll20_tov"
+      "sum_roll20_fgm_pctast_std",
+      "diff_roll20_ast_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3191,8 +3191,8 @@
   {
     "name": "sf_307",
     "columns": [
-      "diff_roll5_fgm_pctast_std",
-      "diff_recent"
+      "diff_roll5_ot2_std",
+      "diff_playoffbpi"
     ],
     "operation": "add",
     "unary": "log1p",
@@ -3201,9 +3201,9 @@
   {
     "name": "sf_308",
     "columns": [
-      "sum_roll20_opp_efgpct_std",
-      "sum_roll10_astpct_std",
-      "sum_roll5_astpct"
+      "sum_roll20_fbps",
+      "sum_roll10_drebpct",
+      "sum_roll5_ast_ratio"
     ],
     "operation": "mul_add",
     "unary": "sq",
@@ -3212,8 +3212,8 @@
   {
     "name": "sf_309",
     "columns": [
-      "sum_roll10_q4",
-      "sum_default_massey_q3"
+      "sum_roll10_sag_rating",
+      "sum_location_adjusted_massey_q1"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -3222,8 +3222,8 @@
   {
     "name": "sf_310",
     "columns": [
-      "sum_roll20_fta_rate",
-      "sum_roll10_3pm_std"
+      "sum_roll20_pts_off_to_std",
+      "sum_roll10_3ppct"
     ],
     "operation": "add",
     "unary": null,
@@ -3232,9 +3232,9 @@
   {
     "name": "sf_311",
     "columns": [
-      "sum_roll5_pctpts_2pt_mr_std",
-      "sum_roll20_offrtg",
-      "diff_roll20_fbps_std"
+      "sum_roll5_2fgm_pctast",
+      "sum_roll20_ast_to",
+      "diff_roll20_opp_2nd_pts"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -3243,8 +3243,8 @@
   {
     "name": "sf_312",
     "columns": [
-      "diff_roll20_pctpts_pitp_std",
-      "sum_roll5_oreb"
+      "diff_roll20_3fgm_pctuast_std",
+      "sum_roll5_dreb"
     ],
     "operation": "sub",
     "unary": null,
@@ -3253,9 +3253,9 @@
   {
     "name": "sf_313",
     "columns": [
-      "sum_roll10_pctpts_ft_std",
-      "diff_crowd_adjusted_massey_q2",
-      "diff_def_default_massey"
+      "sum_roll10_fgm_pctast",
+      "diff_context_adjusted_massey_q3",
+      "diff_travel_adjusted_massey"
     ],
     "operation": "triple",
     "unary": null,
@@ -3264,8 +3264,8 @@
   {
     "name": "sf_314",
     "columns": [
-      "diff_roll5_3fgm_pctast_std",
-      "diff_roll5_opp_fbps_std"
+      "diff_roll5_fgm_pctuast",
+      "diff_roll5_opp_pitp_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -3275,7 +3275,7 @@
     "name": "sf_315",
     "columns": [
       "diff_roll10_orebpct",
-      "sum_roll20_q3_std"
+      "sum_roll20_sag_rating_std"
     ],
     "operation": "div",
     "unary": "log1p",
@@ -3284,8 +3284,8 @@
   {
     "name": "sf_316",
     "columns": [
-      "diff_roll10_3ppct_std",
-      "diff_roll10_golden_mean_std"
+      "diff_roll10_3pm_std",
+      "diff_roll10_predictor_std"
     ],
     "operation": "add",
     "unary": "sq",
@@ -3294,9 +3294,9 @@
   {
     "name": "sf_317",
     "columns": [
-      "diff_roll5_game_id",
-      "sum_location_adjusted_massey_q2",
-      "sum_roll20_opp_efgpct_std"
+      "diff_roll5_pf",
+      "sum_pyth_residual",
+      "sum_roll20_fbps"
     ],
     "operation": "div_sum",
     "unary": "abs",
@@ -3305,8 +3305,8 @@
   {
     "name": "sf_318",
     "columns": [
-      "diff_roll5_tspct",
-      "diff_roll10_fgm_std"
+      "diff_roll5_efgpct_std",
+      "diff_roll5_recent"
     ],
     "operation": "div",
     "unary": null,
@@ -3315,9 +3315,9 @@
   {
     "name": "sf_319",
     "columns": [
-      "sum_roll5_3ppct",
-      "diff_roll10_efgpct_std",
-      "sum_roll10_elo_score"
+      "sum_roll5_ftm",
+      "diff_roll10_tspct",
+      "sum_roll10_predictor_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -3326,9 +3326,9 @@
   {
     "name": "sf_320",
     "columns": [
-      "diff_roll5_q1",
-      "diff_roll20_fta_rate",
-      "sum_roll20_tspct_std"
+      "diff_roll5_q4_std",
+      "diff_roll20_opp_efgpct_std",
+      "sum_roll20_opp_tovpct"
     ],
     "operation": "triple",
     "unary": "sq",
@@ -3337,9 +3337,9 @@
   {
     "name": "sf_321",
     "columns": [
-      "diff_roll20_pctpts_2pt_mr",
-      "sum_roll20_astpct_std",
-      "diff_roll20_defrtg_std"
+      "diff_roll20_pctpts_ft_std",
+      "sum_roll20_rebpct",
+      "diff_roll20_netrtg_std"
     ],
     "operation": "triple",
     "unary": "log1p",
@@ -3348,9 +3348,9 @@
   {
     "name": "sf_322",
     "columns": [
-      "diff_roll10_stl_std",
-      "sum_roll10_3pm_std",
-      "diff_roll20_plus_minus_std"
+      "diff_roll10_tov_std",
+      "sum_roll10_3ppct",
+      "diff_roll20_game_id"
     ],
     "operation": "div_sum",
     "unary": "sqrt",
@@ -3359,8 +3359,8 @@
   {
     "name": "sf_323",
     "columns": [
-      "sum_roll10_drebpct",
-      "sum_roll20_predictor"
+      "sum_roll10_tspct",
+      "sum_roll20_golden_mean"
     ],
     "operation": "add",
     "unary": "abs",
@@ -3369,8 +3369,8 @@
   {
     "name": "sf_324",
     "columns": [
-      "diff_wolfe_q2",
-      "diff_roll5_tov"
+      "diff_wolfe_q3",
+      "diff_roll5_dreb_std"
     ],
     "operation": "div",
     "unary": null,
@@ -3379,8 +3379,8 @@
   {
     "name": "sf_325",
     "columns": [
-      "diff_margin_autocorr",
-      "sum_close_game_rate_10"
+      "diff_scoring_gini",
+      "diff_roll10_pace_venue"
     ],
     "operation": "sub",
     "unary": null,
@@ -3389,7 +3389,7 @@
   {
     "name": "sf_326",
     "columns": [
-      "diff_roll10_pctpts_3pt_std",
+      "diff_roll10_pctpts_off_to",
       "diff_roll5_pie"
     ],
     "operation": "add",
@@ -3399,9 +3399,9 @@
   {
     "name": "sf_327",
     "columns": [
-      "diff_roll5_ast_to_std",
-      "diff_experience_adjusted_massey",
-      "diff_roll5_3ppct"
+      "diff_roll5_astpct",
+      "diff_default_massey_q1",
+      "diff_roll5_fgpct"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3410,9 +3410,9 @@
   {
     "name": "sf_328",
     "columns": [
-      "diff_roll5_tovpct_std",
-      "sum_roll10_tovpct_std",
-      "sum_roll5_q2"
+      "diff_roll5_tovpct",
+      "sum_roll10_pie_std",
+      "sum_roll5_playoffbpi"
     ],
     "operation": "triple",
     "unary": null,
@@ -3421,9 +3421,9 @@
   {
     "name": "sf_329",
     "columns": [
-      "sum_roll10_2fgm_pctuast",
-      "sum_roll5_2fgm_pctuast_std",
-      "sum_roll5_fgm_pctuast"
+      "sum_roll10_ot3",
+      "sum_roll5_ot2_std",
+      "sum_roll5_q2"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3432,9 +3432,9 @@
   {
     "name": "sf_330",
     "columns": [
-      "diff_roll20_opp_pitp_std",
-      "sum_roll10_fgpct",
-      "sum_roll10_defrtg_std"
+      "diff_roll20_pctpts_2pt_std",
+      "sum_roll10_3pm_std",
+      "sum_roll10_ast_to_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -3443,8 +3443,8 @@
   {
     "name": "sf_331",
     "columns": [
-      "diff_crowd_weighted_massey",
-      "diff_acwr_pts",
+      "diff_crowd_adjusted_massey_q2",
+      "diff_acwr_risk",
       "diff_whitlock_q3"
     ],
     "operation": "triple",
@@ -3454,8 +3454,8 @@
   {
     "name": "sf_332",
     "columns": [
-      "diff_roll5_q3",
-      "diff_roll20_pctfga_3pt"
+      "diff_roll5_bpirank_std",
+      "diff_roll20_pctpts_3pt_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -3464,8 +3464,8 @@
   {
     "name": "sf_333",
     "columns": [
-      "sum_roll5_defrtg",
-      "sum_roll20_pctfga_3pt_std"
+      "sum_roll5_astpct",
+      "sum_roll20_pctpts_pitp_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3474,8 +3474,8 @@
   {
     "name": "sf_334",
     "columns": [
-      "diff_roll20_3fgm_pctuast_std",
-      "diff_roll10_3pm_std"
+      "diff_roll20_ot3",
+      "diff_roll10_fga_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -3484,9 +3484,9 @@
   {
     "name": "sf_335",
     "columns": [
-      "diff_roll10_ast",
-      "sum_roll20_fbps_std",
-      "sum_roll10_astpct_std"
+      "diff_roll10_dreb_std",
+      "sum_roll20_pctfga_3pt",
+      "sum_roll10_drebpct"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3495,8 +3495,8 @@
   {
     "name": "sf_336",
     "columns": [
-      "diff_roll20_2fgm_pctast",
-      "diff_travel_adjusted_massey"
+      "diff_roll20_fgm_pctast_std",
+      "diff_location_adjusted_massey_q2"
     ],
     "operation": "div",
     "unary": null,
@@ -3505,8 +3505,8 @@
   {
     "name": "sf_337",
     "columns": [
-      "diff_roll5_q1",
-      "sum_roll20_ast_std"
+      "diff_roll5_q4",
+      "sum_roll20_blk_std"
     ],
     "operation": "div",
     "unary": "sq",
@@ -3515,9 +3515,9 @@
   {
     "name": "sf_338",
     "columns": [
-      "sum_roll10_opp_fbps",
-      "sum_roll5_efgpct_std",
-      "diff_roll5_2fgm_pctast"
+      "sum_roll10_pctpts_2pt_mr_std",
+      "sum_roll5_pie_std",
+      "diff_roll5_3fgm_pctast"
     ],
     "operation": "triple",
     "unary": null,
@@ -3526,8 +3526,8 @@
   {
     "name": "sf_339",
     "columns": [
-      "diff_roll20_fbps",
-      "diff_roll20_tovpct"
+      "diff_roll20_opp_pts_off_to_std",
+      "diff_roll20_efgpct_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -3536,8 +3536,8 @@
   {
     "name": "sf_340",
     "columns": [
-      "sum_roll10_tovpct",
-      "diff_roll10_pctpts_3pt_std"
+      "sum_roll10_pie",
+      "diff_roll10_pctpts_off_to_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3546,8 +3546,8 @@
   {
     "name": "sf_341",
     "columns": [
-      "diff_roll5_q3",
-      "diff_roll20_opp_pts_off_to"
+      "diff_roll5_bpirank_std",
+      "diff_roll20_opp_pitp"
     ],
     "operation": "div",
     "unary": null,
@@ -3556,8 +3556,8 @@
   {
     "name": "sf_342",
     "columns": [
-      "sum_roll20_pctpts_fbps",
-      "diff_roll10_pctpts_2pt"
+      "sum_roll20_3fgm_pctuast",
+      "diff_roll10_pctpts_3pt_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3566,8 +3566,8 @@
   {
     "name": "sf_343",
     "columns": [
-      "sum_roll5_ot3",
-      "sum_roll5_2fgm_pctast"
+      "sum_roll5_bpirank",
+      "sum_roll5_ot1"
     ],
     "operation": "sub",
     "unary": null,
@@ -3577,8 +3577,8 @@
     "name": "sf_344",
     "columns": [
       "diff_travel_distance_5",
-      "sum_roll20_opp_pitp",
-      "sum_roll20_stl"
+      "sum_roll20_pctpts_fbps_std",
+      "sum_roll20_plus_minus_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3587,8 +3587,8 @@
   {
     "name": "sf_345",
     "columns": [
-      "sum_roll10_ast_to_std",
-      "diff_roll5_3pa_std"
+      "sum_roll10_rebpct",
+      "diff_roll5_fga"
     ],
     "operation": "div",
     "unary": null,
@@ -3597,8 +3597,8 @@
   {
     "name": "sf_346",
     "columns": [
-      "diff_context_adjusted_massey_q1",
-      "sum_roll5_astpct_std"
+      "diff_colley_q1",
+      "sum_roll5_orebpct"
     ],
     "operation": "add",
     "unary": null,
@@ -3607,8 +3607,8 @@
   {
     "name": "sf_347",
     "columns": [
-      "diff_roll10_opp_pts_off_to",
-      "sum_roll10_orebpct"
+      "diff_roll10_opp_fbps",
+      "sum_roll10_tovpct_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3617,9 +3617,9 @@
   {
     "name": "sf_348",
     "columns": [
-      "sum_roll20_opp_fta_rate_std",
-      "sum_roll10_fgm",
-      "diff_roll5_fgm_pctuast"
+      "sum_roll20_pitp_std",
+      "sum_roll10_fga",
+      "diff_roll5_ot3"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -3628,8 +3628,8 @@
   {
     "name": "sf_349",
     "columns": [
-      "sum_roll20_ftpct",
-      "sum_roll5_opp_2nd_pts_std"
+      "sum_roll20_reb",
+      "sum_roll5_pctpts_2pt"
     ],
     "operation": "sub",
     "unary": null,
@@ -3638,8 +3638,8 @@
   {
     "name": "sf_350",
     "columns": [
-      "diff_roll20_3ppct",
-      "sum_roll5_pctfga_3pt_std"
+      "diff_roll20_3pm_std",
+      "sum_roll5_pctpts_ft_std"
     ],
     "operation": "add",
     "unary": "abs",
@@ -3648,9 +3648,9 @@
   {
     "name": "sf_351",
     "columns": [
-      "diff_roll20_ot2_std",
-      "sum_roll10_pctpts_off_to_std",
-      "diff_roll5_rebpct"
+      "diff_roll20_q3_std",
+      "sum_roll10_fgm_pctuast",
+      "diff_roll5_drebpct_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3660,7 +3660,7 @@
     "name": "sf_352",
     "columns": [
       "diff_roll10_ast_ratio",
-      "diff_roll10_opp_pts_off_to_std"
+      "diff_roll10_opp_fbps_std"
     ],
     "operation": "sub",
     "unary": "sqrt",
@@ -3669,8 +3669,8 @@
   {
     "name": "sf_353",
     "columns": [
-      "diff_roll20_ftm_std",
-      "sum_roll10_ftm"
+      "diff_roll20_3ppct_std",
+      "sum_roll10_fta_std"
     ],
     "operation": "sub",
     "unary": "sqrt",
@@ -3679,9 +3679,9 @@
   {
     "name": "sf_354",
     "columns": [
-      "sum_roll5_game_id_std",
-      "diff_roll10_ot3_std",
-      "diff_roll10_sag_rating_std"
+      "sum_roll5_defrtg_std",
+      "diff_roll10_q3_std",
+      "diff_roll10_offtalent_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3690,9 +3690,9 @@
   {
     "name": "sf_355",
     "columns": [
-      "sum_roll10_3fgm_pctast_std",
-      "diff_roll10_3fgm_pctast",
-      "sum_roll5_opp_fbps"
+      "sum_roll10_ot4",
+      "diff_roll10_fgm_pctuast_std",
+      "sum_roll5_pctpts_2pt_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3701,8 +3701,8 @@
   {
     "name": "sf_356",
     "columns": [
-      "diff_roll10_opp_fta_rate_std",
-      "sum_roll5_ast_ratio_std"
+      "diff_roll10_opp_tovpct_std",
+      "sum_roll5_rebpct"
     ],
     "operation": "sub",
     "unary": null,
@@ -3711,8 +3711,8 @@
   {
     "name": "sf_357",
     "columns": [
-      "diff_roll5_pf_std",
-      "sum_roll20_pctpts_2pt_mr_std"
+      "diff_roll5_blk",
+      "sum_roll20_2fgm_pctuast_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3721,8 +3721,8 @@
   {
     "name": "sf_358",
     "columns": [
-      "diff_roll5_opp_fbps",
-      "diff_roll20_rebpct_std"
+      "diff_roll5_opp_pitp",
+      "diff_roll20_efgpct"
     ],
     "operation": "mul",
     "unary": null,
@@ -3731,8 +3731,8 @@
   {
     "name": "sf_359",
     "columns": [
-      "sum_roll5_defrtg_std",
-      "diff_roll10_astpct_std"
+      "sum_roll5_astpct_std",
+      "diff_roll10_astpct"
     ],
     "operation": "add",
     "unary": null,
@@ -3741,9 +3741,9 @@
   {
     "name": "sf_360",
     "columns": [
-      "sum_roll10_tov",
-      "sum_roll10_2nd_pts",
-      "sum_roll20_efgpct_std"
+      "sum_roll10_blk_std",
+      "sum_roll10_opp_fbps",
+      "sum_roll20_opp_efgpct_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -3752,9 +3752,9 @@
   {
     "name": "sf_361",
     "columns": [
-      "diff_roll20_ot2_std",
+      "diff_roll20_q3_std",
       "diff_roll5_opp_efgpct_std",
-      "diff_roll10_pctpts_off_to_std"
+      "diff_roll10_2fgm_pctuast_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3763,8 +3763,8 @@
   {
     "name": "sf_362",
     "columns": [
-      "diff_roll5_q3",
-      "diff_roll5_pctpts_2pt_mr"
+      "diff_roll5_bpirank_std",
+      "diff_roll5_pctpts_3pt_std"
     ],
     "operation": "div",
     "unary": "sq",
@@ -3773,7 +3773,7 @@
   {
     "name": "sf_363",
     "columns": [
-      "sum_roll10_elo_score_std",
+      "sum_roll10_pure_elo",
       "diff_roll10_ast_ratio"
     ],
     "operation": "sub",
@@ -3783,8 +3783,8 @@
   {
     "name": "sf_364",
     "columns": [
-      "diff_roll10_q4_std",
-      "sum_roll5_fbps_std"
+      "diff_roll10_playoffbpi_std",
+      "sum_roll5_opp_fbps_std"
     ],
     "operation": "mul",
     "unary": "sq",
@@ -3793,8 +3793,8 @@
   {
     "name": "sf_365",
     "columns": [
-      "sum_roll20_q3",
-      "sum_roll20_recent"
+      "sum_roll20_sag_rating",
+      "sum_colley_q1"
     ],
     "operation": "add",
     "unary": null,
@@ -3803,8 +3803,8 @@
   {
     "name": "sf_366",
     "columns": [
-      "diff_roll5_opp_pts_off_to",
-      "diff_roll20_fgm_pctuast_std"
+      "diff_roll5_opp_2nd_pts",
+      "diff_roll20_q1_std"
     ],
     "operation": "div",
     "unary": null,
@@ -3813,8 +3813,8 @@
   {
     "name": "sf_367",
     "columns": [
-      "sum_roll10_ot3",
-      "diff_roll20_3fgm_pctast"
+      "sum_roll10_bpirank_std",
+      "diff_roll20_ot1_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -3824,7 +3824,7 @@
     "name": "sf_368",
     "columns": [
       "sum_golden_mean",
-      "sum_roll20_astpct_std"
+      "sum_roll20_rebpct"
     ],
     "operation": "add",
     "unary": null,
@@ -3833,9 +3833,9 @@
   {
     "name": "sf_369",
     "columns": [
-      "sum_roll10_pctpts_fbps",
-      "diff_roll20_oreb_std",
-      "sum_roll5_3ppct_std"
+      "sum_roll10_3fgm_pctast",
+      "diff_roll20_oreb",
+      "sum_roll5_ftm_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -3845,8 +3845,8 @@
     "name": "sf_370",
     "columns": [
       "diff_travel_intensity_3",
-      "sum_location_adjusted_massey",
-      "sum_roll20_predictor"
+      "sum_travel_adjusted_massey_q4",
+      "sum_roll20_golden_mean_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3855,9 +3855,9 @@
   {
     "name": "sf_371",
     "columns": [
-      "sum_roll10_opp_pitp",
-      "sum_roll10_opp_pts_off_to",
-      "diff_roll10_fta_std"
+      "sum_roll10_pctpts_3pt_std",
+      "sum_roll10_pctfga_3pt",
+      "diff_roll10_3ppct_std"
     ],
     "operation": "mul_add",
     "unary": "sqrt",
@@ -3866,8 +3866,8 @@
   {
     "name": "sf_372",
     "columns": [
-      "sum_roll10_3pm",
-      "diff_acwr_netrtg"
+      "sum_roll10_3pa",
+      "diff_acwr_risk"
     ],
     "operation": "add",
     "unary": null,
@@ -3876,9 +3876,9 @@
   {
     "name": "sf_373",
     "columns": [
-      "sum_roll10_predictor_std",
-      "sum_roll20_3fgm_pctast_std",
-      "sum_crowd_adjusted_massey_q3"
+      "sum_roll10_golden_mean",
+      "sum_roll20_q1_std",
+      "sum_default_massey_q1"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -3888,7 +3888,7 @@
     "name": "sf_374",
     "columns": [
       "diff_roll10_astpct",
-      "sum_roll10_elo_score_std"
+      "sum_roll10_pure_elo"
     ],
     "operation": "sub",
     "unary": null,
@@ -3897,9 +3897,9 @@
   {
     "name": "sf_375",
     "columns": [
-      "sum_roll20_fgm_pctuast",
-      "sum_roll20_3pm_std",
-      "diff_roll10_3ppct"
+      "sum_roll20_q4_std",
+      "sum_roll20_ftm",
+      "diff_roll10_3pm"
     ],
     "operation": "triple",
     "unary": null,
@@ -3908,7 +3908,7 @@
   {
     "name": "sf_376",
     "columns": [
-      "sum_ff_oliver_index",
+      "sum_ot_win_rate",
       "diff_roll5_opp_efgpct_std"
     ],
     "operation": "mul",
@@ -3918,9 +3918,9 @@
   {
     "name": "sf_377",
     "columns": [
-      "diff_roll5_pctpts_2pt_std",
-      "diff_roll10_recent",
-      "diff_contestedshots_10"
+      "diff_roll5_pctpts_3pt",
+      "diff_roll10_pure_elo",
+      "sum_bpi"
     ],
     "operation": "triple",
     "unary": null,
@@ -3929,9 +3929,9 @@
   {
     "name": "sf_378",
     "columns": [
-      "diff_roll20_fta_std",
-      "sum_roll10_ot1",
-      "diff_roll10_2fgm_pctast_std"
+      "diff_roll20_ftm_std",
+      "sum_roll10_q4_std",
+      "diff_roll10_3fgm_pctuast_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -3940,9 +3940,9 @@
   {
     "name": "sf_379",
     "columns": [
-      "sum_roll20_ast",
-      "sum_colley_q1",
-      "sum_roll20_sag_rating"
+      "sum_roll20_blk_std",
+      "sum_context_adjusted_massey_q2",
+      "sum_roll20_predictor"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -3951,8 +3951,8 @@
   {
     "name": "sf_380",
     "columns": [
-      "diff_wolfe",
-      "sum_roll5_opp_pts_off_to_std"
+      "diff_wolfe_q1",
+      "sum_roll5_pctfga_3pt"
     ],
     "operation": "mul",
     "unary": null,
@@ -3961,9 +3961,9 @@
   {
     "name": "sf_381",
     "columns": [
-      "sum_roll20_offrtg",
-      "sum_roll10_opp_pitp",
-      "diff_roll5_ast_std"
+      "sum_roll20_ast_to",
+      "sum_roll10_pctpts_3pt_std",
+      "diff_roll5_dreb_std"
     ],
     "operation": "triple",
     "unary": "sqrt",
@@ -3972,7 +3972,7 @@
   {
     "name": "sf_382",
     "columns": [
-      "sum_roll10_opp_pitp",
+      "sum_roll10_pctpts_3pt_std",
       "sum_roll5_pts"
     ],
     "operation": "add",
@@ -3982,8 +3982,8 @@
   {
     "name": "sf_383",
     "columns": [
-      "sum_roll20_opp_pts_off_to_std",
-      "sum_roll5_reb_std"
+      "sum_roll20_pctpts_2pt_mr",
+      "sum_roll5_ast_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -3992,8 +3992,8 @@
   {
     "name": "sf_384",
     "columns": [
-      "diff_roll20_q1_std",
-      "diff_roll10_pctpts_off_to"
+      "diff_roll20_bpirank_std",
+      "diff_roll10_2fgm_pctuast"
     ],
     "operation": "div",
     "unary": null,
@@ -4002,9 +4002,9 @@
   {
     "name": "sf_385",
     "columns": [
-      "sum_roll10_ast_to",
-      "diff_roll20_opp_pitp_std",
-      "sum_roll10_opp_pts_off_to"
+      "sum_roll10_drebpct_std",
+      "diff_roll20_pctpts_2pt_std",
+      "sum_roll10_pctfga_3pt_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4013,9 +4013,9 @@
   {
     "name": "sf_386",
     "columns": [
-      "diff_roll10_efgpct_std",
-      "diff_roll20_ast_std",
-      "diff_colley_q3"
+      "diff_roll10_tspct",
+      "diff_roll20_ast",
+      "diff_win_entropy"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4024,8 +4024,8 @@
   {
     "name": "sf_387",
     "columns": [
-      "diff_roll5_q1_std",
-      "diff_roll20_fta_rate_std"
+      "diff_roll5_bpi",
+      "diff_roll20_opp_fta_rate_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -4034,9 +4034,9 @@
   {
     "name": "sf_388",
     "columns": [
-      "sum_roll20_dreb_std",
-      "sum_roll20_pctpts_fbps_std",
-      "diff_roll20_ast_ratio_std"
+      "sum_roll20_tov_std",
+      "sum_roll20_fgm_pctast",
+      "diff_roll20_orebpct"
     ],
     "operation": "mul_add",
     "unary": "abs",
@@ -4046,7 +4046,7 @@
     "name": "sf_389",
     "columns": [
       "diff_roll5_opp_efgpct_std",
-      "diff_roll20_pctpts_3pt_std"
+      "diff_roll20_pctpts_pitp"
     ],
     "operation": "mul",
     "unary": "sqrt",
@@ -4055,9 +4055,9 @@
   {
     "name": "sf_390",
     "columns": [
-      "sum_roll5_efgpct",
-      "sum_roll10_opp_orebpct",
-      "diff_roll5_q3_std"
+      "sum_roll5_pie",
+      "sum_roll10_pitp_std",
+      "diff_roll5_bpioffense"
     ],
     "operation": "triple",
     "unary": null,
@@ -4066,7 +4066,7 @@
   {
     "name": "sf_391",
     "columns": [
-      "sum_roll20_fbps_std",
+      "sum_roll20_pctfga_2pt_std",
       "diff_travel_distance_3",
       "sum_pure_elo"
     ],
@@ -4077,8 +4077,8 @@
   {
     "name": "sf_392",
     "columns": [
-      "diff_roll5_fta_rate",
-      "diff_roll20_pace_std"
+      "diff_roll5_pie_std",
+      "diff_roll20_fta_rate_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -4087,8 +4087,8 @@
   {
     "name": "sf_393",
     "columns": [
-      "sum_roll10_pctpts_2pt",
-      "diff_roll10_ot1_std"
+      "sum_roll10_pctpts_pitp_std",
+      "diff_roll10_q1"
     ],
     "operation": "add",
     "unary": null,
@@ -4097,9 +4097,9 @@
   {
     "name": "sf_394",
     "columns": [
-      "sum_roll5_ot4_std",
-      "diff_roll20_ast_to",
-      "sum_roll20_rebpct"
+      "sum_roll5_bpioffense_std",
+      "diff_roll20_ast_to_std",
+      "sum_roll20_pie"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4108,8 +4108,8 @@
   {
     "name": "sf_395",
     "columns": [
-      "diff_roll20_reb",
-      "diff_context_adjusted_massey_q2"
+      "diff_roll20_dreb_std",
+      "diff_colley_q3"
     ],
     "operation": "mul",
     "unary": null,
@@ -4118,8 +4118,8 @@
   {
     "name": "sf_396",
     "columns": [
-      "diff_roll10_2fgm_pctast",
-      "diff_roll20_3pa"
+      "diff_roll10_3fgm_pctuast",
+      "diff_roll20_3pm"
     ],
     "operation": "div",
     "unary": null,
@@ -4128,9 +4128,9 @@
   {
     "name": "sf_397",
     "columns": [
-      "diff_roll10_3pa",
-      "sum_roll5_pctpts_fbps",
-      "sum_roll5_pctpts_ft_std"
+      "diff_roll10_fgpct",
+      "sum_roll5_2fgm_pctuast_std",
+      "sum_roll5_3fgm_pctuast"
     ],
     "operation": "triple",
     "unary": null,
@@ -4139,8 +4139,8 @@
   {
     "name": "sf_398",
     "columns": [
-      "sum_roll5_opp_fbps_std",
-      "sum_roll10_3pa",
+      "sum_roll5_pctpts_2pt_mr_std",
+      "sum_roll10_3ppct_std",
       "diff_roll5_opp_tovpct"
     ],
     "operation": "triple",
@@ -4150,8 +4150,8 @@
   {
     "name": "sf_399",
     "columns": [
-      "diff_roll20_ast_to_std",
-      "diff_roll5_opp_2nd_pts"
+      "diff_roll20_ast_ratio_std",
+      "diff_roll5_opp_fbps"
     ],
     "operation": "sub",
     "unary": null,
@@ -4160,9 +4160,9 @@
   {
     "name": "sf_400",
     "columns": [
-      "sum_roll5_dreb_std",
-      "diff_crowd_weighted_massey_q4",
-      "diff_roll10_pctpts_2pt_std"
+      "sum_roll5_reb_std",
+      "diff_crowd_weighted_massey_q1",
+      "diff_roll10_pctpts_fbps"
     ],
     "operation": "triple",
     "unary": null,
@@ -4171,9 +4171,9 @@
   {
     "name": "sf_401",
     "columns": [
-      "sum_roll10_efgpct_std",
-      "diff_wolfe_q3",
-      "sum_roll20_q2"
+      "sum_roll10_fta_rate_std",
+      "diff_wolfe_q4",
+      "sum_roll20_deftalent"
     ],
     "operation": "triple",
     "unary": null,
@@ -4182,9 +4182,9 @@
   {
     "name": "sf_402",
     "columns": [
-      "sum_roll5_fbps_std",
+      "sum_roll5_opp_fbps_std",
       "diff_roll5_opp_fta_rate",
-      "diff_roll5_ot1"
+      "diff_roll5_ot4"
     ],
     "operation": "triple",
     "unary": null,
@@ -4193,8 +4193,8 @@
   {
     "name": "sf_403",
     "columns": [
-      "sum_roll5_pf_std",
-      "sum_roll20_ot2"
+      "sum_roll5_game_id_std",
+      "sum_roll20_bpioffense"
     ],
     "operation": "add",
     "unary": null,
@@ -4203,8 +4203,8 @@
   {
     "name": "sf_404",
     "columns": [
-      "diff_days_rest",
-      "diff_context_adjusted_massey"
+      "diff_roll20_recent_std",
+      "diff_colley"
     ],
     "operation": "mul",
     "unary": "log1p",
@@ -4213,8 +4213,8 @@
   {
     "name": "sf_405",
     "columns": [
-      "diff_roll20_opp_2nd_pts",
-      "sum_roll10_2fgm_pctuast"
+      "diff_roll20_opp_pitp_std",
+      "sum_roll10_ot2_std"
     ],
     "operation": "mul",
     "unary": "log1p",
@@ -4223,8 +4223,8 @@
   {
     "name": "sf_406",
     "columns": [
-      "sum_roll5_ast_to_std",
-      "diff_roll5_pctpts_off_to"
+      "sum_roll5_orebpct_std",
+      "diff_roll5_2fgm_pctast"
     ],
     "operation": "add",
     "unary": "sq",
@@ -4233,8 +4233,8 @@
   {
     "name": "sf_407",
     "columns": [
-      "sum_roll5_ot2_std",
-      "diff_roll20_3fgm_pctuast_std"
+      "sum_roll5_bpi",
+      "diff_roll20_ot3"
     ],
     "operation": "div",
     "unary": null,
@@ -4243,8 +4243,8 @@
   {
     "name": "sf_408",
     "columns": [
-      "diff_roll10_2fgm_pctast_std",
-      "sum_roll20_pctpts_pitp"
+      "diff_roll10_3fgm_pctuast_std",
+      "sum_roll20_ot1_std"
     ],
     "operation": "add",
     "unary": null,
@@ -4253,9 +4253,9 @@
   {
     "name": "sf_409",
     "columns": [
-      "sum_roll20_fgm_std",
-      "sum_scoring_gini",
-      "diff_roll20_2nd_pts"
+      "sum_roll20_fgpct_std",
+      "diff_roll20_netrtg_venue",
+      "diff_roll20_pitp_std"
     ],
     "operation": "div_sum",
     "unary": "sq",
@@ -4264,8 +4264,8 @@
   {
     "name": "sf_410",
     "columns": [
-      "diff_roll10_ot2_std",
-      "sum_roll10_pctfga_2pt"
+      "diff_roll10_q2_std",
+      "sum_roll10_pctpts_fbps_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -4275,8 +4275,8 @@
     "name": "sf_411",
     "columns": [
       "sum_roll5_pts_std",
-      "sum_roll20_efgpct",
-      "sum_roll10_efgpct_std"
+      "sum_roll20_opp_efgpct",
+      "sum_roll10_opp_efgpct"
     ],
     "operation": "triple",
     "unary": "sq",
@@ -4285,9 +4285,9 @@
   {
     "name": "sf_412",
     "columns": [
-      "sum_roll20_pure_elo",
-      "diff_roll10_pitp_std",
-      "diff_roll20_ftpct_std"
+      "sum_roll20_recent_std",
+      "diff_roll10_opp_2nd_pts_std",
+      "diff_roll20_fta_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4296,9 +4296,9 @@
   {
     "name": "sf_413",
     "columns": [
-      "sum_roll10_predictor_std",
-      "sum_crowd_weighted_massey",
-      "sum_roll5_efgpct_std"
+      "sum_roll10_golden_mean",
+      "sum_default_massey_q2",
+      "sum_roll5_pie_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4307,8 +4307,8 @@
   {
     "name": "sf_414",
     "columns": [
-      "diff_roll10_stl_std",
-      "diff_acwr_netrtg"
+      "diff_roll10_tov_std",
+      "diff_roll10_h1_pts"
     ],
     "operation": "add",
     "unary": null,
@@ -4317,9 +4317,9 @@
   {
     "name": "sf_415",
     "columns": [
-      "diff_roll20_recent",
-      "diff_roll20_orebpct",
-      "sum_roll20_fgm"
+      "diff_roll20_golden_mean_std",
+      "diff_roll20_drebpct",
+      "sum_roll20_fgpct"
     ],
     "operation": "triple",
     "unary": "abs",
@@ -4328,8 +4328,8 @@
   {
     "name": "sf_416",
     "columns": [
-      "diff_roll5_drebpct_std",
-      "sum_roll20_ast_to_std"
+      "diff_roll5_orebpct_std",
+      "sum_roll20_tovpct"
     ],
     "operation": "sub",
     "unary": null,
@@ -4338,8 +4338,8 @@
   {
     "name": "sf_417",
     "columns": [
-      "sum_location_adjusted_massey_q2",
-      "sum_roll5_stl_std"
+      "sum_pyth_residual",
+      "sum_roll5_pf"
     ],
     "operation": "add",
     "unary": "sq",
@@ -4349,7 +4349,7 @@
     "name": "sf_418",
     "columns": [
       "diff_roll5_pace",
-      "sum_roll10_reb"
+      "sum_roll10_tov"
     ],
     "operation": "mul",
     "unary": null,
@@ -4358,8 +4358,8 @@
   {
     "name": "sf_419",
     "columns": [
-      "sum_roll20_ast_to",
-      "diff_roll5_ftpct"
+      "sum_roll20_rebpct_std",
+      "diff_roll5_3ppct"
     ],
     "operation": "mul",
     "unary": null,
@@ -4368,8 +4368,8 @@
   {
     "name": "sf_420",
     "columns": [
-      "diff_win_pct_20",
-      "sum_roll10_3pa"
+      "diff_active_players",
+      "sum_roll10_3ppct_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -4378,9 +4378,9 @@
   {
     "name": "sf_421",
     "columns": [
-      "sum_roll5_reb_std",
-      "diff_roll5_fga_std",
-      "diff_roll5_ot4"
+      "sum_roll5_tov",
+      "diff_recent",
+      "diff_roll5_q3_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4389,8 +4389,8 @@
   {
     "name": "sf_422",
     "columns": [
-      "sum_roll20_pctpts_2pt_mr",
-      "diff_roll10_tspct"
+      "sum_roll20_2fgm_pctuast",
+      "diff_roll10_tspct_std"
     ],
     "operation": "add",
     "unary": null,
@@ -4399,8 +4399,8 @@
   {
     "name": "sf_423",
     "columns": [
-      "sum_crowd_adjusted_massey_q3",
-      "sum_context_adjusted_massey_q2"
+      "sum_default_massey",
+      "sum_crowd_adjusted_massey_q3"
     ],
     "operation": "div",
     "unary": null,
@@ -4409,8 +4409,8 @@
   {
     "name": "sf_424",
     "columns": [
-      "sum_roll10_2fgm_pctuast_std",
-      "diff_roll20_2nd_pts"
+      "sum_roll10_ot3_std",
+      "diff_roll20_pitp_std"
     ],
     "operation": "mul",
     "unary": "abs",
@@ -4419,9 +4419,9 @@
   {
     "name": "sf_425",
     "columns": [
-      "diff_roll20_pts_off_to_std",
-      "diff_roll5_ftm",
-      "diff_roll20_opp_fta_rate"
+      "diff_roll20_pitp",
+      "diff_roll5_3pm",
+      "diff_roll20_opp_orebpct"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4430,9 +4430,9 @@
   {
     "name": "sf_426",
     "columns": [
-      "sum_roll20_fgpct_std",
+      "sum_roll20_3pa_std",
       "sum_predictor",
-      "sum_roll5_opp_pitp"
+      "sum_roll5_pctpts_2pt_mr_std"
     ],
     "operation": "triple",
     "unary": "sqrt",
@@ -4441,9 +4441,9 @@
   {
     "name": "sf_427",
     "columns": [
-      "diff_roll10_pf_std",
-      "diff_roll10_pctpts_off_to",
-      "sum_roll10_stl_std"
+      "diff_roll10_pf",
+      "diff_roll10_2fgm_pctuast",
+      "sum_roll10_plus_minus_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4452,8 +4452,8 @@
   {
     "name": "sf_428",
     "columns": [
-      "diff_roll10_pf",
-      "diff_roll5_pitp"
+      "diff_roll10_blk",
+      "diff_roll5_pitp_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -4462,8 +4462,8 @@
   {
     "name": "sf_429",
     "columns": [
-      "sum_roll5_opp_fbps",
-      "sum_roll20_q3"
+      "sum_roll5_pctpts_2pt_mr",
+      "sum_roll20_sag_rating"
     ],
     "operation": "mul",
     "unary": null,
@@ -4472,9 +4472,9 @@
   {
     "name": "sf_430",
     "columns": [
-      "diff_roll10_h2_pts",
-      "diff_roll5_fgpct_std",
-      "sum_roll20_opp_tovpct_std"
+      "diff_close_game_rate_10",
+      "diff_roll5_pts",
+      "sum_roll20_opp_pts_off_to"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4483,8 +4483,8 @@
   {
     "name": "sf_431",
     "columns": [
-      "sum_roll5_ast_std",
-      "sum_roll10_q3",
+      "sum_roll5_stl",
+      "sum_roll10_deftalent",
       "diff_roll10_ast_to_std"
     ],
     "operation": "div_sum",
@@ -4494,9 +4494,9 @@
   {
     "name": "sf_432",
     "columns": [
-      "diff_travel_adjusted_massey_q2",
-      "sum_roll5_fgm_pctuast_std",
-      "diff_roll20_elo_score_std"
+      "diff_location_adjusted_massey_q4",
+      "sum_roll5_q3",
+      "diff_roll20_sag_rating"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4505,8 +4505,8 @@
   {
     "name": "sf_433",
     "columns": [
-      "sum_roll10_opp_efgpct_std",
-      "sum_roll10_offrtg_std"
+      "sum_roll10_2nd_pts",
+      "sum_roll10_astpct_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -4515,8 +4515,8 @@
   {
     "name": "sf_434",
     "columns": [
-      "sum_roll5_oreb_std",
-      "diff_roll20_tov_std"
+      "sum_roll5_dreb_std",
+      "diff_roll20_tov"
     ],
     "operation": "sub",
     "unary": null,
@@ -4525,8 +4525,8 @@
   {
     "name": "sf_435",
     "columns": [
-      "diff_roll10_blk",
-      "sum_default_massey_q4"
+      "diff_roll10_tov_std",
+      "sum_location_adjusted_massey_q2"
     ],
     "operation": "mul",
     "unary": null,
@@ -4535,9 +4535,9 @@
   {
     "name": "sf_436",
     "columns": [
-      "diff_roll5_pctpts_2pt_mr",
-      "sum_roll10_opp_tovpct_std",
-      "sum_elo_score"
+      "diff_roll5_pctpts_3pt_std",
+      "sum_roll10_pitp",
+      "sum_sag_rating"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4546,9 +4546,9 @@
   {
     "name": "sf_437",
     "columns": [
-      "sum_roll5_opp_efgpct_std",
-      "sum_roll10_ot4",
-      "diff_roll10_pctpts_fbps"
+      "sum_roll5_pts_off_to",
+      "sum_roll10_bpioffense_std",
+      "diff_roll10_pctpts_pitp"
     ],
     "operation": "mul_add",
     "unary": "sqrt",
@@ -4557,9 +4557,9 @@
   {
     "name": "sf_438",
     "columns": [
-      "diff_roll10_fga_std",
-      "sum_roll10_tov_std",
-      "sum_roll5_ftpct"
+      "diff_roll10_pts",
+      "sum_roll10_pf",
+      "sum_roll5_oreb"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4568,8 +4568,8 @@
   {
     "name": "sf_439",
     "columns": [
-      "diff_roll20_sag_rating_std",
-      "diff_roll20_tovpct"
+      "diff_roll20_deftalent",
+      "diff_roll20_efgpct_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -4578,8 +4578,8 @@
   {
     "name": "sf_440",
     "columns": [
-      "diff_roll10_recent_std",
-      "diff_roll5_oreb_std"
+      "diff_roll10_golden_mean",
+      "diff_roll5_fta"
     ],
     "operation": "div",
     "unary": null,
@@ -4588,8 +4588,8 @@
   {
     "name": "sf_441",
     "columns": [
-      "sum_roll20_offrtg_std",
-      "sum_roll10_golden_mean"
+      "sum_roll20_ast_to_std",
+      "sum_roll10_recent_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -4598,9 +4598,9 @@
   {
     "name": "sf_442",
     "columns": [
-      "sum_roll10_ast",
+      "sum_roll10_stl_std",
       "diff_whitlock_q3",
-      "diff_roll5_3fgm_pctuast_std"
+      "diff_roll5_ot1"
     ],
     "operation": "div_sum",
     "unary": "abs",
@@ -4609,8 +4609,8 @@
   {
     "name": "sf_443",
     "columns": [
-      "diff_roll20_pts_std",
-      "sum_roll5_ftpct"
+      "diff_roll10_recent",
+      "sum_roll5_oreb"
     ],
     "operation": "mul",
     "unary": null,
@@ -4619,8 +4619,8 @@
   {
     "name": "sf_444",
     "columns": [
-      "sum_pure_elo",
-      "sum_roll5_ftpct"
+      "sum_predictor",
+      "sum_roll5_oreb"
     ],
     "operation": "add",
     "unary": "sq",
@@ -4629,8 +4629,8 @@
   {
     "name": "sf_445",
     "columns": [
-      "sum_roll5_pctfga_3pt_std",
-      "diff_roll20_astpct_std"
+      "sum_roll5_pctpts_ft_std",
+      "diff_roll20_ast_to"
     ],
     "operation": "mul",
     "unary": "sq",
@@ -4639,8 +4639,8 @@
   {
     "name": "sf_446",
     "columns": [
-      "diff_crowd_adjusted_massey_q2",
-      "diff_roll20_drebpct"
+      "diff_context_adjusted_massey_q3",
+      "diff_roll20_rebpct"
     ],
     "operation": "div",
     "unary": null,
@@ -4649,8 +4649,8 @@
   {
     "name": "sf_447",
     "columns": [
-      "sum_roll5_fgpct",
-      "sum_roll20_netrtg_std"
+      "sum_roll5_fgpct_std",
+      "sum_roll20_drebpct"
     ],
     "operation": "add",
     "unary": "log1p",
@@ -4659,8 +4659,8 @@
   {
     "name": "sf_448",
     "columns": [
-      "sum_roll20_drebpct",
-      "diff_scoring_gini"
+      "sum_roll20_tspct_std",
+      "diff_looseballsrecoveredtotal_10"
     ],
     "operation": "sub",
     "unary": "abs",
@@ -4669,9 +4669,9 @@
   {
     "name": "sf_449",
     "columns": [
-      "sum_travel_adjusted_massey_q1",
-      "diff_roll20_defrtg",
-      "diff_roll5_ftpct"
+      "sum_acwr_pts",
+      "diff_roll20_defrtg_std",
+      "diff_roll5_3ppct"
     ],
     "operation": "div_sum",
     "unary": "sqrt",
@@ -4680,9 +4680,9 @@
   {
     "name": "sf_450",
     "columns": [
-      "sum_roll10_q1",
-      "diff_roll10_q2",
-      "sum_roll20_q2_std"
+      "sum_roll10_playoffbpi",
+      "diff_roll10_bpirank_std",
+      "sum_roll20_deftalent_std"
     ],
     "operation": "triple",
     "unary": "sq",
@@ -4691,8 +4691,8 @@
   {
     "name": "sf_451",
     "columns": [
-      "sum_roll5_3ppct",
-      "diff_roll10_pts_std"
+      "sum_roll5_3ppct_std",
+      "diff_roll5_golden_mean"
     ],
     "operation": "div",
     "unary": null,
@@ -4701,8 +4701,8 @@
   {
     "name": "sf_452",
     "columns": [
-      "diff_context_adjusted_massey_q2",
-      "diff_roll5_pts_off_to"
+      "diff_colley_q3",
+      "diff_roll5_pts_off_to_std"
     ],
     "operation": "sub",
     "unary": null,
@@ -4711,8 +4711,8 @@
   {
     "name": "sf_453",
     "columns": [
-      "sum_location_adjusted_massey_q4",
-      "diff_roll10_fgpct"
+      "sum_ff_oliver_index",
+      "diff_roll10_pts_std"
     ],
     "operation": "mul",
     "unary": "sq",
@@ -4721,9 +4721,9 @@
   {
     "name": "sf_454",
     "columns": [
-      "diff_roll5_ast_ratio",
-      "sum_pyth_residual",
-      "diff_roll10_ot4"
+      "diff_roll5_ast_to",
+      "sum_close_game_rate_10",
+      "diff_roll10_q4_std"
     ],
     "operation": "triple",
     "unary": "log1p",
@@ -4732,9 +4732,9 @@
   {
     "name": "sf_455",
     "columns": [
-      "sum_roll10_opp_efgpct",
-      "diff_ff_composite",
-      "sum_ff_oliver_index"
+      "sum_roll10_pts_off_to_std",
+      "diff_ff_oliver_index",
+      "sum_def_consistency"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4743,9 +4743,9 @@
   {
     "name": "sf_456",
     "columns": [
-      "diff_colley_q2",
-      "diff_roll5_q2",
-      "diff_roll10_ftpct_std"
+      "diff_win_pct_20",
+      "diff_roll5_bpi",
+      "diff_roll10_ftm_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4754,8 +4754,8 @@
   {
     "name": "sf_457",
     "columns": [
-      "sum_location_adjusted_massey_q2",
-      "sum_roll20_3fgm_pctast"
+      "sum_pyth_residual",
+      "sum_roll20_q1"
     ],
     "operation": "mul",
     "unary": null,
@@ -4764,8 +4764,8 @@
   {
     "name": "sf_458",
     "columns": [
-      "diff_roll20_ot2_std",
-      "diff_roll20_2fgm_pctuast_std"
+      "diff_roll20_q3_std",
+      "diff_roll20_ot1"
     ],
     "operation": "mul",
     "unary": null,
@@ -4774,8 +4774,8 @@
   {
     "name": "sf_459",
     "columns": [
-      "sum_roll10_3pa_std",
-      "diff_acwr_risk"
+      "sum_roll10_ftm",
+      "diff_roll10_h2_pts"
     ],
     "operation": "div",
     "unary": null,
@@ -4784,8 +4784,8 @@
   {
     "name": "sf_460",
     "columns": [
-      "sum_roll10_rebpct_std",
-      "diff_roll20_ftpct_std"
+      "sum_roll10_pace",
+      "diff_roll20_ftpct"
     ],
     "operation": "div",
     "unary": null,
@@ -4794,9 +4794,9 @@
   {
     "name": "sf_461",
     "columns": [
-      "sum_roll5_ast_ratio_std",
-      "diff_roll10_ot4",
-      "diff_roll5_drebpct"
+      "sum_roll5_rebpct",
+      "diff_roll10_q4_std",
+      "diff_roll5_orebpct"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4805,8 +4805,8 @@
   {
     "name": "sf_462",
     "columns": [
-      "sum_roll5_defrtg_std",
-      "diff_wobus_q4"
+      "sum_roll5_astpct_std",
+      "diff_wolfe"
     ],
     "operation": "add",
     "unary": "abs",
@@ -4815,8 +4815,8 @@
   {
     "name": "sf_463",
     "columns": [
-      "sum_roll10_opp_2nd_pts_std",
-      "diff_roll20_3ppct"
+      "sum_roll10_pctpts_2pt_mr",
+      "diff_roll20_3pa"
     ],
     "operation": "mul",
     "unary": null,
@@ -4825,9 +4825,9 @@
   {
     "name": "sf_464",
     "columns": [
-      "sum_roll5_opp_2nd_pts",
-      "diff_roll20_sag_rating_std",
-      "sum_roll10_orebpct_std"
+      "sum_roll5_pctfga_3pt_std",
+      "diff_roll20_deftalent_std",
+      "sum_roll10_efgpct_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -4836,8 +4836,8 @@
   {
     "name": "sf_465",
     "columns": [
-      "diff_roll10_ftpct",
-      "sum_roll20_dreb_std"
+      "diff_roll10_ftm_std",
+      "sum_roll20_tov_std"
     ],
     "operation": "add",
     "unary": "sq",
@@ -4846,8 +4846,8 @@
   {
     "name": "sf_466",
     "columns": [
-      "diff_roll5_opp_fta_rate_std",
-      "sum_roll20_q2"
+      "diff_roll5_opp_tovpct",
+      "sum_roll20_deftalent"
     ],
     "operation": "sub",
     "unary": "sq",
@@ -4856,8 +4856,8 @@
   {
     "name": "sf_467",
     "columns": [
-      "diff_roll20_drebpct",
-      "diff_roll5_pctpts_pitp_std"
+      "diff_roll20_rebpct_std",
+      "diff_roll5_2fgm_pctuast_std"
     ],
     "operation": "div",
     "unary": "sq",
@@ -4866,8 +4866,8 @@
   {
     "name": "sf_468",
     "columns": [
-      "diff_roll20_pctpts_2pt_mr_std",
-      "sum_roll20_3fgm_pctast"
+      "diff_roll20_pctpts_off_to",
+      "sum_roll20_q1"
     ],
     "operation": "div",
     "unary": null,
@@ -4876,8 +4876,8 @@
   {
     "name": "sf_469",
     "columns": [
-      "diff_roll20_netrtg_std",
-      "diff_roll5_opp_fbps_std"
+      "diff_roll20_astpct",
+      "diff_roll5_opp_pitp_std"
     ],
     "operation": "div",
     "unary": "abs",
@@ -4886,9 +4886,9 @@
   {
     "name": "sf_470",
     "columns": [
-      "sum_roll20_q2_std",
-      "diff_roll20_opp_efgpct_std",
-      "sum_roll10_pctpts_2pt"
+      "sum_roll20_deftalent_std",
+      "diff_roll20_opp_tovpct_std",
+      "sum_roll10_pctpts_pitp_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -4899,7 +4899,7 @@
     "columns": [
       "diff_roll20_stl_std",
       "diff_roll5_pie_std",
-      "sum_roll10_pctpts_off_to_std"
+      "sum_roll10_fgm_pctuast"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4908,9 +4908,9 @@
   {
     "name": "sf_472",
     "columns": [
-      "sum_roll10_orebpct_std",
-      "diff_days_span_3",
-      "sum_roll20_fgm"
+      "sum_roll10_efgpct_std",
+      "diff_away_streak",
+      "sum_roll20_fgpct"
     ],
     "operation": "triple",
     "unary": null,
@@ -4919,9 +4919,9 @@
   {
     "name": "sf_473",
     "columns": [
-      "diff_cusum_momentum",
-      "sum_roll10_2fgm_pctuast_std",
-      "diff_roll5_pctfga_3pt"
+      "diff_h2h_avg_margin",
+      "sum_roll10_ot3",
+      "diff_roll5_pctpts_2pt_std"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -4930,9 +4930,9 @@
   {
     "name": "sf_474",
     "columns": [
-      "diff_roll5_stl_std",
-      "sum_roll10_2nd_pts",
-      "sum_roll10_pure_elo"
+      "diff_roll5_ast",
+      "sum_roll10_opp_fbps_std",
+      "sum_roll10_golden_mean_std"
     ],
     "operation": "triple",
     "unary": null,
@@ -4941,8 +4941,8 @@
   {
     "name": "sf_475",
     "columns": [
-      "sum_travel_adjusted_massey",
-      "diff_roll5_pctpts_2pt_mr"
+      "sum_scoring_entropy",
+      "diff_roll5_pctpts_3pt_std"
     ],
     "operation": "div",
     "unary": "log1p",
@@ -4951,8 +4951,8 @@
   {
     "name": "sf_476",
     "columns": [
-      "sum_experience_adjusted_massey",
-      "diff_roll20_3fgm_pctast"
+      "sum_location_adjusted_massey_q4",
+      "diff_roll20_ot1_std"
     ],
     "operation": "div",
     "unary": null,
@@ -4961,8 +4961,8 @@
   {
     "name": "sf_477",
     "columns": [
-      "sum_roll20_efgpct_std",
-      "sum_roll20_pctfga_3pt_std"
+      "sum_roll20_opp_efgpct_std",
+      "sum_roll20_pctpts_pitp_std"
     ],
     "operation": "div",
     "unary": null,
@@ -4971,8 +4971,8 @@
   {
     "name": "sf_478",
     "columns": [
-      "diff_roll20_predictor",
-      "diff_roll5_ast_ratio"
+      "diff_roll20_sag_rating_std",
+      "diff_roll5_ast_to"
     ],
     "operation": "div",
     "unary": null,
@@ -4981,8 +4981,8 @@
   {
     "name": "sf_479",
     "columns": [
-      "sum_roll10_pctpts_pitp",
-      "diff_roll20_opp_fta_rate"
+      "sum_roll10_ot1",
+      "diff_roll20_opp_orebpct"
     ],
     "operation": "add",
     "unary": null,
@@ -4991,9 +4991,9 @@
   {
     "name": "sf_480",
     "columns": [
-      "diff_roll10_fgm_pctast",
-      "sum_crowd_weighted_massey_q3",
-      "sum_roll10_fga_std"
+      "diff_roll10_ot3",
+      "sum_experience_adjusted_massey_q1",
+      "sum_roll10_3pm"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -5002,9 +5002,9 @@
   {
     "name": "sf_481",
     "columns": [
-      "diff_roll10_dreb",
-      "sum_roll20_q1_std",
-      "diff_roll5_golden_mean"
+      "diff_roll10_ftpct_std",
+      "sum_roll20_offtalent",
+      "diff_roll5_elo_score"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -5013,7 +5013,7 @@
   {
     "name": "sf_482",
     "columns": [
-      "diff_roll10_ot3",
+      "diff_roll10_q3",
       "diff_roll20_blk_std"
     ],
     "operation": "div",
@@ -5023,9 +5023,9 @@
   {
     "name": "sf_483",
     "columns": [
-      "sum_roll5_offrtg_std",
-      "diff_roll5_rebpct_std",
-      "diff_roll10_ot1"
+      "sum_roll5_astpct",
+      "diff_roll5_rebpct",
+      "diff_roll10_q1"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -5034,7 +5034,7 @@
   {
     "name": "sf_484",
     "columns": [
-      "diff_roll20_3pa",
+      "diff_roll20_3pm",
       "diff_roll5_pie_std"
     ],
     "operation": "div",
@@ -5044,9 +5044,9 @@
   {
     "name": "sf_485",
     "columns": [
-      "diff_roll10_ot1_std",
-      "sum_roll20_pctpts_2pt",
-      "diff_roll5_fgm_pctuast"
+      "diff_roll10_q1_std",
+      "sum_roll20_2fgm_pctast",
+      "diff_roll5_ot3"
     ],
     "operation": "mul_add",
     "unary": null,
@@ -5055,8 +5055,8 @@
   {
     "name": "sf_486",
     "columns": [
-      "diff_win_pct_20",
-      "sum_roll5_pie_std",
+      "diff_active_players",
+      "sum_roll5_opp_tovpct",
       "diff_wobus"
     ],
     "operation": "div_sum",
@@ -5066,7 +5066,7 @@
   {
     "name": "sf_487",
     "columns": [
-      "sum_roll20_opp_tovpct",
+      "sum_roll20_pitp_std",
       "diff_roll20_stl_std"
     ],
     "operation": "div",
@@ -5076,8 +5076,8 @@
   {
     "name": "sf_488",
     "columns": [
-      "sum_roll20_pctpts_2pt_mr_std",
-      "diff_roll5_3fgm_pctast_std"
+      "sum_roll20_2fgm_pctuast_std",
+      "diff_roll5_fgm_pctuast"
     ],
     "operation": "sub",
     "unary": null,
@@ -5086,8 +5086,8 @@
   {
     "name": "sf_489",
     "columns": [
-      "diff_roll20_netrtg",
-      "diff_roll20_opp_orebpct"
+      "diff_roll20_netrtg_std",
+      "diff_roll20_2nd_pts"
     ],
     "operation": "div",
     "unary": null,
@@ -5096,8 +5096,8 @@
   {
     "name": "sf_490",
     "columns": [
-      "sum_roll5_tov",
-      "sum_roll20_pctpts_3pt"
+      "sum_roll5_stl_std",
+      "sum_roll20_3fgm_pctast"
     ],
     "operation": "div",
     "unary": null,
@@ -5106,8 +5106,8 @@
   {
     "name": "sf_491",
     "columns": [
-      "diff_roll5_plus_minus",
-      "sum_roll5_opp_efgpct_std"
+      "diff_roll5_blk",
+      "sum_roll5_pts_off_to_std"
     ],
     "operation": "add",
     "unary": null,
@@ -5116,9 +5116,9 @@
   {
     "name": "sf_492",
     "columns": [
-      "diff_cusum_momentum",
-      "diff_roll5_pctfga_3pt",
-      "sum_roll10_pure_elo"
+      "diff_h2h_avg_margin",
+      "diff_roll5_pctpts_2pt",
+      "sum_roll10_golden_mean_std"
     ],
     "operation": "div_sum",
     "unary": null,
@@ -5127,7 +5127,7 @@
   {
     "name": "sf_493",
     "columns": [
-      "sum_roll20_ast_to_std",
+      "sum_roll20_tovpct",
       "diff_roll20_game_id"
     ],
     "operation": "div",
@@ -5137,8 +5137,8 @@
   {
     "name": "sf_494",
     "columns": [
-      "diff_roll5_tovpct_std",
-      "sum_roll20_blk_std"
+      "diff_roll5_tovpct",
+      "sum_roll20_offrtg"
     ],
     "operation": "add",
     "unary": "sq",
@@ -5147,8 +5147,8 @@
   {
     "name": "sf_495",
     "columns": [
-      "sum_roll10_pf_std",
-      "diff_roll20_pctpts_off_to_std"
+      "sum_roll10_offrtg",
+      "diff_roll20_3fgm_pctast_std"
     ],
     "operation": "div",
     "unary": null,
@@ -5157,8 +5157,8 @@
   {
     "name": "sf_496",
     "columns": [
-      "diff_roll20_pctpts_pitp_std",
-      "sum_roll10_stl_std"
+      "diff_roll20_3fgm_pctuast_std",
+      "sum_roll10_plus_minus"
     ],
     "operation": "mul",
     "unary": null,
@@ -5167,8 +5167,8 @@
   {
     "name": "sf_497",
     "columns": [
-      "diff_roll20_pctpts_2pt_mr_std",
-      "diff_roll10_ot4"
+      "diff_roll20_pctpts_off_to",
+      "diff_roll10_q4_std"
     ],
     "operation": "mul",
     "unary": null,
@@ -5177,9 +5177,9 @@
   {
     "name": "sf_498",
     "columns": [
-      "diff_roll20_opp_efgpct_std",
-      "sum_roll20_2fgm_pctast_std",
-      "diff_roll5_rebpct_std"
+      "diff_roll20_opp_tovpct_std",
+      "sum_roll20_ot3",
+      "diff_roll5_rebpct"
     ],
     "operation": "triple",
     "unary": null,
@@ -5188,8 +5188,8 @@
   {
     "name": "sf_499",
     "columns": [
-      "diff_roll5_ftm",
-      "sum_ff_composite"
+      "diff_roll5_3pm",
+      "sum_ot_win_rate"
     ],
     "operation": "mul",
     "unary": null,

@@ -21,6 +21,7 @@ Usage:
 from __future__ import annotations
 
 import logging
+import time
 import warnings
 from pathlib import Path
 
@@ -34,6 +35,9 @@ from strategy.config import FEATURES_ROOT, GAME_PARQUET
 from strategy.data import TARGET_MAP
 
 logger = logging.getLogger(__name__)
+# file_logger writes granular DEBUG detail to logistic_validation.log.
+# Configured per-run in run_logistic_validation() once the target path is known.
+file_logger = logging.getLogger(__name__ + ".file")
 
 # ── Thresholds ─────────────────────────────────────────────────────────────
 VIF_THRESHOLD = 5.0       # VIF > 5 → multicollinearity concern
@@ -77,8 +81,14 @@ def test_log_odds_linearity(x: np.ndarray, y: np.ndarray) -> dict:
             p_val = float(result.pvalues[2])  # p-value for interaction term
             coef = float(result.params[2])
             passes = p_val >= LINEARITY_ALPHA
+            file_logger.debug(
+                "  box-tidwell  n=%d  p=%.4f  coef=%.4f  iter=%d  converged=%s  passes=%s",
+                len(x), p_val, coef, result.mle_retvals.get("iterations", -1),
+                result.mle_retvals.get("converged", "?"), passes,
+            )
             return {"passes": passes, "p_value": p_val, "bt_coefficient": coef, "reason": ""}
         except Exception as e:
+            file_logger.debug("  box-tidwell  EXCEPTION: %s", str(e)[:120])
             return {"passes": False, "p_value": np.nan, "bt_coefficient": np.nan, "reason": str(e)[:80]}
 
 
@@ -86,22 +96,34 @@ def test_log_odds_linearity(x: np.ndarray, y: np.ndarray) -> dict:
 
 def compute_vif(X: pd.DataFrame) -> pd.Series:
     """
-    Compute VIF for each column in X using statsmodels.
-    VIF_i = 1 / (1 - R²_i) from regressing column i on all others.
-    Returns a Series indexed by column name.
+    Compute VIF for each column via correlation-matrix inversion:
+      VIF_i = (R^{-1})_{ii}  where R is the correlation matrix.
+    This is O(p^3) one-shot via LAPACK instead of p separate OLS fits.
+    Falls back to np.inf for columns involved in exact singularities.
     """
-    from statsmodels.stats.outliers_influence import variance_inflation_factor
-
     X_filled = X.fillna(X.median())
     X_filled = X_filled.loc[:, X_filled.std() > 0]
+    cols = list(X_filled.columns)
+    if len(cols) == 0:
+        return pd.Series(dtype=float)
+    if len(cols) == 1:
+        return pd.Series([1.0], index=cols)
+
     vals = X_filled.values.astype(float)
-    vifs = {}
-    for i, col in enumerate(X_filled.columns):
-        try:
-            vifs[col] = variance_inflation_factor(vals, i)
-        except Exception:
-            vifs[col] = np.nan
-    return pd.Series(vifs)
+    # Standardize so correlation matrix = X'X / n
+    vals = (vals - vals.mean(axis=0)) / (vals.std(axis=0) + 1e-10)
+    R = (vals.T @ vals) / vals.shape[0]
+    try:
+        R_inv = np.linalg.inv(R)
+        vif_vals = np.diag(R_inv)
+        # Negative diagonal = numeric issue from near-singular matrix → treat as inf
+        vif_vals = np.where(vif_vals < 1.0, np.inf, vif_vals)
+    except np.linalg.LinAlgError:
+        vif_vals = np.full(len(cols), np.inf)
+
+    result = pd.Series(vif_vals, index=cols)
+    file_logger.debug("    vif  n_cols=%d  max=%.2f  n_inf=%d", len(cols), result.replace(np.inf, np.nan).max(skipna=True), int(np.isinf(vif_vals).sum()))
+    return result
 
 
 def iterative_vif_elimination(X: pd.DataFrame, threshold: float = VIF_THRESHOLD) -> list[str]:
@@ -115,8 +137,11 @@ def iterative_vif_elimination(X: pd.DataFrame, threshold: float = VIF_THRESHOLD)
     """
     remaining = [c for c in X.columns if X[c].std() > 0]
     logger.info("  VIF elimination: starting with %d features", len(remaining))
+    file_logger.debug("vif_elimination  start  n_features=%d  threshold=%.1f", len(remaining), threshold)
+    iteration = 0
 
     while True:
+        iter_t0 = time.monotonic()
         X_sub = X[remaining].fillna(X[remaining].median())
         # Drop any column that became constant after fillna
         X_sub = X_sub.loc[:, X_sub.std() > 0]
@@ -126,14 +151,23 @@ def iterative_vif_elimination(X: pd.DataFrame, threshold: float = VIF_THRESHOLD)
 
         vif_s = compute_vif(X_sub)
         max_vif = vif_s.max()
+        elapsed = time.monotonic() - iter_t0
+        file_logger.debug(
+            "vif_elimination  iter=%d  remaining=%d  max_vif=%.2f  elapsed=%.2fs",
+            iteration, len(remaining), max_vif if not np.isnan(max_vif) else -1, elapsed,
+        )
         if np.isnan(max_vif) or max_vif < threshold:
+            file_logger.debug("vif_elimination  converged at iter=%d  survivors=%d", iteration, len(remaining))
             break
 
         worst = vif_s.idxmax()
         logger.info("  Dropping %s (VIF=%.1f)", worst, max_vif)
+        file_logger.debug("vif_elimination  drop  feature=%s  vif=%.2f", worst, max_vif)
         remaining.remove(worst)
+        iteration += 1
 
     logger.info("  VIF elimination: %d features survive", len(remaining))
+    file_logger.debug("vif_elimination  done  survivors=%d", len(remaining))
     return remaining
 
 
@@ -168,16 +202,19 @@ def test_coefficient_stability(x: np.ndarray, y: np.ndarray,
 
     unique_seasons = sorted(set(s_m))
     coefs = []
+    file_logger.debug("  loyo  n_seasons=%d  n_obs=%d", len(unique_seasons), len(x_m))
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         for test_season in unique_seasons:
             if test_season in SKIP_SEASONS:
+                file_logger.debug("  loyo  season=%s  skipped", test_season)
                 continue
             train_mask = np.array(
                 [(s != test_season and s not in SKIP_SEASONS) for s in s_m]
             )
             if train_mask.sum() < LOYO_MIN_TRAIN_SEASONS * 50:
+                file_logger.debug("  loyo  season=%s  skipped (too few train obs=%d)", test_season, train_mask.sum())
                 continue
             x_tr = x_m[train_mask]
             y_tr = y_m[train_mask]
@@ -185,8 +222,15 @@ def test_coefficient_stability(x: np.ndarray, y: np.ndarray,
                 x_std = (x_tr - x_tr.mean()) / (x_tr.std() + 1e-10)
                 X_design = sm.add_constant(x_std)
                 result = sm.Logit(y_tr, X_design).fit(disp=False, maxiter=100)
-                coefs.append(float(result.params[1]))
-            except Exception:
+                coef_val = float(result.params[1])
+                coefs.append(coef_val)
+                file_logger.debug(
+                    "  loyo  season=%s  train_n=%d  coef=%.4f  converged=%s",
+                    test_season, int(train_mask.sum()), coef_val,
+                    result.mle_retvals.get("converged", "?"),
+                )
+            except Exception as e:
+                file_logger.debug("  loyo  season=%s  EXCEPTION: %s", test_season, str(e)[:80])
                 continue
 
     if len(coefs) < 3:
@@ -199,6 +243,10 @@ def test_coefficient_stability(x: np.ndarray, y: np.ndarray,
     coef_cv = std_coef / (abs(mean_coef) + 1e-10)
 
     passes = (sign_consistency >= COEF_SIGN_MIN_CONSISTENCY) and (coef_cv < COEF_CV_MAX)
+    file_logger.debug(
+        "  loyo  summary  n_folds=%d  mean_coef=%.4f  std_coef=%.4f  sign_cons=%.2f  coef_cv=%.2f  passes=%s",
+        len(coefs), mean_coef, std_coef, sign_consistency, coef_cv, passes,
+    )
     return {
         "passes": passes,
         "sign_consistency": sign_consistency,
@@ -372,6 +420,19 @@ def run_logistic_validation(
     if task not in ("classification",):
         raise ValueError(f"Logistic validation only applies to classification targets, got '{task}'")
 
+    # Wire the file logger once we know the target output dir.
+    _log_dir = FEATURES_ROOT / target
+    _log_dir.mkdir(parents=True, exist_ok=True)
+    _log_path = _log_dir / "logistic_validation.log"
+    if not file_logger.handlers:
+        _fh = logging.FileHandler(_log_path, mode="a")
+        _fh.setLevel(logging.DEBUG)
+        _fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S"))
+        file_logger.addHandler(_fh)
+        file_logger.setLevel(logging.DEBUG)
+        file_logger.propagate = False  # don't send DEBUG lines to stdout
+    file_logger.debug("=== run_logistic_validation  target=%s ===", target)
+
     df_report = pd.read_csv(report_path)
 
     if candidates is None:
@@ -429,13 +490,25 @@ def run_logistic_validation(
         passes_vif = not eliminated_by_vif
 
         if eliminated_by_vif:
+            file_logger.debug("[%d/%d] FEATURE=%s  eliminated_by_vif=True", i + 1, len(candidates), feat)
             lin = {"passes": False, "p_value": np.nan, "bt_coefficient": np.nan, "reason": "eliminated by VIF"}
             stab = {"passes": False, "sign_consistency": np.nan, "coef_cv": np.nan,
                     "mean_coef": np.nan, "n_folds": np.nan, "reason": "eliminated by VIF"}
         else:
+            feat_t0 = time.monotonic()
+            file_logger.debug("[%d/%d] FEATURE=%s  starting tests", i + 1, len(candidates), feat)
             x = X_candidates_filled[feat].values
             lin = test_log_odds_linearity(x, y)
+            file_logger.debug("[%d/%d] FEATURE=%s  linearity done  passes=%s  p=%.4f  elapsed=%.2fs",
+                              i + 1, len(candidates), feat, lin["passes"],
+                              lin["p_value"] if not np.isnan(lin["p_value"]) else -1,
+                              time.monotonic() - feat_t0)
             stab = test_coefficient_stability(x, y, seasons)
+            file_logger.debug("[%d/%d] FEATURE=%s  stability done  passes=%s  sign_cons=%.2f  coef_cv=%.2f  elapsed=%.2fs",
+                              i + 1, len(candidates), feat, stab["passes"],
+                              stab.get("sign_consistency", float("nan")) if not np.isnan(stab.get("sign_consistency", float("nan"))) else -1,
+                              stab.get("coef_cv", float("nan")) if not np.isnan(stab.get("coef_cv", float("nan"))) else -1,
+                              time.monotonic() - feat_t0)
 
         qualifies = lin["passes"] and passes_vif and stab["passes"]
 

@@ -21,3 +21,5 @@ kendall_tau.json
 backtest.txt
 .env
 .env*
+trade.txt
+DEMO.txt

@@ -4,81 +4,89 @@
   "combination_method": "flat_weights",
   "n_candidates": 46,
   "n_successful": 46,
-  "n_ensemble": 16,
-  "final_metric": 0.6054098526413708,
-  "best_single_metric": 0.6080354791963427,
+  "n_ensemble": 17,
+  "final_metric": 0.6053204338938418,
+  "best_single_metric": 0.6071257639140313,
   "models": [
     {
-      "uid": "bag_logreg__trees",
-      "weight": 0.3436215537033383,
-      "metric": 0.6080354791963427,
-      "family": "bagging",
+      "uid": "catboost_deep__trees",
+      "weight": 0.3585818683943871,
+      "metric": 0.6071257639140313,
+      "family": "catboost",
       "feature_group": "trees",
-      "n_features": 29
+      "n_features": 37
     },
     {
       "uid": "mlp_wide__full",
-      "weight": 0.09182390612619619,
-      "metric": 0.6376865984116896,
+      "weight": 0.0923173858793117,
+      "metric": 0.6378386499350055,
       "family": "mlp",
       "feature_group": "full",
-      "n_features": 332
-    },
-    {
-      "uid": "knn_20__diversity",
-      "weight": 0.04058596192553917,
-      "metric": 0.6986179721947398,
-      "family": "knn",
-      "feature_group": "diversity",
-      "n_features": 77
+      "n_features": 292
     },
     {
       "uid": "mlp_small__full",
-      "weight": 0.10964566300150905,
-      "metric": 0.626118816966666,
+      "weight": 0.016663693444241758,
+      "metric": 0.6294670140470747,
       "family": "mlp",
       "feature_group": "full",
-      "n_features": 332
+      "n_features": 292
     },
     {
       "uid": "mlp_medium__full",
-      "weight": 0.14706022758415138,
-      "metric": 0.6188800798536405,
+      "weight": 0.08057436219279601,
+      "metric": 0.6182119208043247,
       "family": "mlp",
       "feature_group": "full",
-      "n_features": 332
+      "n_features": 292
+    },
+    {
+      "uid": "sgd_log__linear",
+      "weight": 0.030500970097672716,
+      "metric": 0.621831622554434,
+      "family": "sgd",
+      "feature_group": "linear",
+      "n_features": 19
     },
     {
       "uid": "mlp_large__full",
-      "weight": 0.0995969000263175,
-      "metric": 0.6158675098722054,
+      "weight": 0.16141038843254057,
+      "metric": 0.6140799570033577,
       "family": "mlp",
       "feature_group": "full",
-      "n_features": 332
-    },
-    {
-      "uid": "lgbm_aggressive__trees",
-      "weight": 0.012117688510506628,
-      "metric": 0.617113704262192,
-      "family": "lgbm",
-      "feature_group": "trees",
-      "n_features": 29
+      "n_features": 292
     },
     {
       "uid": "lgbm_goss__trees",
-      "weight": 0.039598541343621674,
-      "metric": 0.6131892939699982,
+      "weight": 0.06182518801085794,
+      "metric": 0.6111468388446116,
       "family": "lgbm",
       "feature_group": "trees",
-      "n_features": 29
+      "n_features": 37
     },
     {
       "uid": "rf_deep__trees",
-      "weight": 0.11594955777882027,
-      "metric": 0.611336106840564,
+      "weight": 0.06463070414960122,
+      "metric": 0.6100558695403387,
       "family": "rf",
       "feature_group": "trees",
-      "n_features": 29
+      "n_features": 37
+    },
+    {
+      "uid": "bag_logreg__trees",
+      "weight": 0.0873700943921938,
+      "metric": 0.6081929901198271,
+      "family": "bagging",
+      "feature_group": "trees",
+      "n_features": 37
+    },
+    {
+      "uid": "lgbm_deep__trees",
+      "weight": 0.046125345006397214,
+      "metric": 0.6104664784299022,
+      "family": "lgbm",
+      "feature_group": "trees",
+      "n_features": 37
     }
   ]
 }

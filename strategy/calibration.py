@@ -208,8 +208,8 @@ def min_edge_for_profit(price: float, maker: bool = False) -> float:
     For a YES contract at price P:
       Profit if win: (1 - P) - fee
       Loss if lose: P + fee (you paid P and lose it, plus fee on entry)
-      Actually: fee is charged on entry only, not on settlement.
-      Net expected profit = edge * (1-P) - fee_per_contract
+      Fee is charged on entry only, not on settlement.
+      Net expected profit = edge - fee_per_contract
       Breakeven: edge = fee / (1 - P)
 
     Fee per contract = 0.07 * P * (1-P) for taker, 0.0175 * P * (1-P) for maker.
@@ -217,8 +217,8 @@ def min_edge_for_profit(price: float, maker: bool = False) -> float:
         min_edge = 0.0175 * P (maker)
     """
     if maker:
-        return 0.0175 * price
-    return 0.07 * price
+        return 0.0175 * price * (1 - price)
+    return 0.07 * price * (1 - price)
 
 
 def compute_min_edge_table() -> dict[str, float]:

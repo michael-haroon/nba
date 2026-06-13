@@ -1,0 +1,172 @@
+{
+  "positions": [
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS4",
+      "side": "no",
+      "entry_price": 0.66,
+      "contracts": 10,
+      "strategy": "taker",
+      "order_id": "",
+      "opened_at": "2026-06-08T05:06:43.103732+00:00",
+      "status": "open"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS3",
+      "side": "no",
+      "entry_price": 0.63,
+      "contracts": 15,
+      "strategy": "taker",
+      "order_id": "",
+      "opened_at": "2026-06-08T05:06:43.218250+00:00",
+      "status": "open"
+    },
+    {
+      "ticker": "KXNBA1HSPREAD-26JUN08SASNYK-SAS2",
+      "side": "no",
+      "entry_price": 0.59,
+      "contracts": 10,
+      "strategy": "taker",
+      "order_id": "",
+      "opened_at": "2026-06-08T05:06:43.358139+00:00",
+      "status": "open"
+    }
+  ],
+  "settled": [],
+  "open_orders": [
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS9",
+      "side": "no",
+      "price_cents": 11,
+      "contracts": 13,
+      "order_id": "taker_852a36eabde6",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:43.484179+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS12",
+      "side": "no",
+      "price_cents": 7,
+      "contracts": 12,
+      "order_id": "taker_25a0ec167ae7",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:43.605442+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS10",
+      "side": "no",
+      "price_cents": 10,
+      "contracts": 12,
+      "order_id": "taker_3771b8388fa5",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:43.733833+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS11",
+      "side": "no",
+      "price_cents": 9,
+      "contracts": 12,
+      "order_id": "taker_ca070faffadb",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:43.850386+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS13",
+      "side": "no",
+      "price_cents": 6,
+      "contracts": 12,
+      "order_id": "taker_0d29745d52b4",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:43.975146+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS14",
+      "side": "no",
+      "price_cents": 5,
+      "contracts": 11,
+      "order_id": "taker_3145c12bc0a1",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:44.122284+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS15",
+      "side": "no",
+      "price_cents": 4,
+      "contracts": 9,
+      "order_id": "taker_d90d23560be4",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:44.249201+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS16",
+      "side": "no",
+      "price_cents": 4,
+      "contracts": 7,
+      "order_id": "taker_abcd59865a89",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:44.368740+00:00"
+    },
+    {
+      "ticker": "KXNBAGAME-26JUN08SASNYK-NYK",
+      "side": "yes",
+      "price_cents": 55,
+      "contracts": 11,
+      "order_id": "taker_e77bc5d08d21",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:44.488097+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS19",
+      "side": "no",
+      "price_cents": 2,
+      "contracts": 5,
+      "order_id": "taker_614a5d17f5c4",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:44.606652+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS18",
+      "side": "no",
+      "price_cents": 2,
+      "contracts": 4,
+      "order_id": "taker_f61980c04052",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:44.743627+00:00"
+    },
+    {
+      "ticker": "KXNBASPREAD-26JUN08SASNYK-SAS17",
+      "side": "no",
+      "price_cents": 3,
+      "contracts": 4,
+      "order_id": "taker_2f4e8e399036",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:44.879431+00:00"
+    },
+    {
+      "ticker": "KXNBA1HTOTAL-26JUN08SASNYK-106",
+      "side": "yes",
+      "price_cents": 63,
+      "contracts": 2,
+      "order_id": "taker_604097db15c3",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:45.021500+00:00"
+    },
+    {
+      "ticker": "KXNBA1HTOTAL-26JUN08SASNYK-103",
+      "side": "yes",
+      "price_cents": 71,
+      "contracts": 1,
+      "order_id": "taker_7d217bf8d2ba",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:45.160971+00:00"
+    },
+    {
+      "ticker": "KXNBA1HTOTAL-26JUN08SASNYK-109",
+      "side": "yes",
+      "price_cents": 55,
+      "contracts": 2,
+      "order_id": "taker_f5011f48dc59",
+      "order_type": "maker",
+      "placed_at": "2026-06-08T05:06:45.283809+00:00"
+    }
+  ]
+}

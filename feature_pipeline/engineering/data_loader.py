@@ -79,7 +79,7 @@ def load_box_scores(
                 continue
             cat_df = pd.read_parquet(path)
             cat_df.columns = [c.replace("\xa0", " ") for c in cat_df.columns]
-            cat_df["GAME DATE"] = pd.to_datetime(cat_df["GAME DATE"], errors="coerce")
+            cat_df["GAME DATE"] = pd.to_datetime(cat_df["GAME DATE"], format="mixed", errors="coerce")
             cat_df = cat_df.dropna(subset=["GAME DATE"])
 
             if cat == "Trad":
@@ -105,7 +105,7 @@ def load_box_scores(
             frames.append(merged)
 
     df = pd.concat(frames, ignore_index=True)
-    df = _coerce_numeric(df, exclude=set(JOIN_COLS) | {"season_type", "MIN_TRAD"})
+    df = _coerce_numeric(df, exclude=set(JOIN_COLS) | {"season_type", "MIN_TRAD", "game_id"})
     logger.info("[load_box_scores] loaded %d rows, %d cols | season_types=%s",
                 df.shape[0], df.shape[1], list(season_types))
     top_null = df.select_dtypes(include="number").isna().mean().nlargest(5)
@@ -159,12 +159,25 @@ def load_quarter_scores(data_dir: Path | None = None) -> pd.DataFrame:
 
 
 def load_player_box_scores(data_dir: Path | None = None) -> pd.DataFrame:
+    """Load player roster/status data from SummaryPlayers.parquet (syncer-updated).
+
+    Maps SummaryPlayers schema to the columns expected by compute_roster_features:
+    game_id, team_id, player_id, dnp_comment (non-null → inactive).
+    """
     data_dir = data_dir or DATA_DIR
-    path = data_dir / "PlayerStatus.parquet"
+    path = data_dir / "SummaryPlayers.parquet"
     if not path.exists():
         logger.warning("[load_player_box_scores] %s not found — returning empty DataFrame", path)
-        return pd.DataFrame(columns=["game_id", "team_id", "player_id", "player_name", "roster_status", "dnp_comment"])
-    return pd.read_parquet(path)
+        return pd.DataFrame(columns=["game_id", "team_id", "player_id", "player_name", "dnp_comment"])
+    df = pd.read_parquet(path)
+    result = pd.DataFrame({
+        "game_id": df["gameId"],
+        "team_id": df["teamId"],
+        "player_id": df["personId"],
+        "player_name": df["name"],
+        "dnp_comment": df["inactive"].map({True: "INACTIVE", False: None}),
+    })
+    return result
 
 
 def load_play_by_play(data_dir: Path | None = None) -> pd.DataFrame:

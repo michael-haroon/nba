@@ -198,14 +198,15 @@ class KalshiClient:
             price:     cents (1–99)
             order_type: "limit" or "market"
         """
+        # API requires exactly one of yes_price/no_price; yes_price is canonical
+        yes_price = price if side == "yes" else 100 - price
         body = {
             "ticker": ticker,
             "side": side,
             "action": action,
             "count": count,
             "type": order_type,
-            "yes_price": price if side == "yes" else 100 - price,
-            "no_price": price if side == "no" else 100 - price,
+            "yes_price": yes_price,
         }
         if client_order_id:
             body["client_order_id"] = client_order_id
@@ -221,7 +222,7 @@ class KalshiClient:
 # ── Factory ───────────────────────────────────────────────────────────────────
 
 def make_client(env: str = "prod") -> KalshiClient:
-    """Build client from environment variables + backtest.txt RSA key."""
+    """Build client from environment variables + backtest.txt RSA key (read-only)."""
     api_key = os.environ.get("KALSHI_API_KEY", "")
     if not api_key:
         raise EnvironmentError("KALSHI_API_KEY not set")
@@ -230,5 +231,19 @@ def make_client(env: str = "prod") -> KalshiClient:
     rsa_path = project_root / "backtest.txt"
     if not rsa_path.exists():
         raise FileNotFoundError(f"RSA key not found at {rsa_path}")
+
+    return KalshiClient(api_key=api_key, rsa_key_path=rsa_path, env=env)
+
+
+def make_write_client(env: str = "prod") -> KalshiClient:
+    """Build client with write permissions for order placement."""
+    api_key = os.environ.get("KALSHI_WRITE_KEY", "")
+    if not api_key:
+        raise EnvironmentError("KALSHI_WRITE_KEY not set")
+
+    project_root = Path(__file__).resolve().parents[1]
+    rsa_path = project_root / "trade.txt"
+    if not rsa_path.exists():
+        raise FileNotFoundError(f"RSA write key not found at {rsa_path}")
 
     return KalshiClient(api_key=api_key, rsa_key_path=rsa_path, env=env)

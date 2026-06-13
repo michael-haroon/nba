@@ -1,5 +1,7 @@
 - [?] add NOK to the mapping and curated history
 
+- [ ] 🔴 Retrain all ensemble models (winner, home_wins_h1, h1_spread, h1_total, h2_total) to regenerate ensemble_oof.csv files with season + game_date columns. Current OOF files predate that code — per-season MAE/accuracy plots are blank for all targets, which is a blind spot for detecting model staleness and temporal drift.
+
 - Add the following data:
     - [X] AdvBoxScoresTradPre
     - [X] AdvBoxScoresTradRegular
@@ -37,6 +39,17 @@
  3. _build_normal_equations_vectorized(): remaining NaN → fillna(0.0) in design matrix X (means "no crowd effect for this game" — neutral imputation)
 
  The above risks data issues in our regression models later in feature pipelien and strategy
+
+🔴🔴🔴🔴🔴🔴 lower exposure for early season games by a LOT 🔴🔴🔴🔴🔴🔴
+clean the parquets and rerun or more likely retrain without imputing
+
+🔴🔴🔴🔴🔴🔴 implement live data streaming
+🔴🔴🔴🔴🔴🔴 our regression models have noise in them due to bad preprocessing for NaN values
+
+
+🔴🔴🔴 rerun feature pipeline but add filtering for NaN for regression targets since they can't handle it right. imputung is not the right call. maybe we just run analysis on different time lines (like for feature A we do 1997 to 2026 but feture B has only 2010 to 2026, no imputing old dates). but the issu was with h1 home wins, which is classification. wtf
+- [ ] katz centrality in strngth of schedule
+- [ ] expand to polymarket, prophetX (check email), manifold
 - [ ] add turnover margin as a feature 
 - [ ] 🔴🔴 OUR DATA IS MESSY! SOME ARE MISSING
 - [ ] We need to analyze regime changes like the 3pt revolution

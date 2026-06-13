@@ -1,0 +1,36 @@
+{
+  "target": "h2_total",
+  "task": "regression",
+  "combination_method": "flat_weights",
+  "n_candidates": 26,
+  "n_successful": 26,
+  "n_ensemble": 5,
+  "final_metric": 9.658962188007296,
+  "best_single_metric": 9.674089462973738,
+  "models": [
+    {
+      "uid": "lasso_01__trees",
+      "weight": 0.838602269284963,
+      "metric": 9.674089462973738,
+      "family": "lasso",
+      "feature_group": "trees",
+      "n_features": 15
+    },
+    {
+      "uid": "mlp_small__full",
+      "weight": 0.0851352033106341,
+      "metric": 10.247729676366843,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 123
+    },
+    {
+      "uid": "mlp_medium__full",
+      "weight": 0.07626252740440295,
+      "metric": 10.114203507226442,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 123
+    }
+  ]
+}

@@ -1582,10 +1582,11 @@ def compute_log5_features(games: pd.DataFrame) -> pd.DataFrame:
 
     if probs:
         prob_matrix = np.column_stack(probs)
-        with np.errstate(all="ignore"):
-            df["log5_implied_prob"] = np.nanmean(prob_matrix, axis=1)
         all_nan = np.isnan(prob_matrix).all(axis=1)
-        df.loc[all_nan, "log5_implied_prob"] = np.nan
+        result = np.full(len(df), np.nan)
+        if (~all_nan).any():
+            result[~all_nan] = np.nanmean(prob_matrix[~all_nan], axis=1)
+        df["log5_implied_prob"] = result
     else:
         df["log5_implied_prob"] = np.nan
 
@@ -1792,10 +1793,15 @@ def compute_acwr_features(games: pd.DataFrame) -> pd.DataFrame:
         feat_cols.append(f"acwr_{c}")
 
     acwr_vals = history[[f"acwr_{c}" for c in available_load]].values
-    history["acwr_risk"] = np.where(
-        np.isnan(acwr_vals).all(axis=1), np.nan,
-        ((np.nanmin(acwr_vals, axis=1) < 0.80) | (np.nanmax(acwr_vals, axis=1) > 1.30)).astype(float)
-    )
+    all_nan_rows = np.isnan(acwr_vals).all(axis=1)
+    acwr_risk = np.full(len(acwr_vals), np.nan)
+    valid = ~all_nan_rows
+    if valid.any():
+        acwr_risk[valid] = (
+            (np.nanmin(acwr_vals[valid], axis=1) < 0.80) |
+            (np.nanmax(acwr_vals[valid], axis=1) > 1.30)
+        ).astype(float)
+    history["acwr_risk"] = acwr_risk
     feat_cols.append("acwr_risk")
 
     history = history.drop_duplicates(subset=["team_id", "game_date"], keep="last")
@@ -2263,26 +2269,37 @@ def compute_hustle_features(games: pd.DataFrame,
     for c in available_stats:
         h[c] = pd.to_numeric(h[c], errors="coerce")
 
-    h["game_id"] = h["game_id"].astype(str)
-
-    gid_col = "game_id" if "game_id" in df.columns else "home_game_id"
-    if gid_col not in df.columns or "side" not in h.columns:
-        return df
-
-    game_team_lookup = pd.concat([
-        df[[gid_col, "home_team_id"]].rename(columns={gid_col: "game_id", "home_team_id": "team_id"}).assign(side="homeTeam"),
-        df[[gid_col, "away_team_id"]].rename(columns={gid_col: "game_id", "away_team_id": "team_id"}).assign(side="awayTeam"),
-    ])
-    game_team_lookup["game_id"] = pd.to_numeric(game_team_lookup["game_id"], errors="coerce").astype("Int64").astype(str).str.zfill(10)
     h["game_id"] = h["game_id"].astype(str).str.zfill(10)
 
-    h = h.drop(columns=["team_id"], errors="ignore")
-    h = h.merge(game_team_lookup, on=["game_id", "side"], how="inner")
-
-    if h.empty or "team_id" not in h.columns:
+    gid_col = "game_id" if "game_id" in df.columns else "home_game_id"
+    if gid_col not in df.columns:
         return df
 
-    team_game = h.groupby(["game_id", "team_id"])[available_stats].sum().reset_index()
+    # Resolve team_id for all rows: use direct team_id where available,
+    # fall back to side-based lookup for older data
+    if "team_id" in h.columns:
+        h["team_id"] = pd.to_numeric(h["team_id"], errors="coerce")
+
+    has_side = "side" in h.columns
+    needs_side_lookup = "team_id" not in h.columns or h["team_id"].isna().any()
+
+    if needs_side_lookup and has_side:
+        game_team_lookup = pd.concat([
+            df[[gid_col, "home_team_id"]].rename(columns={gid_col: "game_id", "home_team_id": "team_id"}).assign(side="homeTeam"),
+            df[[gid_col, "away_team_id"]].rename(columns={gid_col: "game_id", "away_team_id": "team_id"}).assign(side="awayTeam"),
+        ])
+        game_team_lookup["game_id"] = pd.to_numeric(game_team_lookup["game_id"], errors="coerce").astype("Int64").astype(str).str.zfill(10)
+        # Only fill team_id where it's missing
+        missing_mask = h["team_id"].isna() if "team_id" in h.columns else pd.Series(True, index=h.index)
+        h_missing = h[missing_mask].drop(columns=["team_id"], errors="ignore")
+        h_missing = h_missing.merge(game_team_lookup, on=["game_id", "side"], how="inner")
+        h_has = h[~missing_mask] if "team_id" in h.columns else pd.DataFrame(columns=h.columns)
+        h = pd.concat([h_has, h_missing], ignore_index=True)
+
+    if "team_id" not in h.columns or h["team_id"].isna().all():
+        return df
+
+    team_game = h.dropna(subset=["team_id"]).groupby(["game_id", "team_id"])[available_stats].sum().reset_index()
 
     gid_col = "game_id" if "game_id" in df.columns else "home_game_id"
     if gid_col not in df.columns:
@@ -2354,10 +2371,10 @@ def compute_half_scoring_rate(games: pd.DataFrame) -> pd.DataFrame:
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _safe_divide(a, b):
-    # Treat near-zero denominators as NaN rather than producing huge values
     threshold = 1e-3
-    result = np.where(np.abs(b) >= threshold, a / b, np.nan)
-    return result.astype(np.float64)
+    mask = np.abs(b) >= threshold
+    result = np.divide(a, b, out=np.full_like(a, np.nan, dtype=np.float64), where=mask)
+    return result
 
 
 def _safe_log1p(x):
@@ -2457,6 +2474,7 @@ def generate_symbolic_features(games: pd.DataFrame,
                 len(pool_cols), n_features, seed)
     rng = np.random.default_rng(seed)
     recipes = []
+    new_cols: dict[str, np.ndarray] = {}
 
     pool_data = {c: df[c].values.astype(np.float64) for c in pool_cols}
     n_pool = len(pool_cols)
@@ -2487,7 +2505,7 @@ def generate_symbolic_features(games: pd.DataFrame,
         result = np.where(np.isfinite(result), result, np.nan)
 
         col_name = f"sf_{i:03d}"
-        df[col_name] = result
+        new_cols[col_name] = result
 
         recipes.append({
             "name": col_name,
@@ -2496,6 +2514,8 @@ def generate_symbolic_features(games: pd.DataFrame,
             "unary": unary_name,
             "arity": arity,
         })
+
+    df = pd.concat([df, pd.DataFrame(new_cols, index=df.index)], axis=1)
 
     sf_cols = [c for c in df.columns if c.startswith("sf_")]
     logger.info("[generate_symbolic_features] %d symbolic features generated", len(sf_cols))

@@ -1,0 +1,1 @@
+{"event": "open_order", "ticker": "KXNBAGAME-TEST", "side": "yes", "price_cents": 45, "contracts": 2, "order_id": "ord_001", "order_type": "maker", "placed_at": "2026-06-10T11:22:27.049960+00:00", "model_prob": 0.55, "log_time": "2026-06-10T11:22:27.050190+00:00"}

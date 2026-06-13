@@ -115,26 +115,41 @@ def compute_quotes(
 
 def extract_book_top(orderbook: dict) -> tuple[Optional[int], Optional[int]]:
     """
-    Parse Kalshi orderbook response to get best bid/ask.
+    Parse Kalshi orderbook response to get best bid/ask in cents.
 
-    Kalshi orderbook: {"yes": [[price, size], ...], "no": [[price, size], ...]}
-    YES bids = yes side sorted descending.
-    YES asks = 100 - (NO bids sorted descending).
+    Handles two formats:
+    - Legacy: {"yes": [[price_cents, size], ...], "no": [[price_cents, size], ...]}
+    - Live API: {"orderbook_fp": {"yes_dollars": [["0.50","qty"], ...], "no_dollars": [...]}}
+
+    Returns (best_yes_bid_cents, best_yes_ask_cents).
     """
-    yes_levels = orderbook.get("yes", [])
-    no_levels = orderbook.get("no", [])
+    # Detect format
+    if "orderbook_fp" in orderbook:
+        fp = orderbook["orderbook_fp"]
+        yes_levels = fp.get("yes_dollars", [])
+        no_levels = fp.get("no_dollars", [])
 
-    # Best bid: highest YES price
-    book_bid: Optional[int] = None
-    if yes_levels:
-        # levels are [price, qty] pairs, already sorted desc
-        book_bid = int(yes_levels[0][0])
+        # Prices are dollar strings sorted ascending; best bid = last (highest)
+        book_bid: Optional[int] = None
+        if yes_levels:
+            book_bid = round(float(yes_levels[-1][0]) * 100)
 
-    # Best ask: 100 - highest NO price (NO buyer = YES seller)
-    book_ask: Optional[int] = None
-    if no_levels:
-        best_no_bid = int(no_levels[0][0])
-        book_ask = 100 - best_no_bid
+        book_ask: Optional[int] = None
+        if no_levels:
+            best_no_bid = round(float(no_levels[-1][0]) * 100)
+            book_ask = 100 - best_no_bid
+    else:
+        yes_levels = orderbook.get("yes", [])
+        no_levels = orderbook.get("no", [])
+
+        book_bid: Optional[int] = None
+        if yes_levels:
+            book_bid = int(yes_levels[0][0])
+
+        book_ask: Optional[int] = None
+        if no_levels:
+            best_no_bid = int(no_levels[0][0])
+            book_ask = 100 - best_no_bid
 
     # Sanity: if bid >= ask, treat as crossed/empty
     if book_bid is not None and book_ask is not None and book_bid >= book_ask:

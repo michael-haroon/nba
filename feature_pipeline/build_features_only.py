@@ -22,6 +22,7 @@ from feature_pipeline.engineering.feature_engineering import (
     align_ratings_to_games,
     align_massey_to_games,
     compute_rolling_features,
+    compute_venue_rolling_features,
     compute_score_momentum,
     compute_context_features,
     compute_travel_sequence_features,
@@ -44,13 +45,53 @@ from feature_pipeline.engineering.feature_engineering import (
     compute_scoring_concentration,
     compute_series_features,
     compute_hustle_features,
+    compute_h2h_features,
+    compute_matchup_advantage,
+    compute_conditional_matchup_stats,
     compute_half_scoring_rate,
     generate_symbolic_features,
     handle_missing,
+    BINARY_OPS, TERNARY_OPS, UNARY_OPS,
 )
 
 
-def main(output_dir: str = "output/features/winner", data_dir: str | None = None) -> None:
+def _apply_recipes(df: pd.DataFrame, recipes: list[dict]) -> pd.DataFrame:
+    """Apply pre-computed symbolic feature recipes deterministically."""
+    import numpy as np
+
+    op_map = {name: fn for name, fn in BINARY_OPS + TERNARY_OPS}
+    unary_map = {name: fn for name, fn in UNARY_OPS}
+
+    new_cols = {}
+    for r in recipes:
+        cols = r["columns"]
+        if not all(c in df.columns for c in cols):
+            new_cols[r["name"]] = np.full(len(df), np.nan)
+            continue
+        arrays = [df[c].values.astype(np.float64) for c in cols]
+        if r.get("unary"):
+            arrays[0] = unary_map[r["unary"]](arrays[0])
+        result = op_map[r["operation"]](*arrays)
+        result = np.clip(result, -1e6, 1e6)
+        result = np.where(np.isfinite(result), result, np.nan)
+        new_cols[r["name"]] = result
+
+    return pd.concat([df, pd.DataFrame(new_cols, index=df.index)], axis=1)
+
+
+def _venue_conditioned_diffs(games: pd.DataFrame) -> pd.DataFrame:
+    """home_roll10_pts_athome - away_roll10_pts_onroad → diff_roll10_pts_venue"""
+    df = games
+    venue_athome_cols = [c for c in df.columns if c.startswith("home_roll") and c.endswith("_athome")]
+    for hcol in venue_athome_cols:
+        stat_window = hcol.replace("home_", "").replace("_athome", "")
+        acol = f"away_{stat_window}_onroad"
+        if acol in df.columns:
+            df[f"diff_{stat_window}_venue"] = df[hcol] - df[acol]
+    return df
+
+
+def main(output_dir: str = "output/features", data_dir: str | None = None) -> None:
     log_dir = Path(__file__).resolve().parent / "logs"
     setup_pipeline_logger(log_dir)
     logger = logging.getLogger("feature_pipeline")
@@ -97,11 +138,12 @@ def main(output_dir: str = "output/features/winner", data_dir: str | None = None
     steps = [
         ("align_ratings",          lambda g: align_ratings_to_games(g, data["bpi"], data["sagarin"], data["team_map"])),
         ("rolling_features",       lambda g: compute_rolling_features(g, windows=[5, 10, 20])),
+        ("venue_rolling",          lambda g: compute_venue_rolling_features(g)),
         ("score_momentum",         lambda g: compute_score_momentum(g)),
         ("context_features",       lambda g: compute_context_features(g, data["arenas"], data.get("game_summaries"))),
         ("travel_sequence",        lambda g: compute_travel_sequence_features(g, data["arenas"])),
         ("referee_features",       lambda g: compute_referee_features(g, data["officials"])),
-        ("roster_features",        lambda g: compute_roster_features(g, data["player_box_scores"])),
+        ("roster_features",        lambda g: compute_roster_features(g, data["player_box_scores"], data["game_ids"])),
         ("deprado_features",       lambda g: compute_deprado_features(g)),
         ("massey_align",           _align_massey),
         ("crowd_pressure",         _crowd_pressure),
@@ -119,8 +161,12 @@ def main(output_dir: str = "output/features/winner", data_dir: str | None = None
         ("scoring_concentration",  lambda g: compute_scoring_concentration(g)),
         ("series_features",        lambda g: compute_series_features(g)),
         ("hustle_features",        lambda g: compute_hustle_features(g, data.get("hustle"))),
+        ("h2h_features",           lambda g: compute_h2h_features(g)),
+        ("matchup_advantage",      lambda g: compute_matchup_advantage(g)),
+        ("conditional_matchup",    lambda g: compute_conditional_matchup_stats(g)),
         ("diffs",                  lambda g: compute_diffs(g)),
         ("sums",                   lambda g: compute_sums(g)),
+        ("venue_diffs",            _venue_conditioned_diffs),
         ("log5",                   lambda g: compute_log5_features(g)),
         ("half_scoring_rate",      lambda g: compute_half_scoring_rate(g)),
     ]
@@ -133,16 +179,25 @@ def main(output_dir: str = "output/features/winner", data_dir: str | None = None
         elapsed = time.time() - _t
         logger.info("[step] %-25s +%d cols  %.1fs", name, games.shape[1] - _cols_before, elapsed)
 
-    print("  Generating symbolic features (500)...")
-    _t = time.time()
-    games, recipes = generate_symbolic_features(games)
-    logger.info("[step] %-25s +%d cols  %.1fs", "symbolic_features", len([c for c in games.columns if c.startswith("sf_")]), time.time() - _t)
-
     import json
-    recipes_path = output / "symbolic_recipes.json"
-    with open(recipes_path, "w") as f:
-        json.dump(recipes, f, indent=2)
-    print(f"  Saved {len(recipes)} recipes → {recipes_path}")
+    # Use existing recipes from training if available; otherwise generate new ones
+    training_recipes_path = output / "winner" / "symbolic_recipes.json"
+    if training_recipes_path.exists():
+        print(f"  Applying symbolic features from {training_recipes_path}...")
+        _t = time.time()
+        with open(training_recipes_path) as f:
+            recipes = json.load(f)
+        games = _apply_recipes(games, recipes)
+        logger.info("[step] %-25s +%d cols  %.1fs", "symbolic_features (apply)", len(recipes), time.time() - _t)
+    else:
+        print("  Generating symbolic features (500)...")
+        _t = time.time()
+        games, recipes = generate_symbolic_features(games)
+        logger.info("[step] %-25s +%d cols  %.1fs", "symbolic_features", len([c for c in games.columns if c.startswith("sf_")]), time.time() - _t)
+        recipes_path = output / "symbolic_recipes.json"
+        with open(recipes_path, "w") as f:
+            json.dump(recipes, f, indent=2)
+        print(f"  Saved {len(recipes)} recipes → {recipes_path}")
 
     out_path = output / "game_features.parquet"
     games.to_parquet(out_path, index=False)
@@ -154,7 +209,7 @@ def main(output_dir: str = "output/features/winner", data_dir: str | None = None
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--output-dir", default="output/features/winner")
+    p.add_argument("--output-dir", default="output/features")
     p.add_argument("--data-dir", default=None)
     args = p.parse_args()
     main(output_dir=args.output_dir, data_dir=args.data_dir)

@@ -1,0 +1,52 @@
+{
+  "target": "h1_total",
+  "task": "regression",
+  "combination_method": "flat_weights",
+  "n_candidates": 26,
+  "n_successful": 26,
+  "n_ensemble": 5,
+  "final_metric": 9.192730140668381,
+  "best_single_metric": 9.224670640984744,
+  "models": [
+    {
+      "uid": "ridge_100__linear",
+      "weight": 0.7222438796303497,
+      "metric": 9.224670640984744,
+      "family": "ridge",
+      "feature_group": "linear",
+      "n_features": 17
+    },
+    {
+      "uid": "mlp_small__full",
+      "weight": 0.09492672808366882,
+      "metric": 10.315346472189262,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 229
+    },
+    {
+      "uid": "mlp_medium__full",
+      "weight": 0.05161419263376257,
+      "metric": 10.269559461928177,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 229
+    },
+    {
+      "uid": "knn_10__diversity",
+      "weight": 0.026348754869472933,
+      "metric": 9.665672499215301,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 17
+    },
+    {
+      "uid": "knn_50__diversity",
+      "weight": 0.10486644478274594,
+      "metric": 9.312172829171152,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 17
+    }
+  ]
+}

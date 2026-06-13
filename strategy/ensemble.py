@@ -1458,6 +1458,8 @@ def run_ensemble(
     for r, w in zip(ensemble, weights):
         if w > 0.001:
             oof_df[f"pred_{r.uid}"] = r.oof_preds[common_mask]
+    oof_df["season"] = seasons_series.values[common_mask]
+    oof_df["game_date"] = df_raw["game_date"].values[common_mask]
     oof_df.to_csv(out_dir / f"{target}_ensemble_oof.csv", index=False)
 
     # Retrain selected ensemble models on full data and pickle
@@ -1888,6 +1890,8 @@ def run_specialist_ensemble(
     for r in ensemble:
         oof_df[f"pred_{r.uid}"] = r.oof_preds[common_mask]
     oof_df["pred_ensemble"] = preds_flat
+    oof_df["season"] = seasons_series.values[common_mask]
+    oof_df["game_date"] = df_raw["game_date"].values[common_mask]
     oof_df.to_csv(out_dir / "ensemble_oof.csv", index=False)
 
     if verbose:

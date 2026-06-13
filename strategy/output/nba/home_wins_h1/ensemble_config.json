@@ -1,0 +1,68 @@
+{
+  "target": "home_wins_h1",
+  "task": "classification",
+  "combination_method": "flat_weights",
+  "n_candidates": 46,
+  "n_successful": 46,
+  "n_ensemble": 17,
+  "final_metric": 0.63946308120206,
+  "best_single_metric": 0.6400792039733944,
+  "models": [
+    {
+      "uid": "rf_medium__trees",
+      "weight": 0.6165964216968793,
+      "metric": 0.6400792039733944,
+      "family": "rf",
+      "feature_group": "trees",
+      "n_features": 809
+    },
+    {
+      "uid": "sgd_log__linear",
+      "weight": 0.005832579792184274,
+      "metric": 0.6955599174368433,
+      "family": "sgd",
+      "feature_group": "linear",
+      "n_features": 72
+    },
+    {
+      "uid": "mlp_small__full",
+      "weight": 0.01650698405526811,
+      "metric": 0.6913901484487682,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 1049
+    },
+    {
+      "uid": "mlp_large__full",
+      "weight": 0.013034640691002972,
+      "metric": 0.6514456219109761,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 1049
+    },
+    {
+      "uid": "bag_logreg__trees",
+      "weight": 0.056655556431312606,
+      "metric": 0.6465644618585943,
+      "family": "bagging",
+      "feature_group": "trees",
+      "n_features": 809
+    },
+    {
+      "uid": "lgbm_goss__trees",
+      "weight": 0.08538837569293059,
+      "metric": 0.6462871390056808,
+      "family": "lgbm",
+      "feature_group": "trees",
+      "n_features": 809
+    },
+    {
+      "uid": "xgb_shallow__trees",
+      "weight": 0.20598544164042212,
+      "metric": 0.6410435221899392,
+      "family": "xgb",
+      "feature_group": "trees",
+      "n_features": 809
+    }
+  ]
+}
