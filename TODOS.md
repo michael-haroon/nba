@@ -1,26 +1,21 @@
+When I come back:
+- run diagnostics to see spread distribution accuracy
+- update strategy using Kalshi's microstructure (collateral No bias on mutual exclusive markets but buy Yes low No high for ladders; must enter long)
+    - embrace naked exposure and treat collateral as accidental velocity
+    - Quote the entire ladder independently
+    - trap the middle by quoting around it
+    - maximize fractional shares if exposure limit is not an integer
+    - allow for netting
+- Add layered risk managment and capital allocation
+- Create models for overtime, player moneylines, and quarter moneylines
+
+
 - [?] add NOK to the mapping and curated history
 
 - [ ] 🔴 Retrain all ensemble models (winner, home_wins_h1, h1_spread, h1_total, h2_total) to regenerate ensemble_oof.csv files with season + game_date columns. Current OOF files predate that code — per-season MAE/accuracy plots are blank for all targets, which is a blind spot for detecting model staleness and temporal drift.
 
 - Add the following data:
-    - [X] AdvBoxScoresTradPre
-    - [X] AdvBoxScoresTradRegular
-    - [X] AdvBoxScoresTradPlayoffs
-    - [X] AdvBoxScoresAdvPre
-    - [X] AdvBoxScoresAdvRegular
-    - [X] AdvBoxScoresAdvPlayoffs
-    - [X] AdvBoxScoresFourFactorsPre
-    - [X] AdvBoxScoresFourFactorsRegular
-    - [X] AdvBoxScoresFourFactorsPlayoffs
-    - [X] AdvBoxScoresMiscPre
-    - [X] AdvBoxScoresMiscRegular
-    - [X] AdvBoxScoresMiscPlayoffs
-    - [X] AdvBoxScoresScoringPre
-    - [X] AdvBoxScoresScoringRegular
-    - [X] AdvBoxScoresScoringPlayoffs
     - [ ] GeneralAdv (for possessions)
-    - [X] Hustle endpoint
-    - [X] BoxScoreSummary endpoint
 
 - We need to be able to download Massey ratings from his website on aws using selenium or chrome
 - We need more SAG and BPI data
