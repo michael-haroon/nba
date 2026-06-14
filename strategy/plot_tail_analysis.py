@@ -18,6 +18,7 @@ Run:
 """
 from __future__ import annotations
 
+import argparse
 import logging
 from pathlib import Path
 
@@ -29,20 +30,50 @@ import pandas as pd
 from scipy import stats
 from scipy.stats import norm, t as t_dist
 
+from strategy.config import SKIP_SEASONS
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger(__name__)
 
-OOF_PATH = Path("strategy/output/nba/ensemble/spread_ensemble_oof.csv")
+OOF_PATH = Path("strategy/output/nba/spread/ensemble_oof.csv")
 GAME_PARQUET = Path("output/features/game_features.parquet")
-OUT_DIR = Path("strategy/output/nba/ensemble/plots")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+OUT_DIR = Path("strategy/output/nba/spread/plots")
 
 SIGMA = 12.44  # current model assumption
 
 
-def run():
+def _attach_season(oof: pd.DataFrame) -> pd.DataFrame:
+    if "season" in oof.columns:
+        return oof
+    try:
+        df_meta = pd.read_parquet(GAME_PARQUET, columns=["season", "target_spread"])
+        valid = df_meta["target_spread"].notna() & ~df_meta["season"].isin(SKIP_SEASONS)
+        seasons = df_meta.loc[valid, "season"].reset_index(drop=True)
+        n = min(len(oof), len(seasons))
+        oof = oof.copy()
+        oof["season"] = seasons.values[:n]
+        log.warning("season attached positionally (%d rows); re-run ensemble to persist.", n)
+    except Exception as e:
+        log.warning("Could not attach season: %s", e)
+    return oof
+
+
+def run(recent_seasons: int | None = None):
     log.info("Loading data...")
     oof = pd.read_csv(OOF_PATH)
+    # Normalise ensemble column name
+    if "pred_ensemble" in oof.columns and "y_pred_ensemble" not in oof.columns:
+        oof = oof.rename(columns={"pred_ensemble": "y_pred_ensemble"})
+    oof = _attach_season(oof)
+
+    suffix = ""
+    if recent_seasons and "season" in oof.columns:
+        all_s = sorted(oof["season"].dropna().unique())
+        keep = set(all_s[-recent_seasons:])
+        oof = oof[oof["season"].isin(keep)].reset_index(drop=True)
+        log.info("Filtered to %d seasons: %s", len(keep), sorted(keep))
+        suffix = f"_recent{recent_seasons}"
+
     errors = (oof["y_true"] - oof["y_pred_ensemble"]).values
 
     df = pd.read_parquet(GAME_PARQUET)
@@ -179,7 +210,8 @@ def run():
     ax.set_ylim(0, 5)
 
     plt.tight_layout()
-    out_path = OUT_DIR / "spread_tail_analysis.png"
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = OUT_DIR / f"spread_tail_analysis{suffix}.png"
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close()
     log.info(f"Saved: {out_path}")
@@ -207,4 +239,10 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    parser = argparse.ArgumentParser(description="Spread tail analysis plots")
+    parser.add_argument(
+        "--recent-seasons", type=int, default=None, metavar="N",
+        help="Restrict analysis to the N most recent seasons (default: all)",
+    )
+    args = parser.parse_args()
+    run(recent_seasons=args.recent_seasons)

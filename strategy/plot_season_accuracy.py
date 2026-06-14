@@ -150,10 +150,15 @@ def load_target(target: str) -> tuple[pd.DataFrame, str]:
     return oof, pred_col
 
 
-def compute_season_stats(target: str, lam: float = 0.15) -> dict:
+def compute_season_stats(target: str, lam: float = 0.15, recent_seasons: int | None = None) -> dict:
     oof, pred_col = load_target(target)
     task = _TASK[target]
     oof = oof.rename(columns={pred_col: "pred"})
+
+    if recent_seasons and "season" in oof.columns:
+        all_s = sorted(oof["season"].dropna().unique())
+        keep = set(all_s[-recent_seasons:])
+        oof = oof[oof["season"].isin(keep)].reset_index(drop=True)
 
     # For total targets: use global OOF y_true median as the O/U line
     # This approximates a season-neutral market line without look-ahead bias
@@ -277,6 +282,10 @@ def main() -> None:
         action="store_true",
         help="Report unweighted accuracy only (still plots both lines)",
     )
+    parser.add_argument(
+        "--recent-seasons", type=int, default=None, metavar="N",
+        help="Restrict analysis to the N most recent seasons (default: all)",
+    )
     args = parser.parse_args()
 
     targets = _TARGETS if args.target == "all" else [args.target]
@@ -285,7 +294,7 @@ def main() -> None:
     stats_list = []
     for t in targets:
         try:
-            stats = compute_season_stats(t, lam=lam)
+            stats = compute_season_stats(t, lam=lam, recent_seasons=args.recent_seasons)
             stats_list.append(stats)
         except FileNotFoundError:
             logger.warning("No OOF file for target '%s' — skipping", t)
@@ -311,11 +320,12 @@ def main() -> None:
     print("Recency weighting: w_i = exp(λ·i), normalised. Recent seasons dominate.")
     print("Colour gradient in plots: darker bars = higher recency weight.\n")
 
+    suffix = f"_recent{args.recent_seasons}" if args.recent_seasons else ""
     if len(stats_list) == 1:
         t = stats_list[0]["target"]
-        out_path = OUTPUT_DIR / t / "plots" / f"{t}_season_accuracy.png"
+        out_path = OUTPUT_DIR / t / "plots" / f"{t}_season_accuracy{suffix}.png"
     else:
-        out_path = OUTPUT_DIR / "season_accuracy_all.png"
+        out_path = OUTPUT_DIR / f"season_accuracy_all{suffix}.png"
 
     plot_all(stats_list, args.lam, out_path)
     print(f"Plot saved: {out_path}")

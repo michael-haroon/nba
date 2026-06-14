@@ -54,6 +54,8 @@ from scipy.stats import norm, t as t_dist
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 log = logging.getLogger(__name__)
 
+from strategy.config import SKIP_SEASONS
+
 GAME_PARQUET = Path("output/features/game_features.parquet")
 OUTPUT_ROOT = Path("strategy/output/nba")
 
@@ -147,24 +149,27 @@ def _load_oof(target: str) -> pd.DataFrame:
     return oof
 
 
-def _attach_season(oof: pd.DataFrame) -> pd.DataFrame:
-    """Best-effort season join via positional alignment."""
+def _attach_season(oof: pd.DataFrame, target: str) -> pd.DataFrame:
+    """Attach season column to OOF via positional alignment filtered to the target."""
+    if "season" in oof.columns:
+        return oof
     try:
-        df_meta = pd.read_parquet(GAME_PARQUET, columns=["season", "game_date"])
-        df_meta = df_meta.dropna(subset=["season"])
-        if len(df_meta) == len(oof):
-            oof = oof.copy()
-            oof["season"] = df_meta["season"].values
-        else:
-            log.warning(f"Season alignment skipped: parquet rows={len(df_meta)}, OOF rows={len(oof)}")
+        target_col = f"target_{target}"
+        df_meta = pd.read_parquet(GAME_PARQUET, columns=["season", target_col])
+        valid = df_meta[target_col].notna() & ~df_meta["season"].isin(SKIP_SEASONS)
+        seasons = df_meta.loc[valid, "season"].reset_index(drop=True)
+        n = min(len(oof), len(seasons))
+        oof = oof.copy()
+        oof["season"] = seasons.values[:n]
+        log.warning("[%s] season attached positionally (%d rows); re-run ensemble to persist.", target, n)
     except Exception as e:
-        log.warning(f"Could not load season metadata: {e}")
+        log.warning("Could not attach season for %s: %s", target, e)
     return oof
 
 
 # ── Regression diagnostics ────────────────────────────────────────────────────
 
-def _plot_regression(target: str, oof: pd.DataFrame, out_dir: Path) -> None:
+def _plot_regression(target: str, oof: pd.DataFrame, out_dir: Path, suffix: str = "") -> None:
     cfg = _TARGET_CFG[target]
     label = cfg["label"]
     xlim  = cfg["xlim"]
@@ -524,7 +529,7 @@ def _plot_regression(target: str, oof: pd.DataFrame, out_dir: Path) -> None:
         ax.set_title("Sharpness")
 
     plt.tight_layout()
-    out_path = out_dir / f"{target}_diagnostics.png"
+    out_path = out_dir / f"{target}_diagnostics{suffix}.png"
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close()
     log.info(f"[{target}] Saved: {out_path}")
@@ -537,7 +542,7 @@ def _plot_regression(target: str, oof: pd.DataFrame, out_dir: Path) -> None:
 
 # ── Classification diagnostics ────────────────────────────────────────────────
 
-def _plot_classification(target: str, oof: pd.DataFrame, out_dir: Path) -> None:
+def _plot_classification(target: str, oof: pd.DataFrame, out_dir: Path, suffix: str = "") -> None:
     from sklearn.calibration import calibration_curve
     from sklearn.metrics import roc_curve, auc, brier_score_loss, log_loss
 
@@ -838,7 +843,7 @@ def _plot_classification(target: str, oof: pd.DataFrame, out_dir: Path) -> None:
     ax.grid(True, alpha=0.3, axis="y")
 
     plt.tight_layout()
-    out_path = out_dir / f"{target}_diagnostics.png"
+    out_path = out_dir / f"{target}_diagnostics{suffix}.png"
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     plt.close()
     log.info(f"[{target}] Saved: {out_path}")
@@ -846,21 +851,28 @@ def _plot_classification(target: str, oof: pd.DataFrame, out_dir: Path) -> None:
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
-def run_target(target: str) -> None:
+def run_target(target: str, recent_seasons: int | None = None) -> None:
     cfg = _TARGET_CFG.get(target)
     if cfg is None:
         raise ValueError(f"Unknown target '{target}'. Known: {list(_TARGET_CFG)}")
 
     oof = _load_oof(target)
-    oof = _attach_season(oof)
+    oof = _attach_season(oof, target)
 
+    if recent_seasons and "season" in oof.columns:
+        all_s = sorted(oof["season"].dropna().unique())
+        keep = set(all_s[-recent_seasons:])
+        oof = oof[oof["season"].isin(keep)].reset_index(drop=True)
+        log.info("[%s] Filtered to %d seasons: %s", target, len(keep), sorted(keep))
+
+    suffix = f"_recent{recent_seasons}" if recent_seasons else ""
     out_dir = OUTPUT_ROOT / target / "plots"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     if cfg["task"] == "clf":
-        _plot_classification(target, oof, out_dir)
+        _plot_classification(target, oof, out_dir, suffix=suffix)
     else:
-        _plot_regression(target, oof, out_dir)
+        _plot_regression(target, oof, out_dir, suffix=suffix)
 
 
 def main() -> None:
@@ -868,12 +880,16 @@ def main() -> None:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--target", choices=list(_TARGET_CFG), help="Single target to plot")
     group.add_argument("--all", action="store_true", help="Plot all trained targets")
+    parser.add_argument(
+        "--recent-seasons", type=int, default=None, metavar="N",
+        help="Restrict analysis to the N most recent seasons (default: all)",
+    )
     args = parser.parse_args()
 
     targets = TRAINED_TARGETS if args.all else [args.target]
     for t in targets:
         try:
-            run_target(t)
+            run_target(t, recent_seasons=args.recent_seasons)
         except FileNotFoundError as e:
             log.warning(f"[{t}] Skipped: {e}")
 

@@ -1,0 +1,76 @@
+{
+  "target": "spread",
+  "task": "regression",
+  "combination_method": "flat_weights",
+  "n_candidates": 26,
+  "n_successful": 26,
+  "n_ensemble": 10,
+  "final_metric": 9.702261092093481,
+  "best_single_metric": 9.742602848586767,
+  "models": [
+    {
+      "uid": "hgb_deep__trees",
+      "weight": 0.1843822331148168,
+      "metric": 9.742602848586767,
+      "family": "hgb",
+      "feature_group": "trees",
+      "n_features": 83
+    },
+    {
+      "uid": "knn_10__diversity",
+      "weight": 0.0021639864819420354,
+      "metric": 10.24928525470882,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 253
+    },
+    {
+      "uid": "knn_50__diversity",
+      "weight": 0.007851491330870498,
+      "metric": 9.892568136413603,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 253
+    },
+    {
+      "uid": "mlp_small__full",
+      "weight": 0.2943519115698968,
+      "metric": 9.764012584898445,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 321
+    },
+    {
+      "uid": "ridge_01__linear",
+      "weight": 0.16134911360451795,
+      "metric": 9.748562656772021,
+      "family": "ridge",
+      "feature_group": "linear",
+      "n_features": 97
+    },
+    {
+      "uid": "mlp_medium__full",
+      "weight": 0.06827110128796422,
+      "metric": 9.777138781488809,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 321
+    },
+    {
+      "uid": "rf_deep__trees",
+      "weight": 0.013935547606077677,
+      "metric": 9.75244675649386,
+      "family": "rf",
+      "feature_group": "trees",
+      "n_features": 83
+    },
+    {
+      "uid": "xgb_deep__trees",
+      "weight": 0.267694615003914,
+      "metric": 9.751486554384798,
+      "family": "xgb",
+      "feature_group": "trees",
+      "n_features": 83
+    }
+  ]
+}
