@@ -1,0 +1,60 @@
+{
+  "target": "h2_spread",
+  "task": "regression",
+  "combination_method": "flat_weights",
+  "n_candidates": 26,
+  "n_successful": 26,
+  "n_ensemble": 13,
+  "final_metric": 7.887688130634648,
+  "best_single_metric": 7.892209896937901,
+  "models": [
+    {
+      "uid": "rf_medium__trees",
+      "weight": 0.35961159895509165,
+      "metric": 7.892209896937901,
+      "family": "rf",
+      "feature_group": "trees",
+      "n_features": 30
+    },
+    {
+      "uid": "knn_10__diversity",
+      "weight": 0.02718125143568718,
+      "metric": 8.246295860515172,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 187
+    },
+    {
+      "uid": "mlp_small__full",
+      "weight": 0.24331451111161462,
+      "metric": 7.90933191003069,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 156
+    },
+    {
+      "uid": "hgb_default__trees",
+      "weight": 0.020681361810742142,
+      "metric": 7.902367956543024,
+      "family": "hgb",
+      "feature_group": "trees",
+      "n_features": 30
+    },
+    {
+      "uid": "ridge_1__linear",
+      "weight": 0.0460653778095095,
+      "metric": 7.8969891076401835,
+      "family": "ridge",
+      "feature_group": "linear",
+      "n_features": 30
+    },
+    {
+      "uid": "catboost_deep__trees",
+      "weight": 0.30314584770459735,
+      "metric": 7.895614233473058,
+      "family": "catboost",
+      "feature_group": "trees",
+      "n_features": 30
+    }
+  ]
+}

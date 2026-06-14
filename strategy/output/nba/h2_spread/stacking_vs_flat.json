@@ -1,0 +1,7 @@
+{
+  "flat_metric": 7.887688130634648,
+  "stacking_metric": 7.890926081664725,
+  "improvement": -0.0032379510300772907,
+  "threshold": 0.002,
+  "selected": "flat_weights"
+}

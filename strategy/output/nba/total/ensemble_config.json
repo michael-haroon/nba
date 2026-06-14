@@ -1,0 +1,44 @@
+{
+  "target": "total",
+  "task": "regression",
+  "combination_method": "flat_weights",
+  "n_candidates": 26,
+  "n_successful": 26,
+  "n_ensemble": 4,
+  "final_metric": 14.494517791241977,
+  "best_single_metric": 14.578712423695755,
+  "models": [
+    {
+      "uid": "rf_medium__trees",
+      "weight": 0.7204972079243501,
+      "metric": 14.578712423695755,
+      "family": "rf",
+      "feature_group": "trees",
+      "n_features": 18
+    },
+    {
+      "uid": "mlp_medium__full",
+      "weight": 0.13168244157562706,
+      "metric": 15.424288118874458,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 211
+    },
+    {
+      "uid": "mlp_small__full",
+      "weight": 0.12022543062176626,
+      "metric": 15.854880215124357,
+      "family": "mlp",
+      "feature_group": "full",
+      "n_features": 211
+    },
+    {
+      "uid": "knn_10__diversity",
+      "weight": 0.027594919878256522,
+      "metric": 15.245000228298695,
+      "family": "knn",
+      "feature_group": "diversity",
+      "n_features": 18
+    }
+  ]
+}
