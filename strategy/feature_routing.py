@@ -162,3 +162,70 @@ def run_routing(target: str) -> dict[str, list[str]]:
     write_feature_lists(target, feature_lists)
     write_routing_report(target, feature_lists)
     return feature_lists
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Per-family feature set routing (granular, evidence-based)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Model family groupings — NBA model names
+_GBDT = {"lgbm", "xgb", "catboost"}
+_RF_ET = {"rf", "extratrees"}
+_WEAK_TREE = {"hgb", "adaboost"}
+_LINEAR = {"logreg", "ridge", "lda", "sgd", "elasticnet"}
+_FRAGILE = {"knn", "gnb", "qda"}
+_NEURAL = {"mlp"}
+
+
+def get_feature_set(family: str, filter_report: pd.DataFrame) -> list[str]:
+    """Return the feature list appropriate for this model family.
+
+    Uses the granular pass/fail patterns from filter_report to determine
+    which features each model can responsibly consume.
+
+    Routing logic:
+      GBDT/RF_ET:   accepted + complementary + standalone (absorbed)
+                    (handles interactions, redundancy is cheap)
+      WEAK_TREE:    accepted + standalone (absorbed)
+                    (sensitive to noise, needs reasonably clean signal)
+      NEURAL:       accepted + standalone (absorbed)
+                    (moderate robustness, benefits from more features)
+      LINEAR:       accepted + standalone + linear_only
+                    (needs orthogonal features, PCA-MDA identifies these)
+      FRAGILE:      accepted only
+                    (curse of dimensionality, only proven features)
+
+    Parameters
+    ----------
+    family : str
+        Model family name (NBA naming: lgbm, xgb, catboost, rf, extratrees,
+        hgb, adaboost, logreg, ridge, lda, sgd, elasticnet, knn, gnb, qda, mlp).
+    filter_report : pd.DataFrame
+        Output of filter_features() with a 'feature' column or feature as index,
+        and boolean pass columns (mdi_passes, sfi_passes, pca_mda_passes, resid_mda_passes).
+    """
+    if "feature" in filter_report.columns:
+        df = filter_report.set_index("feature")
+    else:
+        df = filter_report
+
+    df["_group"] = df.apply(_classify_feature, axis=1)
+
+    accepted = df.index[df["_group"] == "accepted"].tolist()
+    complementary = df.index[df["_group"] == "complementary"].tolist()
+    absorbed = df.index[df["_group"] == "absorbed"].tolist()
+    linear_only = df.index[df["_group"] == "linear_only"].tolist()
+
+    df.drop(columns=["_group"], inplace=True)
+
+    if family in _GBDT | _RF_ET:
+        return sorted(accepted + complementary + absorbed)
+    elif family in _WEAK_TREE | _NEURAL:
+        return sorted(accepted + absorbed)
+    elif family in _LINEAR:
+        return sorted(accepted + absorbed + linear_only)
+    elif family in _FRAGILE:
+        return sorted(accepted)
+    # Unknown family → conservative
+    logger.warning(f"Unknown family {family!r} — using accepted features only")
+    return sorted(accepted)

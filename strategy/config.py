@@ -220,6 +220,10 @@ SPECIALIST_ROUTING = {
         "feature_group": "diversity",
         "models": ["logreg", "knn", "gnb", "lda"],
     },
+    "strict": {
+        "feature_group": "accepted",
+        "models": ["knn", "gnb", "qda"],
+    },
 }
 
 # ── Risk management ──────────────────────────────────────────────────────────
