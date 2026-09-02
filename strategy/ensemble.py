@@ -1893,6 +1893,13 @@ def run_specialist_ensemble(
     oof_df["pred_ensemble"] = preds_flat
     oof_df["season"] = seasons_series.values[common_mask]
     oof_df["game_date"] = df_raw["game_date"].values[common_mask]
+    # game_id/home/away captured live from the same in-memory df_raw this run's
+    # oof_preds/common_mask were computed against — never re-joined from a
+    # separately-loaded parquet later, which is what let nba_winner_oof.csv's
+    # positional index go stale against a since-rebuilt game_features.parquet.
+    oof_df["game_id"] = df_raw["game_id"].values[common_mask]
+    oof_df["home_team_abbr"] = df_raw["home_team_abbr"].values[common_mask]
+    oof_df["away_team_abbr"] = df_raw["away_team_abbr"].values[common_mask]
     oof_df.to_csv(out_dir / "ensemble_oof.csv", index=False)
 
     if verbose:

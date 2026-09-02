@@ -86,6 +86,7 @@ class KalshiClient:
     def _request(self, method: str, path: str, params: dict | None = None,
                  body: dict | None = None) -> Any:
         url = self._base + path
+        params = {k: v for k, v in (params or {}).items() if v is not None}
         if params:
             url += "?" + urllib.parse.urlencode(params)
 
@@ -147,6 +148,14 @@ class KalshiClient:
             params={"start_ts": start_ts, "end_ts": end_ts,
                     "period_interval": period_interval},
         )
+
+    def get_historical_markets(self, **kwargs) -> dict:
+        """List markets that have aged out of the live /markets index.
+        Pass event_ticker= or series_ticker=, cursor= for pagination."""
+        return self.get("/historical/markets", params=kwargs)
+
+    def get_historical_market(self, ticker: str) -> dict:
+        return self.get(f"/historical/markets/{ticker}")
 
     def get_historical_trades(self, ticker: str | None = None,
                                min_ts: int | None = None,
