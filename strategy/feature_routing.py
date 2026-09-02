@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from strategy.config import FEATURES_ROOT
+import strategy.config as _cfg
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def route_features(target: str) -> dict[str, list[str]]:
         'diversity' → ACCEPTED + ABSORBED
         'full'      → ACCEPTED + COMPLEMENTARY + LINEAR_ONLY
     """
-    report_path = FEATURES_ROOT / target / "filtered" / "feature_report.csv"
+    report_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_report.csv"
     if not report_path.exists():
         raise FileNotFoundError(
             f"No feature_report.csv for target '{target}'. "
@@ -98,7 +98,7 @@ def route_features(target: str) -> dict[str, list[str]]:
     absorbed = groups["absorbed"]
 
     # Linear list: use logistic_validation.csv if already run, else fall back to accepted
-    validated_linear_path = FEATURES_ROOT / target / "filtered" / "feature_list_linear.txt"
+    validated_linear_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_list_linear.txt"
     if validated_linear_path.exists():
         from strategy.config import load_feature_list
         linear_features = load_feature_list(validated_linear_path)
@@ -127,7 +127,7 @@ def route_features(target: str) -> dict[str, list[str]]:
 
 def write_feature_lists(target: str, feature_lists: dict[str, list[str]]) -> dict[str, Path]:
     """Write per-group feature lists to output/features/{target}/filtered/."""
-    filtered_dir = FEATURES_ROOT / target / "filtered"
+    filtered_dir = _cfg.FEATURES_ROOT / target / "filtered"
     filtered_dir.mkdir(parents=True, exist_ok=True)
 
     paths = {}
@@ -142,7 +142,7 @@ def write_feature_lists(target: str, feature_lists: dict[str, list[str]]) -> dic
 
 def write_routing_report(target: str, feature_lists: dict[str, list[str]]) -> Path:
     """Write routing_report.json with counts and feature assignments."""
-    report_path = FEATURES_ROOT / target / "filtered" / "routing_report.json"
+    report_path = _cfg.FEATURES_ROOT / target / "filtered" / "routing_report.json"
 
     report = {
         "target": target,

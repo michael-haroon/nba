@@ -321,7 +321,7 @@ class KalshiWS:
         event_type = data.get("event_type", "")
         ticker = data.get("market_ticker", "")
 
-        if not ticker.startswith("KXNBAGAME"):
+        if not (ticker.startswith("KXNBAGAME") or ticker.startswith("KXWNBAGAME")):
             return
 
         logger.info(f"[LIFECYCLE] {event_type} → {ticker}")
@@ -380,7 +380,7 @@ class KalshiWS:
         return self.book.get_top(ticker)
 
 
-def default_on_settle(ticker: str):
+def default_on_settle(ticker: str, league: str = "nba"):
     """Default settlement handler: sync games, rebuild features."""
     PROJECT_ROOT = Path(__file__).resolve().parents[1]
     logger.info(f"[SYNC] Running sync_games.py after settlement of {ticker}...")
@@ -390,7 +390,7 @@ def default_on_settle(ticker: str):
         try:
             result = subprocess.run(
                 [sys.executable, "-m",
-                 "data_curation.scripts.sync_games", "--workers", "2"],
+                 "data_curation.scripts.sync_games", "--league", league, "--workers", "2"],
                 capture_output=True, text=True, timeout=600,
                 cwd=str(PROJECT_ROOT),
             )

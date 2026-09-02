@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from strategy.config import FEATURES_ROOT, GAME_PARQUET
+import strategy.config as _cfg
 from strategy.data import TARGET_MAP
 
 logger = logging.getLogger(__name__)
@@ -412,7 +412,7 @@ def run_logistic_validation(
       - 49 ABSORBED features (MDI+SFI+PCA pass — proven standalone, excluded only
         because RESID-MDA shows redundancy for trees, not for linear models)
     """
-    report_path = FEATURES_ROOT / target / "filtered" / "feature_report.csv"
+    report_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_report.csv"
     if not report_path.exists():
         raise FileNotFoundError(f"No feature_report.csv for target '{target}'")
 
@@ -421,7 +421,7 @@ def run_logistic_validation(
         raise ValueError(f"Logistic validation only applies to classification targets, got '{task}'")
 
     # Wire the file logger once we know the target output dir.
-    _log_dir = FEATURES_ROOT / target
+    _log_dir = _cfg.FEATURES_ROOT / target
     _log_dir.mkdir(parents=True, exist_ok=True)
     _log_path = _log_dir / "logistic_validation.log"
     if not file_logger.handlers:
@@ -449,7 +449,7 @@ def run_logistic_validation(
 
     # Load data
     logger.info("Loading data...")
-    game_df = pd.read_parquet(GAME_PARQUET)
+    game_df = pd.read_parquet(_cfg.GAME_PARQUET)
     valid = game_df[target_col].notna()
     game_df = game_df[valid].reset_index(drop=True)
     y = game_df[target_col].astype(int).values
@@ -464,7 +464,7 @@ def run_logistic_validation(
     X_candidates_filled = X_candidates.fillna(X_candidates.median())
 
     # Output dirs
-    out_base = FEATURES_ROOT / target
+    out_base = _cfg.FEATURES_ROOT / target
     out_base.mkdir(parents=True, exist_ok=True)
     plots_dir = out_base / "logistic_validation_plots"
     if make_plots:
@@ -565,7 +565,7 @@ def run_logistic_validation(
     )
 
     # Write qualified feature list
-    qualified_path = FEATURES_ROOT / target / "filtered" / "feature_list_linear.txt"
+    qualified_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_list_linear.txt"
     if qualified:
         qualified_path.write_text("\n".join(qualified) + "\n")
         logger.info("Wrote feature_list_linear.txt: %d qualified features", len(qualified))

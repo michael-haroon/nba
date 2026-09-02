@@ -1,7 +1,10 @@
 """
 config.py
 ---------
-Strategy configuration for NBA winner and spread models.
+Strategy configuration for NBA/WNBA winner and spread models.
+
+Paths default to NBA. Call set_league(cfg) at startup to switch
+to league-specific directories.
 """
 
 from pathlib import Path
@@ -53,6 +56,25 @@ def get_feature_list_path(target: str, model_name: str) -> Path:
     return base / "feature_list.txt"
 
 OUTPUT_DIR = PROJECT_ROOT / "strategy" / "output" / "nba"
+
+
+def set_league(cfg) -> None:
+    """Reconfigure module-level paths for a given league config."""
+    global FEATURES_ROOT, GAME_PARQUET, FEATURE_PATHS, OUTPUT_DIR
+    global WINNER_PARQUET, WINNER_FEATURES, SPREAD_PARQUET, SPREAD_FEATURES
+
+    FEATURES_ROOT = cfg.output_path
+    GAME_PARQUET = FEATURES_ROOT / "game_features.parquet"
+    WINNER_PARQUET = GAME_PARQUET
+    SPREAD_PARQUET = GAME_PARQUET
+    WINNER_FEATURES = FEATURES_ROOT / "winner" / "filtered" / "feature_list.txt"
+    SPREAD_FEATURES = FEATURES_ROOT / "spread" / "filtered" / "feature_list.txt"
+    OUTPUT_DIR = cfg.models_path
+
+    FEATURE_PATHS.update({
+        target: FEATURES_ROOT / target / "filtered" / "feature_list.txt"
+        for target in FEATURE_PATHS
+    })
 
 # ── CV settings ──────────────────────────────────────────────────────────────
 SKIP_SEASONS = {"2019-20"}   # COVID bubble

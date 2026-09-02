@@ -8,24 +8,27 @@ Runs all trained targets by default. Cross-checks across models since they
 predict each other (H1+H2 should sum to full game, spread implies winner, etc.).
 
 Usage:
-    python -m strategy.predict SAS NYK
-    python -m strategy.predict SAS NYK --target winner
-    python -m strategy.predict SAS NYK --target h1_spread
-    python -m strategy.predict CLE IND BOS NYK   # multiple matchups
+    python -m strategy.predict --league nba SAS NYK
+    python -m strategy.predict --league wnba LVA SEA --target winner
+    python -m strategy.predict --league nba SAS NYK --target h1_spread
 """
 
 from __future__ import annotations
 
 import argparse
 import pickle
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from scipy.stats import t as t_dist
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from league_config import get_league_config, add_league_arg
+
+import strategy.config as _cfg
 from strategy.config import (
-    GAME_PARQUET, OUTPUT_DIR,
     SPREAD_RESID_DF, SPREAD_RESID_SCALE,
     TOTAL_RESID_DF, TOTAL_RESID_SCALE,
     WINNER_STD_THRESHOLDS, WINNER_CONFIDENCE_MULTIPLIERS,
@@ -58,8 +61,8 @@ _TARGET_META = {
 # ── Bundle loading ────────────────────────────────────────────────────────────
 
 def _load_bundle(target: str) -> dict:
-    pkl_new = OUTPUT_DIR / target / "ensemble.pkl"
-    pkl_legacy = OUTPUT_DIR / "ensemble" / f"{target}_ensemble_models.pkl"
+    pkl_new = _cfg.OUTPUT_DIR / target / "ensemble.pkl"
+    pkl_legacy = _cfg.OUTPUT_DIR / "ensemble" / f"{target}_ensemble_models.pkl"
     pkl = pkl_new if pkl_new.exists() else pkl_legacy
     if not pkl.exists():
         raise FileNotFoundError(
@@ -77,7 +80,7 @@ def _get_features(bundle: dict) -> list[str]:
 
 def _fit_t_from_oof(target: str) -> tuple[float, float]:
     """Fit t-dist to OOF residuals for a target. Raises RuntimeError if OOF missing."""
-    oof_path = OUTPUT_DIR / target / "ensemble_oof.csv"
+    oof_path = _cfg.OUTPUT_DIR / target / "ensemble_oof.csv"
     if not oof_path.exists():
         raise RuntimeError(
             f"No calibration stored in bundle and no OOF CSV at {oof_path}. "
@@ -105,12 +108,12 @@ def _synthetic_total_params() -> tuple[float, float, float, float]:
         return _synthetic_total_params._cache
 
     for name in ("h1_total", "h2_total"):
-        p = OUTPUT_DIR / name / "ensemble_oof.csv"
+        p = _cfg.OUTPUT_DIR / name / "ensemble_oof.csv"
         if not p.exists():
             raise RuntimeError(f"Synthetic total requires {p} — not found.")
 
-    o1 = pd.read_csv(OUTPUT_DIR / "h1_total" / "ensemble_oof.csv")
-    o2 = pd.read_csv(OUTPUT_DIR / "h2_total" / "ensemble_oof.csv")
+    o1 = pd.read_csv(_cfg.OUTPUT_DIR / "h1_total" / "ensemble_oof.csv")
+    o2 = pd.read_csv(_cfg.OUTPUT_DIR / "h2_total" / "ensemble_oof.csv")
     # normalise column name
     for o in (o1, o2):
         if "pred_ensemble" in o.columns and "y_pred_ensemble" not in o.columns:
@@ -147,7 +150,7 @@ def _oof_pred_stats(target: str) -> dict:
     if hasattr(_oof_pred_stats, cache_attr):
         return getattr(_oof_pred_stats, cache_attr)
 
-    oof_path = OUTPUT_DIR / target / "ensemble_oof.csv"
+    oof_path = _cfg.OUTPUT_DIR / target / "ensemble_oof.csv"
     if not oof_path.exists():
         result = {}
         setattr(_oof_pred_stats, cache_attr, result)
@@ -182,8 +185,8 @@ def _oof_line_accuracy(target: str, ou_lines: np.ndarray) -> dict[float, float]:
     Returns {line: accuracy_fraction}.
     """
     if target == "total":
-        o1_path = OUTPUT_DIR / "h1_total" / "ensemble_oof.csv"
-        o2_path = OUTPUT_DIR / "h2_total" / "ensemble_oof.csv"
+        o1_path = _cfg.OUTPUT_DIR / "h1_total" / "ensemble_oof.csv"
+        o2_path = _cfg.OUTPUT_DIR / "h2_total" / "ensemble_oof.csv"
         if not (o1_path.exists() and o2_path.exists()):
             return {}
         o1 = pd.read_csv(o1_path)
@@ -194,7 +197,7 @@ def _oof_line_accuracy(target: str, ou_lines: np.ndarray) -> dict[float, float]:
         y = (o1["y_true"] + o2["y_true"]).values
         yhat = (o1["y_pred_ensemble"] + o2["y_pred_ensemble"]).values
     else:
-        oof_path = OUTPUT_DIR / target / "ensemble_oof.csv"
+        oof_path = _cfg.OUTPUT_DIR / target / "ensemble_oof.csv"
         if not oof_path.exists():
             return {}
         oof = pd.read_csv(oof_path)
@@ -574,7 +577,7 @@ def _display_clf_block(
     if spread_peer and spread_peer in ("spread", "h1_spread", "h2_spread"):
         # Use fitted params for the spread peer, not the clf bundle
         try:
-            spread_pkl = OUTPUT_DIR / spread_peer / "ensemble.pkl"
+            spread_pkl = _cfg.OUTPUT_DIR / spread_peer / "ensemble.pkl"
             if spread_pkl.exists():
                 with open(spread_pkl, "rb") as f:
                     spread_bundle_tmp = pickle.load(f)
@@ -1036,7 +1039,7 @@ def predict_matchups(
         targets = ["h1_total", "h2_total", "total"]
     else:
         targets = [target]
-    df = pd.read_parquet(GAME_PARQUET)
+    df = pd.read_parquet(_cfg.GAME_PARQUET)
 
     rows = []
     for home, away in matchups:
@@ -1075,15 +1078,20 @@ def predict_matchups(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Predict NBA game outcomes",
-        usage="python -m strategy.predict HOME AWAY [HOME AWAY ...]",
+        description="Predict game outcomes",
+        usage="python -m strategy.predict --league nba HOME AWAY [HOME AWAY ...]",
     )
+    add_league_arg(parser)
     parser.add_argument("teams", nargs="+",
                         help="Team pairs: HOME AWAY [HOME AWAY ...]")
     parser.add_argument("--target", default="all",
                         choices=["all"] + _TARGET_ORDER,
                         help="Which model(s) to run (default: all)")
     args = parser.parse_args()
+
+    cfg = get_league_config(args.league)
+    from strategy.config import set_league
+    set_league(cfg)
 
     if len(args.teams) % 2 != 0:
         parser.error("Teams must be in pairs (home away home away ...)")

@@ -11,9 +11,9 @@ Strategy:
 - Cluster inventory caps prevent correlated concentration
 
 Usage:
-    conda run -n pred python -m trading.runner --dry-run --once
-    conda run -n pred python -m trading.runner --dry-run --interval 30
-    conda run -n pred python -m trading.runner --live --once --bankroll 350
+    conda run -n pred python -m trading.runner --league nba --dry-run --once
+    conda run -n pred python -m trading.runner --league wnba --dry-run --interval 30
+    conda run -n pred python -m trading.runner --league nba --live --once --bankroll 350
 """
 
 from __future__ import annotations
@@ -32,10 +32,12 @@ from dotenv import load_dotenv
 load_dotenv()
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from league_config import get_league_config, add_league_arg
 from backtest.kalshi_client import make_client, make_write_client
 from backtest.quoting import extract_book_top
 from trading.ws import KalshiWS, make_ws, default_on_settle
-from trading.models import load_all_models, MODEL_TO_SERIES
+import trading.models as _models
+from trading.models import load_all_models
 from trading.scanner import scan_all_markets, Signal
 from trading.sizing import size_signals, CLUSTER_MAX_CONTRACTS
 from trading.config import (
@@ -68,14 +70,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _load_features() -> pd.DataFrame:
+def _load_features(cfg=None) -> pd.DataFrame:
+    if cfg is not None:
+        return pd.read_parquet(cfg.output_path / "game_features.parquet")
     PROJECT_ROOT = Path(__file__).resolve().parents[1]
     return pd.read_parquet(PROJECT_ROOT / "output" / "features" / "game_features.parquet")
 
 
-def _find_tradeable_games(client) -> list[dict]:
+def _find_tradeable_games(client, winner_series: str = "KXNBAGAME") -> list[dict]:
     """
-    Find all tradeable games across open KXNBAGAME markets.
+    Find all tradeable games across open winner markets.
 
     Markov constraint: a team is "locked" if it has an open game with tipoff
     in the past (live or awaiting settlement). Locked teams' future games are
@@ -86,7 +90,7 @@ def _find_tradeable_games(client) -> list[dict]:
     """
     from collections import defaultdict
 
-    result = client.get_markets(series_ticker="KXNBAGAME", status="open", limit=200)
+    result = client.get_markets(series_ticker=winner_series, status="open", limit=200)
     all_markets = result.get("markets", [])
     if not all_markets:
         return []
@@ -324,7 +328,7 @@ def _cancel_stale_orders(client, game: dict | None, dry_run: bool):
 
 def scan_once(client, bundles: dict, gf: pd.DataFrame, bankroll: float,
               dry_run: bool, strategy: str, max_exposure: float | None = None,
-              ws: KalshiWS | None = None):
+              ws: KalshiWS | None = None, winner_series: str = "KXNBAGAME"):
     """Single scan iteration — multi-model, multi-game, diversified."""
     if max_exposure is None:
         max_exposure = bankroll * MAX_DAILY_EXPOSURE_PCT / 100.0
@@ -339,7 +343,7 @@ def scan_once(client, bundles: dict, gf: pd.DataFrame, bankroll: float,
     logger.info(f"{'='*60}")
 
     # Find all tradeable games
-    games = _find_tradeable_games(client)
+    games = _find_tradeable_games(client, winner_series=winner_series)
     if not games:
         logger.info("No tradeable games found.")
         return
@@ -569,7 +573,8 @@ def _execute_game_signals(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="NBA trading runner (multi-model)")
+    parser = argparse.ArgumentParser(description="Trading runner (multi-model)")
+    add_league_arg(parser)
     parser.add_argument("--dry-run", action="store_true", default=True)
     parser.add_argument("--live", action="store_true")
     parser.add_argument("--once", action="store_true")
@@ -582,13 +587,18 @@ def main():
     parser.add_argument("--no-ws", action="store_true")
     args = parser.parse_args()
 
+    cfg = get_league_config(args.league)
+    _models.set_league(cfg)
+
     dry_run = not args.live
     strategy = args.strategy
     max_exposure = args.exposure * args.bankroll
+    winner_series = cfg.kalshi_series["winner"]
 
+    logger.info(f"League: {cfg.league.upper()} | Models: {cfg.models_path}")
     logger.info("Loading all models...")
     bundles = load_all_models()
-    gf = _load_features()
+    gf = _load_features(cfg)
     logger.info(f"Loaded {len(bundles)} models, {len(gf)} game rows.")
 
     # Connect to Kalshi REST
@@ -612,10 +622,10 @@ def main():
         try:
             def on_settle(ticker: str):
                 nonlocal bundles, gf
-                default_on_settle(ticker)
+                default_on_settle(ticker, league=cfg.league)
 
                 # Verify sync actually ingested the settled game
-                gf_new = _load_features()
+                gf_new = _load_features(cfg)
                 latest_date = gf_new["game_date"].max()
                 prev_date = gf["game_date"].max()
                 if latest_date <= prev_date:
@@ -640,7 +650,7 @@ def main():
 
     if args.once:
         scan_once(client, bundles, gf, args.bankroll, dry_run, strategy,
-                  max_exposure=max_exposure, ws=ws)
+                  max_exposure=max_exposure, ws=ws, winner_series=winner_series)
         if ws:
             ws.stop()
         portfolio.stop()
@@ -649,7 +659,7 @@ def main():
         while True:
             try:
                 scan_once(client, bundles, gf, args.bankroll, dry_run, strategy,
-                          max_exposure=max_exposure, ws=ws)
+                          max_exposure=max_exposure, ws=ws, winner_series=winner_series)
             except KeyboardInterrupt:
                 logger.info("Shutting down gracefully...")
                 break

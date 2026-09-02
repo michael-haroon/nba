@@ -20,7 +20,8 @@ import pandas as pd
 from scipy.stats import pearsonr
 from sklearn.metrics import log_loss
 
-from strategy.config import GAME_PARQUET, OUTPUT_DIR, SKIP_SEASONS
+import strategy.config as _cfg
+from strategy.config import SKIP_SEASONS
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +63,8 @@ _LABELS = {
 
 def _oof_path(target: str) -> pathlib.Path:
     # New path uses ensemble_oof.csv; legacy path uses {target}_ensemble_oof.csv
-    new_path = OUTPUT_DIR / target / "ensemble_oof.csv"
-    legacy_path = OUTPUT_DIR / target / f"{target}_ensemble_oof.csv"
+    new_path = _cfg.OUTPUT_DIR / target / "ensemble_oof.csv"
+    legacy_path = _cfg.OUTPUT_DIR / target / f"{target}_ensemble_oof.csv"
     if new_path.exists():
         return new_path
     if legacy_path.exists():
@@ -72,7 +73,7 @@ def _oof_path(target: str) -> pathlib.Path:
 
 
 def _load_parquet_seasons(target: str) -> pd.Series:
-    df = pd.read_parquet(GAME_PARQUET)
+    df = pd.read_parquet(_cfg.GAME_PARQUET)
     target_col = _TARGET_COL[target]
     valid = df[target_col].notna() & ~df["season"].isin(SKIP_SEASONS)
     return df[valid]["season"].reset_index(drop=True)
@@ -323,9 +324,9 @@ def main() -> None:
     suffix = f"_recent{args.recent_seasons}" if args.recent_seasons else ""
     if len(stats_list) == 1:
         t = stats_list[0]["target"]
-        out_path = OUTPUT_DIR / t / "plots" / f"{t}_season_accuracy{suffix}.png"
+        out_path = _cfg.OUTPUT_DIR / t / "plots" / f"{t}_season_accuracy{suffix}.png"
     else:
-        out_path = OUTPUT_DIR / f"season_accuracy_all{suffix}.png"
+        out_path = _cfg.OUTPUT_DIR / f"season_accuracy_all{suffix}.png"
 
     plot_all(stats_list, args.lam, out_path)
     print(f"Plot saved: {out_path}")

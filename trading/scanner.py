@@ -21,9 +21,10 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+import trading.models as _models
 from trading.models import (
     predict_regression, predict_classification,
-    threshold_probability, MODEL_TO_SERIES,
+    threshold_probability,
     parse_spread_ticker, parse_total_ticker,
 )
 from backtest.quoting import extract_book_top
@@ -89,35 +90,40 @@ def scan_all_markets(
         logger.warning(f"Cannot build features for {home} vs {away}: {e}")
         return signals
 
+    series = _models.MODEL_TO_SERIES
+
     # ── WINNER ───────────────────────────────────────────────────────────────
-    if "winner" in bundles:
+    if "winner" in bundles and "winner" in series:
         pred = predict_classification(bundles["winner"], X)
         if pred["prob"] >= MIN_MODEL_CONVICTION:
             _add_winner_signal(
-                signals, client, ws, game_key, "KXNBAGAME",
+                signals, client, ws, game_key, series["winner"],
                 pred["prob"], pred["std"], home, away, "winner",
             )
 
     # ── H1 WINNER ────────────────────────────────────────────────────────────
-    if "home_wins_h1" in bundles:
+    if "home_wins_h1" in bundles and "home_wins_h1" in series:
         pred = predict_classification(bundles["home_wins_h1"], X)
         if pred["prob"] >= MIN_MODEL_CONVICTION or pred["prob"] <= (1 - MIN_MODEL_CONVICTION):
             _add_winner_signal(
-                signals, client, ws, game_key, "KXNBA1HWINNER",
+                signals, client, ws, game_key, series["home_wins_h1"],
                 pred["prob"], pred["std"], home, away, "h1_winner",
             )
 
     # ── SPREAD ───────────────────────────────────────────────────────────────
-    if "spread" in bundles:
+    if "spread" in bundles and "spread" in series:
         pred = predict_regression(bundles["spread"], X)
         cal = bundles["spread"]["calibration"]
         _scan_spread_markets(
-            signals, client, ws, game_key, "KXNBASPREAD",
+            signals, client, ws, game_key, series["spread"],
             pred["value"], pred["std"], cal, home, away, "spread",
         )
 
     # ── TOTAL (synthetic: h1_total + h2_total) ───────────────────────────────
     if "h1_total" in bundles and "h2_total" in bundles:
+        total_series = series.get("h1_total", "").replace("1H", "")
+        if not total_series:
+            total_series = series.get("winner", "KXNBAGAME").replace("GAME", "TOTAL")
         pred_h1 = predict_regression(bundles["h1_total"], X)
         pred_h2 = predict_regression(bundles["h2_total"], X)
         synthetic_total = pred_h1["value"] + pred_h2["value"]
@@ -133,30 +139,30 @@ def scan_all_markets(
             synthetic_std = pred_h1["std"] + pred_h2["std"]
             syn_cal = bundles["h1_total"].get("calibration", {})
         _scan_total_markets(
-            signals, client, ws, game_key, "KXNBATOTAL",
+            signals, client, ws, game_key, total_series,
             synthetic_total, synthetic_std, syn_cal, "total",
         )
 
     # ── H1 SPREAD ────────────────────────────────────────────────────────────
-    if "h1_spread" in bundles:
+    if "h1_spread" in bundles and "h1_spread" in series:
         pred = predict_regression(bundles["h1_spread"], X)
         cal = bundles["h1_spread"]["calibration"]
         _scan_spread_markets(
-            signals, client, ws, game_key, "KXNBA1HSPREAD",
+            signals, client, ws, game_key, series["h1_spread"],
             pred["value"], pred["std"], cal, home, away, "h1_spread",
         )
 
     # ── H1 TOTAL ─────────────────────────────────────────────────────────────
-    if "h1_total" in bundles:
+    if "h1_total" in bundles and "h1_total" in series:
         pred = predict_regression(bundles["h1_total"], X)
         cal = bundles["h1_total"]["calibration"]
         _scan_total_markets(
-            signals, client, ws, game_key, "KXNBA1HTOTAL",
+            signals, client, ws, game_key, series["h1_total"],
             pred["value"], pred["std"], cal, "h1_total",
         )
 
     logger.info(f"[{home}v{away}] {len(signals)} signals across "
-                f"{sum(1 for t in bundles if t in MODEL_TO_SERIES)} model types")
+                f"{sum(1 for t in bundles if t in series)} model types")
 
     # Log signal summary: side breakdown
     yes_sigs = [s for s in signals if s.side == "yes"]

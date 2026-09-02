@@ -40,19 +40,30 @@ def _coerce_numeric(df: pd.DataFrame, exclude: set[str] | None = None) -> pd.Dat
 
 def load_team_map(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
-    df = pd.read_parquet(data_dir / "TeamMap.parquet")
+    path = data_dir / "TeamMap.parquet"
+    if not path.exists():
+        # Fall back to NBA data dir (TeamMap is league-shared via nba_api)
+        fallback = Path(__file__).resolve().parents[2] / "data_curation" / "data" / "TeamMap.parquet"
+        if fallback.exists():
+            logger.warning("[load_team_map] %s not found — using fallback from NBA data dir", path)
+            return pd.read_parquet(fallback)
+        logger.warning("[load_team_map] %s not found — returning empty DataFrame", path)
+        return pd.DataFrame()
+    df = pd.read_parquet(path)
     return df
 
 
-def load_arenas(data_dir: Path | None = None) -> pd.DataFrame:
+def load_arenas(data_dir: Path | None = None, arenas_file: str | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
-    df = pd.read_csv(data_dir / "nba_arenas_geocoded.csv")
+    fname = arenas_file or "nba_arenas_geocoded.csv"
+    df = pd.read_csv(data_dir / fname)
     return df
 
 
-def load_game_ids(data_dir: Path | None = None) -> pd.DataFrame:
+def load_game_ids(data_dir: Path | None = None, game_ids_file: str | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
-    df = pd.read_parquet(data_dir / "NBAGameIDs.parquet")
+    fname = game_ids_file or "NBAGameIDs.parquet"
+    df = pd.read_parquet(data_dir / fname)
     df["GAME_DATE"] = pd.to_datetime(df["GAME_DATE"])
     return df
 
@@ -126,7 +137,11 @@ def load_ratings_bpi(data_dir: Path | None = None) -> pd.DataFrame:
 
 def load_ratings_sagarin(data_dir: Path | None = None) -> pd.DataFrame:
     data_dir = data_dir or DATA_DIR
-    df = pd.read_parquet(data_dir / "SagarinRatings.parquet")
+    path = data_dir / "SagarinRatings.parquet"
+    if not path.exists():
+        logger.warning("[load_ratings_sagarin] %s not found — returning empty DataFrame", path)
+        return pd.DataFrame()
+    df = pd.read_parquet(path)
     df["as_of_date"] = pd.to_datetime(df["as_of_date"])
     return df
 
@@ -209,14 +224,20 @@ def load_massey_ratings(data_dir: Path | None = None) -> pd.DataFrame:
     return df
 
 
-def load_all(data_dir: Path | None = None, season_types=("Regular", "Playoffs")) -> dict:
-    """Load all data sources into a dict for the pipeline."""
+def load_all(data_dir: Path | None = None, season_types=("Regular", "Playoffs"), cfg=None) -> dict:
+    """Load all data sources into a dict for the pipeline.
+
+    Args:
+        cfg: Optional LeagueConfig for league-specific file names.
+    """
     data_dir = Path(data_dir) if data_dir else DATA_DIR
+    arenas_file = cfg.arenas_file if cfg else None
+    game_ids_file = cfg.game_ids_file if cfg else None
     data = {
         "box_scores": load_box_scores(data_dir, season_types),
-        "game_ids": load_game_ids(data_dir),
+        "game_ids": load_game_ids(data_dir, game_ids_file),
         "team_map": load_team_map(data_dir),
-        "arenas": load_arenas(data_dir),
+        "arenas": load_arenas(data_dir, arenas_file),
         "bpi": load_ratings_bpi(data_dir),
         "sagarin": load_ratings_sagarin(data_dir),
         "massey": load_massey_ratings(data_dir),

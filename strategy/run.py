@@ -1,21 +1,25 @@
 """
 run.py
 ------
-Entry point for NBA strategy model training.
+Entry point for strategy model training.
 
 Usage:
-    python -m strategy.run                   # all targets
-    python -m strategy.run --target winner
-    python -m strategy.run --target spread
-    python -m strategy.run --target h1_spread
+    python -m strategy.run --league nba                   # all targets
+    python -m strategy.run --league nba --target winner
+    python -m strategy.run --league wnba --target spread
 """
 
 from __future__ import annotations
 
 import argparse
+import sys
 import time
+from pathlib import Path
 
-from strategy.config import OUTPUT_DIR
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from league_config import get_league_config, add_league_arg
+
+import strategy.config as _cfg
 from strategy.data import load, TARGET_MAP
 from strategy.models import (
     build_classifier, build_regressor, build_multiclass,
@@ -71,7 +75,7 @@ def run_target(target: str) -> dict:
               f"loc={residual_dist.kwds['loc']:.2f}, "
               f"scale={residual_dist.kwds['scale']:.2f}")
 
-    save_results(results, OUTPUT_DIR, target, spread_residual_dist=residual_dist)
+    save_results(results, _cfg.OUTPUT_DIR, target, spread_residual_dist=residual_dist)
 
     print(f"\n  Total: {_elapsed(t0)}")
     return results
@@ -170,7 +174,8 @@ def main(target: str = "all", full_pipeline: bool = False,
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="NBA strategy model training")
+    parser = argparse.ArgumentParser(description="Strategy model training")
+    add_league_arg(parser)
     parser.add_argument("--target", default="all",
                         choices=ALL_TARGETS + ["all"])
     parser.add_argument("--full-pipeline", action="store_true",
@@ -181,4 +186,9 @@ if __name__ == "__main__":
     parser.add_argument("--resume", action="store_true",
                         help="Resume from last checkpoint (uses cached results)")
     args = parser.parse_args()
+
+    cfg = get_league_config(args.league)
+    from strategy.config import set_league
+    set_league(cfg)
+
     main(args.target, full_pipeline=args.full_pipeline, targets_flag=args.targets)

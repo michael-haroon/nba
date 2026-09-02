@@ -30,8 +30,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import t as t_dist
 
+import strategy.config as _cfg
 from strategy.config import (
-    GAME_PARQUET, OUTPUT_DIR,
     KELLY_FRACTION, MIN_EDGE_PCT, MAX_POSITION_PCT,
     SPREAD_RESID_DF, SPREAD_RESID_SCALE,
     WINNER_STD_THRESHOLDS, WINNER_CONFIDENCE_MULTIPLIERS,
@@ -40,13 +40,15 @@ from strategy.config import (
 from strategy.predict import build_matchup_row
 from strategy.ensemble import predict_from_pkl
 
-LOG_DIR = OUTPUT_DIR / "logs"
-LOG_DIR.mkdir(parents=True, exist_ok=True)
-logging.basicConfig(
-    filename=LOG_DIR / "trade_signals.log",
-    level=logging.INFO,
-    format="%(asctime)s %(message)s",
-)
+
+def _setup_logging():
+    log_dir = _cfg.OUTPUT_DIR / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    logging.basicConfig(
+        filename=log_dir / "trade_signals.log",
+        level=logging.INFO,
+        format="%(asctime)s %(message)s",
+    )
 logger = logging.getLogger(__name__)
 
 FLB_SIGNALS_DIR = Path(__file__).resolve().parents[1] / "backtest" / "output" / "flb" / "signals"
@@ -75,7 +77,7 @@ class TradeSignal:
 # ── Model loading ─────────────────────────────────────────────────────────────
 
 def _load_bundle(target: str) -> dict:
-    pkl = OUTPUT_DIR / "ensemble" / f"{target}_ensemble_models.pkl"
+    pkl = _cfg.OUTPUT_DIR / "ensemble" / f"{target}_ensemble_models.pkl"
     if not pkl.exists():
         raise FileNotFoundError(f"No pkl for {target} at {pkl}")
     with open(pkl, "rb") as f:
@@ -87,7 +89,7 @@ def _get_features(bundle: dict) -> list[str]:
 
 
 def _predict(bundle: dict, X: pd.DataFrame, target: str) -> float:
-    pkl = OUTPUT_DIR / "ensemble" / f"{target}_ensemble_models.pkl"
+    pkl = _cfg.OUTPUT_DIR / "ensemble" / f"{target}_ensemble_models.pkl"
     return float(predict_from_pkl(pkl, X)[0])
 
 
@@ -241,7 +243,7 @@ def generate_signals(
     winner_market: (kalshi_yes, kalshi_no) or None
     spread_markets: list of (threshold, kalshi_yes, kalshi_no) or None
     """
-    df = pd.read_parquet(GAME_PARQUET)
+    df = pd.read_parquet(_cfg.GAME_PARQUET)
     latest_date = df["game_date"].max().strftime("%Y-%m-%d")
 
     winner_bundle = _load_bundle("winner")

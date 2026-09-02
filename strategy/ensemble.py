@@ -44,7 +44,8 @@ import pandas as pd
 from scipy import stats
 from sklearn.metrics import log_loss, brier_score_loss, roc_auc_score, accuracy_score
 
-from strategy.config import SKIP_SEASONS, LOYO_MIN_TRAIN_SEASONS, OUTPUT_DIR
+import strategy.config as _cfg
+from strategy.config import SKIP_SEASONS, LOYO_MIN_TRAIN_SEASONS
 
 logger = logging.getLogger(__name__)
 
@@ -1064,7 +1065,7 @@ def retrain_from_config(
     import pickle
 
     task = "classification" if target == "winner" else "regression"
-    out_dir = OUTPUT_DIR / "ensemble"
+    out_dir = _cfg.OUTPUT_DIR / "ensemble"
     config_path = out_dir / f"{target}_ensemble_config.json"
 
     if not config_path.exists():
@@ -1282,7 +1283,7 @@ def run_ensemble(
         print()
 
     # Output dirs (needed before workers start writing curve logs)
-    out_dir = OUTPUT_DIR / "ensemble"
+    out_dir = _cfg.OUTPUT_DIR / "ensemble"
     out_dir.mkdir(parents=True, exist_ok=True)
     curves_dir = out_dir / "curves"
     curves_dir.mkdir(parents=True, exist_ok=True)
@@ -1661,7 +1662,7 @@ def run_specialist_ensemble(
         print(f"{'='*70}\n")
 
     # Output setup
-    out_dir = OUTPUT_DIR / target
+    out_dir = _cfg.OUTPUT_DIR / target
     out_dir.mkdir(parents=True, exist_ok=True)
     curves_dir = out_dir / "curves"
     curves_dir.mkdir(parents=True, exist_ok=True)

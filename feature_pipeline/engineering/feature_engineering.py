@@ -1155,26 +1155,34 @@ def compute_conditional_matchup_stats(games: pd.DataFrame) -> pd.DataFrame:
     Team performance conditioned on opponent defensive quality.
 
     For each team, splits their season games into those against top-half vs
-    bottom-half defenses (by opponent's roll20_defrtg at game time). Computes
+    bottom-half defenses (by opponent's rolling defrtg at game time). Computes
     an expanding average OffRtg for each bucket.
 
     Uses median split (not tercile) and expanding mean (not rolling window)
     to maximize data availability — conditional stats are inherently sparse.
 
-    Requires compute_rolling_features to have run first (needs roll20_defrtg).
+    Requires compute_rolling_features to have run first (needs roll{N}_defrtg).
+    Dynamically selects the largest available rolling window.
     """
     df = games.copy().sort_values("game_date").reset_index(drop=True)
 
-    if "home_roll20_defrtg" not in df.columns or "away_roll20_defrtg" not in df.columns:
+    # Find largest available rolling defrtg window
+    import re
+    defrtg_cols = [c for c in df.columns if re.match(r"home_roll\d+_defrtg$", c)]
+    if not defrtg_cols or "home_offrtg" not in df.columns:
         return df
-    if "home_offrtg" not in df.columns:
+    max_window = max(int(re.search(r"roll(\d+)_defrtg", c).group(1)) for c in defrtg_cols)
+    home_def_col = f"home_roll{max_window}_defrtg"
+    away_def_col = f"away_roll{max_window}_defrtg"
+
+    if home_def_col not in df.columns or away_def_col not in df.columns:
         return df
 
     # Build per-team game history
-    home_hist = df[["game_date", "season", "home_team_id", "home_offrtg", "away_roll20_defrtg"]].copy()
+    home_hist = df[["game_date", "season", "home_team_id", "home_offrtg", away_def_col]].copy()
     home_hist.columns = ["game_date", "season", "team_id", "offrtg", "opp_def"]
 
-    away_hist = df[["game_date", "season", "away_team_id", "away_offrtg", "home_roll20_defrtg"]].copy()
+    away_hist = df[["game_date", "season", "away_team_id", "away_offrtg", home_def_col]].copy()
     away_hist.columns = ["game_date", "season", "team_id", "offrtg", "opp_def"]
 
     team_hist = pd.concat([home_hist, away_hist]).sort_values(["team_id", "game_date"]).reset_index(drop=True)
@@ -1962,9 +1970,9 @@ def compute_quarter_rolling_features(games: pd.DataFrame,
 #  25.  Blowout & Close Game Rates
 # ─────────────────────────────────────────────────────────────────────────────
 
-def compute_blowout_close_features(games: pd.DataFrame) -> pd.DataFrame:
+def compute_blowout_close_features(games: pd.DataFrame, blowout_threshold: int = 15, close_threshold: int = 5) -> pd.DataFrame:
     """
-    Fraction of recent games that were blowouts (|margin|>15) or close (|margin|<=5).
+    Fraction of recent games that were blowouts (|margin|>threshold) or close (|margin|<=threshold).
     """
     df = games.copy().sort_values("game_date").reset_index(drop=True)
 
@@ -1981,8 +1989,8 @@ def compute_blowout_close_features(games: pd.DataFrame) -> pd.DataFrame:
 
     history = pd.concat([home, away]).sort_values(["team_id", "game_date"]).reset_index(drop=True)
 
-    history["is_blowout"] = (history["margin"].abs() > 15).astype(float)
-    history["is_close"] = (history["margin"].abs() <= 5).astype(float)
+    history["is_blowout"] = (history["margin"].abs() > blowout_threshold).astype(float)
+    history["is_close"] = (history["margin"].abs() <= close_threshold).astype(float)
 
     history["blowout_rate_10"] = (
         history.groupby("team_id")["is_blowout"]

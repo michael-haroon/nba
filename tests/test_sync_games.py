@@ -10,11 +10,11 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from data_curation.scripts.sync_games import (
-    _current_season,
     _season_type_suffix,
     find_missing_games,
     upsert_parquet,
 )
+from league_config import get_league_config, NBA_CONFIG, WNBA_CONFIG
 
 
 def _write(path: Path, df: pd.DataFrame) -> None:
@@ -23,15 +23,19 @@ def _write(path: Path, df: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
-# _current_season
+# current_season (via LeagueConfig)
 # ---------------------------------------------------------------------------
 
-def test_current_season_mid_season():
-    assert _current_season(date(2025, 1, 15)) == "2024-25"
+def test_current_season_nba_mid_season():
+    assert NBA_CONFIG.current_season(date(2025, 1, 15)) == "2024-25"
 
 
-def test_current_season_new_season():
-    assert _current_season(date(2025, 9, 1)) == "2025-26"
+def test_current_season_nba_new_season():
+    assert NBA_CONFIG.current_season(date(2025, 9, 1)) == "2025-26"
+
+
+def test_current_season_wnba():
+    assert WNBA_CONFIG.current_season(date(2025, 7, 15)) == "2025"
 
 
 # ---------------------------------------------------------------------------
@@ -50,17 +54,23 @@ def test_find_missing_games_returns_only_past_and_unsynced():
         "SEASON_TYPE_FILTER": ["Regular Season"] * 4,
     })
 
-    # Game 1 already synced
-    summary = pd.DataFrame({"game_id": ["0000000001"]})
+    # Game 1 already synced via AdvBoxScoresTrad (moves watermark past test dates)
+    adv_trad = pd.DataFrame({
+        "TEAM": ["LAL", "BOS"],
+        "MATCH UP": ["LAL vs. BOS", "BOS @ LAL"],
+        "GAME DATE": [str(yesterday), str(yesterday)],
+        "W/L": ["W", "L"],
+        "game_id": ["0000000001", "0000000001"],
+    })
 
     with tempfile.TemporaryDirectory() as tmp:
         data_dir = Path(tmp)
         _write(data_dir / "NBAGameIDs.parquet", game_ids)
-        _write(data_dir / "GameSummaries.parquet", summary)
+        _write(data_dir / "AdvBoxScoresTradRegular.parquet", adv_trad)
 
-        missing = find_missing_games(data_dir)
+        missing = find_missing_games(data_dir, NBA_CONFIG)
 
-    # Games 2 and 3 are past and not in summary; game 4 is future (excluded)
+    # Game 1 is in AdvBoxScoresTrad; game 4 is future; games 2 and 3 are missing
     assert set(missing) == {"0000000002", "0000000003"}
 
 
@@ -76,29 +86,49 @@ def test_find_missing_games_no_summary_file():
     with tempfile.TemporaryDirectory() as tmp:
         data_dir = Path(tmp)
         _write(data_dir / "NBAGameIDs.parquet", game_ids)
-        missing = find_missing_games(data_dir)
+        missing = find_missing_games(data_dir, NBA_CONFIG)
 
     assert set(missing) == {"0000000010", "0000000020"}
+
+
+def test_find_missing_games_wnba():
+    """WNBA uses WNBAGameIDs.parquet via cfg.game_ids_file."""
+    yesterday = date.today() - timedelta(days=1)
+    game_ids = pd.DataFrame({
+        "GAME_ID": [1022500001, 1022500002],
+        "GAME_DATE": pd.to_datetime([yesterday, yesterday]),
+        "SEASON_FILTER": ["2025", "2025"],
+        "SEASON_TYPE_FILTER": ["Regular Season", "Regular Season"],
+    })
+
+    with tempfile.TemporaryDirectory() as tmp:
+        data_dir = Path(tmp)
+        _write(data_dir / "WNBAGameIDs.parquet", game_ids)
+        missing = find_missing_games(data_dir, WNBA_CONFIG)
+
+    assert set(missing) == {"1022500001", "1022500002"}
 
 
 # ---------------------------------------------------------------------------
 # upsert_parquet
 # ---------------------------------------------------------------------------
 
-def test_upsert_parquet_dedup():
+def test_upsert_parquet_game_level_guard():
+    """upsert_parquet uses game-level guards: rows for games already in file are skipped."""
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "test.parquet"
 
         df1 = pd.DataFrame({"game_id": ["001", "002"], "score": [100, 110]})
-        df2 = pd.DataFrame({"game_id": ["002", "003"], "score": [115, 120]})  # 002 is overlap
+        df2 = pd.DataFrame({"game_id": ["002", "003"], "score": [115, 120]})  # 002 already exists
 
         upsert_parquet(path, df1, ["game_id"])
         upsert_parquet(path, df2, ["game_id"])
 
         result = pd.read_parquet(path)
+        # game_id 002 already existed → only 003 is appended (game-level guard)
         assert len(result) == 3
-        # 002 should have the updated score (keep="last")
-        assert result[result["game_id"] == "002"]["score"].iloc[0] == 115
+        # 002 keeps its original score (not overwritten)
+        assert result[result["game_id"] == "002"]["score"].iloc[0] == 110
 
 
 def test_upsert_parquet_creates_new_file():

@@ -65,7 +65,7 @@ def _normalize(k: str) -> str:
 
 def parse_ticker(ticker: str) -> dict | None:
     m = re.match(
-        r"KXNBAGAME-(\d{2}[A-Z]{3}\d{2})([A-Z]{2,3})([A-Z]{2,3})-([A-Z]{2,3})$",
+        r"KX(?:W?NBA)GAME-(\d{2}[A-Z]{3}\d{2})([A-Z]{2,3})([A-Z]{2,3})-([A-Z]{2,3})$",
         ticker,
     )
     if not m:

@@ -2,13 +2,13 @@
 sync_scheduler.py
 -----------------
 Season-aware wrapper for sync_games.py. Called by launchd daily.
-Runs sync only during NBA season (Oct-Jun), skips offseason (Jul-Sep).
+Runs sync only during active season months, skips offseason.
 
 Also supports --check-schedule to detect postponed/rescheduled games weekly.
 
 Usage:
-    python data_curation/scripts/sync_scheduler.py
-    python data_curation/scripts/sync_scheduler.py --check-schedule
+    python data_curation/scripts/sync_scheduler.py --league nba
+    python data_curation/scripts/sync_scheduler.py --league wnba --check-schedule
 """
 from __future__ import annotations
 
@@ -22,8 +22,10 @@ from pathlib import Path
 
 import pandas as pd
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from league_config import get_league_config, add_league_arg
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 LOG_DIR = Path(__file__).resolve().parents[1] / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -38,23 +40,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def _current_season() -> str:
-    d = date.today()
-    year = d.year if d.month >= 8 else d.year - 1
-    return f"{year}-{str(year + 1)[-2:]}"
-
-
-def is_nba_active() -> bool:
-    """NBA season runs Oct-June. Offseason is Jul-Sep."""
-    return date.today().month >= 10 or date.today().month <= 6
-
-
-def run_sync() -> None:
+def run_sync(cfg) -> None:
     """Run the main sync pipeline."""
-    season = _current_season()
-    logger.info("Running sync for season %s", season)
+    season = cfg.current_season()
+    logger.info("Running sync for %s season %s", cfg.league.upper(), season)
     result = subprocess.run(
-        [sys.executable, "data_curation/scripts/sync_games.py", "--season", season, "--workers", "2"],
+        [sys.executable, "data_curation/scripts/sync_games.py",
+         "--league", cfg.league, "--season", season, "--workers", "2"],
         cwd=PROJECT_ROOT,
         capture_output=True,
         text=True,
@@ -65,28 +57,28 @@ def run_sync() -> None:
         logger.info("sync_games.py completed successfully")
 
 
-def check_schedule() -> None:
-    """Check NBA schedule for postponements and newly added games."""
+def check_schedule(cfg) -> None:
+    """Check schedule for postponements and newly added games."""
     from nba_api.stats.endpoints import leaguegamefinder
 
-    season = _current_season()
-    logger.info("Checking schedule for %s...", season)
+    season = cfg.current_season()
+    DATA_DIR = cfg.data_path
+    logger.info("Checking %s schedule for %s...", cfg.league.upper(), season)
 
-    ids_path = DATA_DIR / "NBAGameIDs.parquet"
+    ids_path = DATA_DIR / cfg.game_ids_file
     if not ids_path.exists():
-        logger.error("NBAGameIDs.parquet not found")
+        logger.error("%s not found", cfg.game_ids_file)
         return
 
     local_ids = pd.read_parquet(ids_path)
     local_game_ids = set(local_ids["GAME_ID"].astype(str))
 
-    # Fetch current schedule from API
     api_game_ids = set()
     for season_type in ("Regular Season", "Playoffs", "Pre Season"):
         try:
             gf = leaguegamefinder.LeagueGameFinder(
                 season_nullable=season,
-                league_id_nullable="00",
+                league_id_nullable=cfg.league_id,
                 season_type_nullable=season_type,
             )
             df = gf.get_data_frames()[0]
@@ -118,20 +110,23 @@ def check_schedule() -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="NBA sync scheduler")
+    parser = argparse.ArgumentParser(description="Sync scheduler")
+    add_league_arg(parser)
     parser.add_argument("--check-schedule", action="store_true", help="Check for schedule changes")
     parser.add_argument("--force", action="store_true", help="Run even during offseason")
     args = parser.parse_args()
 
+    cfg = get_league_config(args.league)
+
     if args.check_schedule:
-        check_schedule()
+        check_schedule(cfg)
         return
 
-    if not is_nba_active() and not args.force:
-        logger.info("Offseason (Jul-Sep) — skipping sync. Use --force to override.")
+    if not cfg.is_active() and not args.force:
+        logger.info("%s offseason — skipping sync. Use --force to override.", cfg.league.upper())
         return
 
-    run_sync()
+    run_sync(cfg)
 
 
 if __name__ == "__main__":

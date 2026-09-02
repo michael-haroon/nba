@@ -27,7 +27,7 @@ from trading.config import MAX_CONTRACTS_PER_MARKET
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-ENSEMBLES_DIR = PROJECT_ROOT / "strategy" / "output" / "nba"
+import trading.models as _models
 
 # Accuracy profile cache: {target: np.ndarray of shape (10,)} — one weight per std decile
 _ACCURACY_PROFILES: dict[str, np.ndarray] = {}
@@ -57,7 +57,7 @@ def load_accuracy_profile(target: str, oof_path: str | Path | None = None) -> np
         return _ACCURACY_PROFILES[target]
 
     if oof_path is None:
-        oof_path = ENSEMBLES_DIR / target / "ensemble_oof.csv"
+        oof_path = _models.ENSEMBLES_DIR / target / "ensemble_oof.csv"
     oof_path = Path(oof_path)
 
     if not oof_path.exists():
@@ -74,7 +74,7 @@ def load_accuracy_profile(target: str, oof_path: str | Path | None = None) -> np
 
     # Classify task from ensemble_config if available
     import json
-    cfg_path = ENSEMBLES_DIR / target / "ensemble_config.json"
+    cfg_path = _models.ENSEMBLES_DIR / target / "ensemble_config.json"
     task = "regression"
     if cfg_path.exists():
         with open(cfg_path) as f:

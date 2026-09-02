@@ -27,9 +27,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import log_loss, mean_absolute_error
 
+import strategy.config as _cfg
 from strategy.config import (
-    FEATURES_ROOT, GAME_PARQUET, SKIP_SEASONS,
-    LOYO_MIN_TRAIN_SEASONS, LGBM_CLF_PARAMS, LGBM_REG_PARAMS, OUTPUT_DIR,
+    SKIP_SEASONS,
+    LOYO_MIN_TRAIN_SEASONS, LGBM_CLF_PARAMS, LGBM_REG_PARAMS,
 )
 from strategy.data import TARGET_MAP
 
@@ -46,8 +47,8 @@ def _is_cached(target: str) -> bool:
     Uses forward_selection_log.csv as the marker — this file is ONLY written
     by forward_select, never by Phase 0 routing. Prevents false cache hits.
     """
-    marker_path = FEATURES_ROOT / target / "filtered" / "forward_selection_log.csv"
-    report_path = FEATURES_ROOT / target / "filtered" / "feature_report.csv"
+    marker_path = _cfg.FEATURES_ROOT / target / "filtered" / "forward_selection_log.csv"
+    report_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_report.csv"
 
     if not marker_path.exists() or not report_path.exists():
         return False
@@ -108,12 +109,12 @@ def run_forward_selection(target: str, force: bool = False) -> list[str]:
     Returns the final validated feature list for tree models.
     """
     if not force and _is_cached(target):
-        trees_path = FEATURES_ROOT / target / "filtered" / "feature_list_trees.txt"
+        trees_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_list_trees.txt"
         features = trees_path.read_text().strip().splitlines()
         logger.info("Forward selection cached for '%s' (%d features)", target, len(features))
         return features
 
-    report_path = FEATURES_ROOT / target / "filtered" / "feature_report.csv"
+    report_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_report.csv"
     if not report_path.exists():
         raise FileNotFoundError(f"No feature_report.csv for target '{target}'")
 
@@ -139,7 +140,7 @@ def run_forward_selection(target: str, force: bool = False) -> list[str]:
 
     # Load full dataset
     logger.info("Loading data for forward selection (target=%s)...", target)
-    game_df = pd.read_parquet(GAME_PARQUET)
+    game_df = pd.read_parquet(_cfg.GAME_PARQUET)
     valid = game_df[target_col].notna()
     game_df = game_df[valid].reset_index(drop=True)
 
@@ -212,14 +213,14 @@ def run_forward_selection(target: str, force: bool = False) -> list[str]:
                 "log_loss" if task == "classification" else "MAE", best_score)
 
     # Write results
-    trees_path = FEATURES_ROOT / target / "filtered" / "feature_list_trees.txt"
+    trees_path = _cfg.FEATURES_ROOT / target / "filtered" / "feature_list_trees.txt"
     trees_path.write_text("\n".join(current_features) + "\n")
 
-    log_path = FEATURES_ROOT / target / "filtered" / "forward_selection_log.csv"
+    log_path = _cfg.FEATURES_ROOT / target / "filtered" / "forward_selection_log.csv"
     pd.DataFrame(selection_log).to_csv(log_path, index=False)
 
     # Save to strategy output too
-    out_dir = OUTPUT_DIR / target
+    out_dir = _cfg.OUTPUT_DIR / target
     out_dir.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(selection_log).to_csv(out_dir / "forward_selection_log.csv", index=False)
 

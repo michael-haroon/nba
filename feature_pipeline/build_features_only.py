@@ -2,17 +2,22 @@
 Build game_features.parquet without running the full analysis pipeline (MDI/MDA/SFI).
 
 Usage:
-    python -m feature_pipeline.build_features_only [--output-dir output/features/winner]
+    python -m feature_pipeline.build_features_only --league nba
+    python -m feature_pipeline.build_features_only --league wnba
 """
 from __future__ import annotations
 
 import argparse
 import logging
+import sys
 import time
 from pathlib import Path
 
 import pandas as pd
 from tqdm import tqdm
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from league_config import get_league_config, add_league_arg
 
 from feature_pipeline.logging_config import setup_pipeline_logger
 
@@ -91,7 +96,7 @@ def _venue_conditioned_diffs(games: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def main(output_dir: str = "output/features", data_dir: str | None = None) -> None:
+def main(output_dir: str = "output/features", data_dir: str | None = None, cfg=None) -> None:
     log_dir = Path(__file__).resolve().parent / "logs"
     setup_pipeline_logger(log_dir)
     logger = logging.getLogger("feature_pipeline")
@@ -100,9 +105,9 @@ def main(output_dir: str = "output/features", data_dir: str | None = None) -> No
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
 
-    logger.info("=== build_features_only: start ===")
-    print("Loading data...")
-    data = load_all(data_dir)
+    logger.info("=== build_features_only: start [%s] ===", cfg.league.upper() if cfg else "NBA")
+    print(f"Loading data... [{cfg.league.upper() if cfg else 'NBA'}]")
+    data = load_all(data_dir, cfg=cfg)
 
     print("Building game rows...")
     games = build_game_rows(data["box_scores"], data["game_ids"], data["team_map"])
@@ -135,9 +140,15 @@ def main(output_dir: str = "output/features", data_dir: str | None = None) -> No
             g["crowd_home_lift"] = g["crowd_density"].fillna(0)
         return g
 
+    # League-specific constants (defaults are NBA)
+    _windows = list(cfg.rolling_windows) if cfg else [5, 10, 20]
+    _pyth_exp = cfg.pythagorean_exp if cfg else 13.91
+    _blowout = cfg.blowout_threshold if cfg else 15
+    _close = cfg.close_threshold if cfg else 5
+
     steps = [
         ("align_ratings",          lambda g: align_ratings_to_games(g, data["bpi"], data["sagarin"], data["team_map"])),
-        ("rolling_features",       lambda g: compute_rolling_features(g, windows=[5, 10, 20])),
+        ("rolling_features",       lambda g: compute_rolling_features(g, windows=_windows)),
         ("venue_rolling",          lambda g: compute_venue_rolling_features(g)),
         ("score_momentum",         lambda g: compute_score_momentum(g)),
         ("context_features",       lambda g: compute_context_features(g, data["arenas"], data.get("game_summaries"))),
@@ -147,14 +158,14 @@ def main(output_dir: str = "output/features", data_dir: str | None = None) -> No
         ("deprado_features",       lambda g: compute_deprado_features(g)),
         ("massey_align",           _align_massey),
         ("crowd_pressure",         _crowd_pressure),
-        ("pythagorean",            lambda g: compute_pythagorean_features(g)),
+        ("pythagorean",            lambda g: compute_pythagorean_features(g, exponent=_pyth_exp)),
         ("four_factors",           lambda g: compute_four_factors_composite(g)),
         ("pace_mismatch",          lambda g: compute_pace_mismatch(g)),
         ("scoring_entropy",        lambda g: compute_scoring_entropy(g)),
         ("acwr",                   lambda g: compute_acwr_features(g)),
         ("directional_travel",     lambda g: compute_directional_travel(g, data["arenas"], data["team_map"])),
         ("quarter_h1h2",           _quarter_h1h2),
-        ("blowout_close",          lambda g: compute_blowout_close_features(g)),
+        ("blowout_close",          lambda g: compute_blowout_close_features(g, blowout_threshold=_blowout, close_threshold=_close)),
         ("overtime_history",       lambda g: compute_overtime_history(g, data["quarter_scores"])),
         ("margin_autocorr",        lambda g: compute_margin_autocorrelation(g)),
         ("def_consistency",        lambda g: compute_defensive_consistency(g)),
@@ -209,7 +220,12 @@ def main(output_dir: str = "output/features", data_dir: str | None = None) -> No
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--output-dir", default="output/features")
+    add_league_arg(p)
+    p.add_argument("--output-dir", default=None)
     p.add_argument("--data-dir", default=None)
     args = p.parse_args()
-    main(output_dir=args.output_dir, data_dir=args.data_dir)
+
+    cfg = get_league_config(args.league)
+    output_dir = args.output_dir or str(cfg.output_path)
+    data_dir = args.data_dir or str(cfg.data_path)
+    main(output_dir=output_dir, data_dir=data_dir, cfg=cfg)

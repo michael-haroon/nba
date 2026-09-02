@@ -11,11 +11,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from strategy.config import (
-    GAME_PARQUET, FEATURE_PATHS,
-    get_feature_list_path,
-    load_feature_list,
-)
+import strategy.config as _cfg
+from strategy.config import get_feature_list_path, load_feature_list
 
 
 TARGET_MAP = {
@@ -61,9 +58,9 @@ def load(target: str, model_name: str | None = None) -> tuple[pd.DataFrame, pd.S
     if model_name:
         feature_path = get_feature_list_path(target, model_name)
     else:
-        feature_path = FEATURE_PATHS[target]
+        feature_path = _cfg.FEATURE_PATHS[target]
 
-    df = pd.read_parquet(GAME_PARQUET)
+    df = pd.read_parquet(_cfg.GAME_PARQUET)
 
     features = load_feature_list(feature_path)
     missing = [f for f in features if f not in df.columns]

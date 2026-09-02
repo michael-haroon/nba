@@ -33,6 +33,13 @@ MODEL_TO_SERIES = {
 }
 
 
+def set_league(cfg) -> None:
+    """Reconfigure module globals for the given league config."""
+    global ENSEMBLES_DIR, MODEL_TO_SERIES
+    ENSEMBLES_DIR = cfg.models_path
+    MODEL_TO_SERIES = dict(cfg.kalshi_series)
+
+
 class EmpiricalResiduals:
     """
     Semi-parametric survival function from OOF residuals.

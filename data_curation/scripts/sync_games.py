@@ -1,10 +1,12 @@
 """
 sync_games.py
 -------------
-Fetches all completed NBA games missing from local parquets and appends them.
+Fetches all completed games missing from local parquets and appends them.
+Supports both NBA and WNBA via --league flag.
 
 Usage:
-    python data_curation/scripts/sync_games.py [--dry-run] [--season 2025-26] [--workers 3]
+    python data_curation/scripts/sync_games.py --league nba [--dry-run] [--season 2025-26] [--workers 3]
+    python data_curation/scripts/sync_games.py --league wnba [--dry-run] [--season 2025] [--workers 3]
 
 After new games are written, rebuilds MasseyRatings.parquet automatically.
 """
@@ -22,7 +24,9 @@ from pathlib import Path
 
 import pandas as pd
 
-DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from league_config import get_league_config, add_league_arg, LeagueConfig
+
 LOG_DIR = Path(__file__).resolve().parents[1] / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -201,17 +205,11 @@ _FF_SKIP_PCT = {"FTA RATE", "OPP FTA RATE"}
 # Game ID refresh
 # ---------------------------------------------------------------------------
 
-def _current_season(ref: date | None = None) -> str:
-    d = ref or date.today()
-    year = d.year if d.month >= 8 else d.year - 1
-    return f"{year}-{str(year + 1)[-2:]}"
-
-
-def refresh_game_ids(data_dir: Path, season: str) -> None:
-    """Fetches the latest game IDs for season and upserts NBAGameIDs.parquet."""
+def refresh_game_ids(data_dir: Path, season: str, cfg: LeagueConfig) -> None:
+    """Fetches the latest game IDs for season and upserts the game IDs parquet."""
     from nba_api.stats.endpoints import leaguegamefinder
 
-    path = data_dir / "NBAGameIDs.parquet"
+    path = data_dir / cfg.game_ids_file
     existing: set[str] = set()
     existing_df = pd.DataFrame()
     if path.exists():
@@ -224,7 +222,7 @@ def refresh_game_ids(data_dir: Path, season: str) -> None:
             try:
                 gf = leaguegamefinder.LeagueGameFinder(
                     season_nullable=season,
-                    league_id_nullable="00",
+                    league_id_nullable=cfg.league_id,
                     season_type_nullable=season_type,
                 )
                 df = gf.get_data_frames()[0]
@@ -250,22 +248,22 @@ def refresh_game_ids(data_dir: Path, season: str) -> None:
     new_df = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["GAME_ID"])
     new_only = new_df[~new_df["GAME_ID"].astype(str).isin(existing)]
     if new_only.empty:
-        logger.info("NBAGameIDs already current for %s", season)
+        logger.info("%s already current for %s", cfg.game_ids_file, season)
         return
 
     combined = pd.concat([existing_df, new_only], ignore_index=True).drop_duplicates(
         subset=["GAME_ID"], keep="last"
     )
     combined.to_parquet(path, index=False)
-    logger.info("NBAGameIDs updated: +%d new games (total %d)", len(new_only), len(combined))
+    logger.info("%s updated: +%d new games (total %d)", cfg.game_ids_file, len(new_only), len(combined))
 
 
 # ---------------------------------------------------------------------------
 # Find missing games
 # ---------------------------------------------------------------------------
 
-def find_missing_games(data_dir: Path) -> list[str]:
-    """Returns zero-padded game IDs that are in NBAGameIDs but not yet synced.
+def find_missing_games(data_dir: Path, cfg: LeagueConfig) -> list[str]:
+    """Returns zero-padded game IDs that are in the game IDs parquet but not yet synced.
 
     Completeness is determined by two sources, unioned:
       1. synccomplete.parquet — stamped only after all tables are written for a game.
@@ -273,13 +271,13 @@ def find_missing_games(data_dir: Path) -> list[str]:
          this sync script (not the old scraper). This catches games synced before
          synccomplete.parquet existed.
 
-    Games in NBAGameIDs whose date is *after* the latest date in AdvBoxScoresTrad are
+    Games whose date is *after* the latest date in AdvBoxScoresTrad are
     always treated as missing, regardless of GameSummaries. This is the key check that
     catches the "GameSummaries has the row but AdvBoxScores is stale" failure mode.
     """
-    ids_path = data_dir / "NBAGameIDs.parquet"
+    ids_path = data_dir / cfg.game_ids_file
     if not ids_path.exists():
-        logger.error("NBAGameIDs.parquet not found")
+        logger.error("%s not found in %s", cfg.game_ids_file, data_dir)
         return []
 
     ids_df = pd.read_parquet(ids_path)
@@ -371,7 +369,7 @@ def _normalize_adv(df: pd.DataFrame, rename_map: dict, game_id: str, matchup: st
     return df.rename(columns=rename_map)[[c for c in rename_map.values() if c in df.rename(columns=rename_map).columns]]
 
 
-def fetch_game(game_id: str) -> dict[str, pd.DataFrame | None]:
+def fetch_game(game_id: str, cfg: LeagueConfig | None = None) -> dict[str, pd.DataFrame | None]:
     """Fetches all box score data for one completed game.
 
     Returns a dict mapping parquet-stem keys to DataFrames (or None on failure).
@@ -493,9 +491,10 @@ def fetch_game(game_id: str) -> dict[str, pd.DataFrame | None]:
         logger.error("[%s] BoxScoreSummaryV3 exhausted retries — skipping game", gid)
         return result
 
-    # --- Hustle (only for games after 2016-10-01) ---
+    # --- Hustle (only for games after 2016-10-01, and only for leagues with hustle data) ---
     # Uses HustleStatsBoxScore: df[2]=team stats, df[1]=player stats (BoxScoreHustleV2 deprecated)
-    if game_date_str >= "2016-10-01":
+    _has_hustle = cfg.has_hustle if cfg else True
+    if _has_hustle and game_date_str >= "2016-10-01":
         time.sleep(random.uniform(0.6, 1.2))
         for attempt in range(3):
             try:
@@ -853,11 +852,14 @@ def _remove_from_syncpartial(data_dir: Path, resolved_ids: list[str]) -> None:
     df.to_parquet(partial_path, index=False)
 
 
-def retry_partial(data_dir: Path, workers: int) -> int:
+def retry_partial(data_dir: Path, workers: int, cfg: LeagueConfig | None = None) -> int:
     """Re-fetch games listed in syncpartial.parquet that had missing tables.
 
     Returns the number of new rows written across all parquets.
     """
+    if cfg is None:
+        cfg = get_league_config("nba")
+
     partial_path = data_dir / "syncpartial.parquet"
     if not partial_path.exists():
         logger.info("syncpartial.parquet not found — nothing to retry")
@@ -868,7 +870,7 @@ def retry_partial(data_dir: Path, workers: int) -> int:
         logger.info("syncpartial.parquet is empty — nothing to retry")
         return 0
 
-    ids_df = pd.read_parquet(data_dir / "NBAGameIDs.parquet")
+    ids_df = pd.read_parquet(data_dir / cfg.game_ids_file)
     game_ids = partial_df["game_id"].astype(str).str.zfill(10).tolist()
     logger.info("Retrying %d partially synced games: %s", len(game_ids), game_ids)
 
@@ -877,7 +879,7 @@ def retry_partial(data_dir: Path, workers: int) -> int:
     still_partial: dict[str, list[str]] = {}
 
     with ThreadPoolExecutor(max_workers=workers) as ex:
-        future_to_gid = {ex.submit(fetch_game, gid): gid for gid in game_ids}
+        future_to_gid = {ex.submit(fetch_game, gid, cfg): gid for gid in game_ids}
         for future in as_completed(future_to_gid):
             gid = future_to_gid[future]
             try:
@@ -917,24 +919,30 @@ def retry_partial(data_dir: Path, workers: int) -> int:
 # Main pipeline
 # ---------------------------------------------------------------------------
 
-def run(season: str, workers: int, dry_run: bool) -> None:
-    logger.info("=== sync_games start | season=%s workers=%d dry_run=%s ===", season, workers, dry_run)
+def run(season: str, workers: int, dry_run: bool, cfg: LeagueConfig | None = None) -> None:
+    if cfg is None:
+        cfg = get_league_config("nba")
+    DATA_DIR = cfg.data_path
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Step 1: refresh NBAGameIDs for this season
-    logger.info("Refreshing NBAGameIDs for %s...", season)
-    refresh_game_ids(DATA_DIR, season)
+    logger.info("=== sync_games start | league=%s season=%s workers=%d dry_run=%s ===",
+                cfg.league, season, workers, dry_run)
+
+    # Step 1: refresh game IDs for this season
+    logger.info("Refreshing %s for %s...", cfg.game_ids_file, season)
+    refresh_game_ids(DATA_DIR, season, cfg)
 
     # Step 2: find what's missing
-    missing = find_missing_games(DATA_DIR)
+    missing = find_missing_games(DATA_DIR, cfg)
     if not missing:
         logger.info("Nothing to sync.")
         return
 
-    ids_df = pd.read_parquet(DATA_DIR / "NBAGameIDs.parquet")
+    ids_df = pd.read_parquet(DATA_DIR / cfg.game_ids_file)
 
     if dry_run:
         logger.info("DRY RUN: %d games would be synced. Sampling first game: %s", len(missing), missing[0])
-        sample = fetch_game(missing[0])
+        sample = fetch_game(missing[0], cfg=cfg)
         for k, df in sample.items():
             if df is not None:
                 logger.info("  %s → %d rows", k, len(df))
@@ -953,7 +961,7 @@ def run(season: str, workers: int, dry_run: bool) -> None:
         results: dict[str, list[pd.DataFrame]] = {}
 
         with ThreadPoolExecutor(max_workers=workers) as ex:
-            future_to_gid = {ex.submit(fetch_game, gid): gid for gid in batch}
+            future_to_gid = {ex.submit(fetch_game, gid, cfg): gid for gid in batch}
             for future in as_completed(future_to_gid):
                 gid = future_to_gid[future]
                 try:
@@ -991,12 +999,13 @@ def run(season: str, workers: int, dry_run: bool) -> None:
                     written_by_game.setdefault(str(gid).zfill(10), set()).add(parquet_name)
 
         # Stamp sync_complete only for games where ALL expected tables were written
-        required = {"GameSummaries", "GameOfficials", "TeamQuarterScores", "BoxScoresHustleTeam"}
+        required = {"GameSummaries", "GameOfficials", "TeamQuarterScores"}
+        if cfg.has_hustle:
+            required.add("BoxScoresHustleTeam")
         adv_required = {"AdvBoxScoresTrad", "AdvBoxScoresAdv", "AdvBoxScoresFourFactors", "AdvBoxScoresMisc", "AdvBoxScoresScoring"}
         complete_ids = []
         for gid, written_tables in written_by_game.items():
             # Strip season suffix from written table names for comparison
-            written_base = {t.rstrip("RegularPlayoffsPre") for t in written_tables}
             written_base = {t[:-len("Regular")] if t.endswith("Regular") else
                             t[:-len("Playoffs")] if t.endswith("Playoffs") else
                             t[:-len("Pre")] if t.endswith("Pre") else t
@@ -1020,8 +1029,10 @@ def run(season: str, workers: int, dry_run: bool) -> None:
             logger.warning("  FAILED: %s", gid)
 
     if partial_games:
-        all_tables = {"GameSummaries", "GameOfficials", "TeamQuarterScores", "BoxScoresHustleTeam",
+        all_tables = {"GameSummaries", "GameOfficials", "TeamQuarterScores",
                       "AdvBoxScoresTrad", "AdvBoxScoresAdv", "AdvBoxScoresFourFactors", "AdvBoxScoresMisc", "AdvBoxScoresScoring"}
+        if cfg.has_hustle:
+            all_tables.add("BoxScoresHustleTeam")
         logger.warning("PARTIAL — %d games missing some tables:", len(partial_games))
         for gid, tables in partial_games.items():
             if set(tables) >= all_tables:
@@ -1036,7 +1047,8 @@ def run(season: str, workers: int, dry_run: bool) -> None:
 
         logger.info("Rebuilding MasseyRatings for %s...", season)
         subprocess.run(
-            [sys.executable, "-m", "data_curation.scripts.build_massey_ratings", "--min-season", season],
+            [sys.executable, "-m", "data_curation.scripts.build_massey_ratings",
+             "--league", cfg.league, "--min-season", season],
             cwd=repo_root,
             check=True,
         )
@@ -1044,7 +1056,8 @@ def run(season: str, workers: int, dry_run: bool) -> None:
 
         logger.info("Rebuilding game_features.parquet...")
         subprocess.run(
-            [sys.executable, "-m", "feature_pipeline.build_features_only"],
+            [sys.executable, "-m", "feature_pipeline.build_features_only",
+             "--league", cfg.league],
             cwd=repo_root,
             check=True,
         )
@@ -1052,33 +1065,39 @@ def run(season: str, workers: int, dry_run: bool) -> None:
 
 
 def main(argv=None) -> int:
-    p = argparse.ArgumentParser(description="Sync completed NBA game data to parquets.")
+    p = argparse.ArgumentParser(description="Sync completed game data to parquets.")
+    add_league_arg(p)
     p.add_argument("--dry-run", action="store_true")
-    p.add_argument("--season", default=None, help="e.g. 2025-26 (default: current)")
+    p.add_argument("--season", default=None, help="e.g. 2025-26 for NBA, 2025 for WNBA (default: current)")
     p.add_argument("--workers", type=int, default=2)
     p.add_argument("--retry-partial", action="store_true",
                    help="Re-fetch games in syncpartial.parquet that had missing tables")
     args = p.parse_args(argv)
 
-    season = args.season or _current_season()
+    cfg = get_league_config(args.league)
+    DATA_DIR = cfg.data_path
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    season = args.season or cfg.current_season()
 
     if args.retry_partial:
-        added = retry_partial(DATA_DIR, args.workers)
+        added = retry_partial(DATA_DIR, args.workers, cfg=cfg)
         if added > 0:
             repo_root = Path(__file__).resolve().parents[2]
             logger.info("Rebuilding MasseyRatings after partial retry...")
             subprocess.run(
-                [sys.executable, "-m", "data_curation.scripts.build_massey_ratings", "--min-season", season],
+                [sys.executable, "-m", "data_curation.scripts.build_massey_ratings",
+                 "--league", cfg.league, "--min-season", season],
                 cwd=repo_root, check=True,
             )
             logger.info("Rebuilding game_features.parquet after partial retry...")
             subprocess.run(
-                [sys.executable, "-m", "feature_pipeline.build_features_only"],
+                [sys.executable, "-m", "feature_pipeline.build_features_only",
+                 "--league", cfg.league],
                 cwd=repo_root, check=True,
             )
         return 0
 
-    run(season=season, workers=args.workers, dry_run=args.dry_run)
+    run(season=season, workers=args.workers, dry_run=args.dry_run, cfg=cfg)
     return 0
 
 

@@ -252,7 +252,7 @@ def _refresh_from_api() -> None:
                 new_orders: dict[str, dict] = {}
                 for o in api_orders:
                     ticker = o.get("ticker", "")
-                    if not ticker.startswith("KXNBA"):
+                    if not (ticker.startswith("KXNBA") or ticker.startswith("KXWNBA")):
                         continue
                     new_orders[ticker] = {
                         "ticker": ticker,
