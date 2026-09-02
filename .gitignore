@@ -1,11 +1,23 @@
-# Cache
-__pycache__
+# Python
+__pycache__/
+*.pyc
 *cache*
+.venv/
 
-# Whatever this is 
+# OS
 .DS_Store
 
-# Data
+# Environments / secrets
+.env
+.env*
+backtest.txt
+trade.txt
+DEMO.txt
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Data / generated outputs
 *.csv
 *.tsv
 *.parquet
@@ -18,10 +30,3 @@ kendall_tau.json
 
 # Models
 *.pkl
-
-# Keys
-backtest.txt
-.env
-.env*
-trade.txt
-DEMO.txt
