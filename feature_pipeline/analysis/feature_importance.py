@@ -1584,7 +1584,8 @@ def compute_shared_clustering(X: pd.DataFrame) -> dict:
             "top_eigenvalue": float(evals_raw.max()),
         }
         corr_denoised = denoise_corr(corr_raw, q=q)
-        corr_cluster = detone_corr(corr_denoised, n_remove=1)
+        # NOTE: n_removed decraesed from 1 to 0. Rerun importance/clustering to see effects
+        corr_cluster = detone_corr(corr_denoised, n_remove=0)
 
     print(f"    lambda+ = {lambda_plus:.4f}, signal eigenvalues: {n_signal}, "
           f"noise: {n_noise}, signal variance: {denoising_info['signal_variance_pct']}%")
@@ -1670,7 +1671,8 @@ def run_all_importance(X: pd.DataFrame,
                 "top_eigenvalue": float(evals_raw.max()),
             }
             corr_denoised = denoise_corr(corr_raw, q=q)
-            corr_cluster = detone_corr(corr_denoised, n_remove=1)
+            # NOTE: n_removed decraesed from 1 to 0. Rerun importance/clustering to see effects
+            corr_cluster = detone_corr(corr_denoised, n_remove=0)
 
         print(f"    λ+ = {lambda_plus:.4f}, signal eigenvalues: {n_signal}, "
               f"noise: {n_noise}, signal variance: {denoising_info['signal_variance_pct']}%")
